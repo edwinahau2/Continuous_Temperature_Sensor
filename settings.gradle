@@ -1,0 +1,2 @@
+rootProject.name='Continuous Temp Sensor'
+include ':app'
