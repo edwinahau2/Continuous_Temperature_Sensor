@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabItem;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.viewpager.widget.ViewPager;
@@ -16,6 +17,8 @@ import android.view.View;
 import com.example.continuoustempsensor.ui.main.SectionsPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {
+
+    private TabItem Tab1, Tab2, Tab3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
