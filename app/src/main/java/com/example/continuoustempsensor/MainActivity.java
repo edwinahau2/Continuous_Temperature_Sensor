@@ -18,8 +18,6 @@ import com.example.continuoustempsensor.ui.main.SectionsPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TabItem Tab1, Tab2, Tab3;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

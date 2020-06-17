@@ -1,132 +1,105 @@
 package com.example.continuoustempsensor;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.media.Image;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.Intent;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Set;
-
-import static android.app.Activity.RESULT_OK;
+import androidx.fragment.app.Fragment;
 
 public class fragment_tab3 extends Fragment {
-
+    private static final int RESULT_OK = -1;
+    private Button buttonOn, buttonOff, buttonDisc, buttonFind;
+    private BluetoothAdapter mBlueAdapter;
+    private TextView mStatusBlueTv, mPairedTv;
+    private ImageView mBlueIv;
     private static final int REQUEST_ENABLE_BT = 0;
     private static final int REQUEST_DISCOVER_BT = 1;
-    TextView mStatusBlueTv, mPairedTv;
-    ImageView mBlueIv;
-    Button mOnBtn, mOffBtn, mDiscoverBtn, mPairedBtn;
 
-    BluetoothAdapter mBlueAdapater;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
-        super.onCreate(savedInstanceState);
-        mStatusBlueTv = getView().findViewById(R.id.statusBluetoothTv);
-        mPairedTv = getView().findViewById(R.id.pairedTv);
-        mBlueIv = getView().findViewById(R.id.bluetoothIv);
-        mOnBtn = getView().findViewById(R.id.onBtn);
-        mOffBtn = getView().findViewById(R.id.offBtn);
-        mDiscoverBtn = getView().findViewById(R.id.discoverableBtn);
-        mPairedBtn = getView().findViewById(R.id.pairedBtn);
-        mBlueAdapater = BluetoothAdapter.getDefaultAdapter();
-        if (mBlueAdapater == null) {
+        mStatusBlueTv = view.findViewById(R.id.statusBluetoothTv);
+        mPairedTv = view.findViewById(R.id.pairedTv);
+        mBlueIv = view.findViewById(R.id.bluetoothIv);
+        buttonOn = view.findViewById(R.id.btnON);
+        buttonOff = view.findViewById(R.id.btnOFF);
+        buttonDisc = view.findViewById(R.id.discoverableBtn);
+        buttonFind = view.findViewById(R.id.pairedBtn);
+        mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBlueAdapter == null) {
             mStatusBlueTv.setText("Bluetooth is not available");
         }
         else {
             mStatusBlueTv.setText("Bluetooth is available");
         }
-        if (mBlueAdapater.isEnabled()) {
-            mBlueIv.setImageResource(R.drawable.ic_action_on);
-        }
-        else {
-            mBlueIv.setImageResource(R.drawable.ic_action_off);
-        }
-        mOnBtn.setOnClickListener(new View.OnClickListener() {
+        buttonOn.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View v) {
-                if (!mBlueAdapater.isEnabled()){
-                    Toast.makeText(getActivity(),"Turning On Bluetooth...", Toast.LENGTH_SHORT).show();
-
+            public void onClick(View view) {
+                if (!mBlueAdapter.isEnabled()){
+                    Toast.makeText(getActivity(), "Turning on Bluetooth...", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(intent, REQUEST_ENABLE_BT);
                 }
                 else {
-                    Toast.makeText(getActivity(),"Bluetooth is already on",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Bluetooth is already on", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-        mDiscoverBtn.setOnClickListener(new View.OnClickListener() {
+        buttonOff.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if (!mBlueAdapater.isDiscovering()) {
-                    Toast.makeText(getActivity(), "Making Your Device Discoverable", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-                    startActivityForResult(intent, REQUEST_DISCOVER_BT);
-                }
-            }
-        });
-        mOffBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mBlueAdapater.isEnabled()) {
-                    mBlueAdapater.disable();
-                    Toast.makeText(getActivity(),"Turning Bluetooth Off",Toast.LENGTH_SHORT).show();
-                    mBlueIv.setImageResource(R.drawable.ic_action_off);
+                if (mBlueAdapter.isEnabled()){
+                    mBlueAdapter.disable();
+                    Toast.makeText(getActivity(), "Turning Bluetooth Off...", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    Toast.makeText(getActivity(),"Bluetooth is already off",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Bluetooth is already off", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
-        mPairedBtn.setOnClickListener(new View.OnClickListener(){
+        buttonDisc.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View v) {
-                if (mBlueAdapater.isEnabled()){
-                    mPairedTv.setText("Paired Devices");
-                    Set<BluetoothDevice> devices = mBlueAdapater.getBondedDevices();
-                    for (BluetoothDevice device: devices) {
-                        mPairedTv.append("\nDevice: " + device.getName() + "," + device);
-                    }
+            public void onClick(View view) {
+
+            }
+        });
+        buttonFind.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                if (mBlueAdapter.isDiscovering()){
+                    Toast.makeText(getActivity(), "Canceling discovery...", Toast.LENGTH_SHORT).show();
+                    mBlueAdapter.cancelDiscovery();
                 }
                 else {
-                    Toast.makeText(getActivity(),"Turn on bluetooth to get paired devices",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Finding Devices...", Toast.LENGTH_SHORT).show();
+                    mBlueAdapter.startDiscovery();
                 }
             }
         });
-
         return view;
-
     }
-@Override
-public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    switch (requestCode){
-        case REQUEST_ENABLE_BT:
-            if (resultCode == RESULT_OK){
-                mBlueIv.setImageResource(R.drawable.ic_action_on);
-                Toast.makeText(getActivity(),"Bluetooth is on",Toast.LENGTH_SHORT).show();
-            }
-            else {
-                Toast.makeText(getActivity(),"Couldn't turn on Bluetooth",Toast.LENGTH_SHORT).show();
-            }
-            break;
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        switch (requestCode){
+            case REQUEST_ENABLE_BT:
+                if (resultCode == RESULT_OK){
+                    Toast.makeText(getActivity(), "Bluetooth is on", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(getActivity(), "Failed to turn on Bluetooth", Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
     }
-    super.onActivityResult(requestCode, resultCode, data);
-}
-
 }

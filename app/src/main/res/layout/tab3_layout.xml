@@ -21,11 +21,18 @@
         android:layout_width="100dp"
         android:layout_height="100dp" />
     <Button
-        android:id="@+id/btnONOFF"
+        android:id="@+id/btnON"
         android:minWidth="200dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Turn On/Off"
+        android:text="Turn On"
+        style="@style/Base.Widget.AppCompat.Button.Colored" />
+    <Button
+        android:id="@+id/btnOFF"
+        android:minWidth="200dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Turn Off"
         style="@style/Base.Widget.AppCompat.Button.Colored" />
     <Button
         android:id="@+id/discoverableBtn"
