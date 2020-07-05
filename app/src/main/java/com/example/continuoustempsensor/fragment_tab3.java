@@ -90,6 +90,10 @@ public class fragment_tab3 extends Fragment {
                     intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
                     startActivityForResult(intent, REQUEST_DISCOVER_BT);
                 }
+                if (mBlueAdapter.isDiscovering()) {
+                    Toast.makeText(getActivity(), "Canceling discovery...", Toast.LENGTH_SHORT).show();
+                    mBlueAdapter.cancelDiscovery();
+                }
             }
         });
         buttonFind.setOnClickListener(new View.OnClickListener(){
