@@ -48,12 +48,10 @@
         android:layout_height="wrap_content"
         android:text="Find Devices"
         style="@style/Base.Widget.AppCompat.Button.Colored" />
-    <TextView
-        android:id="@+id/pairedTv"
+    <ListView
+        android:id="@+id/scanListView"
         android:minWidth="200dp"
-        android:text=""
-        android:textColor="#000"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>
