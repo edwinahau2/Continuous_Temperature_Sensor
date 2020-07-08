@@ -33,7 +33,7 @@ public class fragment_tab3 extends Fragment {
     private boolean mScanning;
     private Handler handler;
     private static final long SCAN_PERIOD = 60000;
-    private LeDeviceListAdapter mLeDeviceListAdapter;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -72,8 +72,6 @@ public class fragment_tab3 extends Fragment {
             public void onClick(View v) {
                 if (mBlueAdapter.isEnabled()){
                     mBlueAdapter.disable();
-                    mScanning = false;
-                    mBlueAdapter.stopLeScan(BluetoothAdapter.LeScanCallback);
                     Toast.makeText(getActivity(), "Turning Bluetooth Off...", Toast.LENGTH_SHORT).show();
                 }
                 else {
@@ -90,10 +88,6 @@ public class fragment_tab3 extends Fragment {
                     intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
                     startActivityForResult(intent, REQUEST_DISCOVER_BT);
                 }
-                if (mBlueAdapter.isDiscovering()) {
-                    Toast.makeText(getActivity(), "Canceling discovery...", Toast.LENGTH_SHORT).show();
-                    mBlueAdapter.cancelDiscovery();
-                }
             }
         });
         buttonFind.setOnClickListener(new View.OnClickListener(){
@@ -103,18 +97,6 @@ public class fragment_tab3 extends Fragment {
                     Toast.makeText(getActivity(), "Turning on Bluetooth...", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(intent, REQUEST_ENABLE_BT);
-                }
-                else {
-                    Toast.makeText(getActivity(), "Finding Devices...", Toast.LENGTH_SHORT).show();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            mScanning = false;
-                            mBlueAdapter.stopLeScan(BluetoothAdapter.LeScanCallback);
-                        }
-                    }, SCAN_PERIOD);
-                    mScanning = true;
-                    mBlueAdapter.startLeScan(BluetoothAdapter.LeScanCallback);
                 }
             }
         });
@@ -131,8 +113,5 @@ public class fragment_tab3 extends Fragment {
                 }
                 break;
         }
-    }
-
-
     }
 }
