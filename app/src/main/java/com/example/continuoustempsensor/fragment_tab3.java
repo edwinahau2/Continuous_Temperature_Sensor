@@ -112,6 +112,9 @@ public class fragment_tab3 extends Fragment{
                     getActivity().registerReceiver(receiver, filter);
                 }
                 else {
+                    if (mBlueAdapter.isDiscovering()) {
+                        mBlueAdapter.cancelDiscovery();
+                    }
                     Toast.makeText(getActivity(), "Finding Devices...", Toast.LENGTH_SHORT).show();
                     mBlueAdapter.startDiscovery();
                     IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -141,8 +144,8 @@ public class fragment_tab3 extends Fragment{
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 mDeviceList.add(device.getName() + ": " + device.getAddress());
+                mDeviceListAdapter = new ArrayAdapter(getActivity(),android.R.layout.simple_list_item_1, mDeviceList);
                 mDeviceListAdapter.notifyDataSetChanged();
-                mDeviceListAdapter = new ArrayAdapter<>(getActivity(),android.R.layout.simple_list_item_1, mDeviceList);
                 scanListView.setAdapter(mDeviceListAdapter);
             }
         }
