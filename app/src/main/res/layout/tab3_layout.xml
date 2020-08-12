@@ -7,7 +7,6 @@
     android:orientation="vertical"
     android:gravity="center_horizontal"
     tools:context=".MainActivity">
-
     <TextView
         android:id="@+id/statusBluetoothTv"
         android:layout_width="wrap_content"
@@ -53,5 +52,4 @@
         android:minWidth="200dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
-
 </LinearLayout>
