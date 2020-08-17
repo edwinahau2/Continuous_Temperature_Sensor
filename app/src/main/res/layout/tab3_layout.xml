@@ -15,6 +15,7 @@
         android:textAlignment="center"
         android:textSize="20sp"
         android:textColor="#000" />
+
     <ImageView
         android:id="@+id/bluetoothIv"
         android:layout_width="100dp"
@@ -51,5 +52,6 @@
         android:id="@+id/scanListView"
         android:minWidth="200dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:descendantFocusability="blocksDescendants"/>
 </LinearLayout>

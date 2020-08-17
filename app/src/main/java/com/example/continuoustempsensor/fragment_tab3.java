@@ -3,11 +3,13 @@ package com.example.continuoustempsensor;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -29,11 +32,15 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
-public class fragment_tab3 extends Fragment{
+public class fragment_tab3 extends Fragment {
     private static final int REQUEST_CODE = 1;
     private static final int RESULT_OK = -1;
     private Button buttonOn, buttonOff, buttonDisc, buttonFind;
@@ -45,6 +52,7 @@ public class fragment_tab3 extends Fragment{
     ListView scanListView;
     ArrayList mDeviceList;
     ArrayAdapter<String> mDeviceListAdapter;
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -62,12 +70,19 @@ public class fragment_tab3 extends Fragment{
         scanListView.setAdapter(mDeviceListAdapter);
         if (mBlueAdapter == null) {
             mStatusBlueTv.setText("Bluetooth is not available");
+            mStatusBlueTv.setTextColor(Color.BLUE);
+
         }
         else {
             mStatusBlueTv.setText("Bluetooth is available");
+            mStatusBlueTv.setTextColor(Color.BLUE);
         }
         if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
+        }
+
+        if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
         }
         buttonOn.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -113,15 +128,16 @@ public class fragment_tab3 extends Fragment{
         buttonFind.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                if (!mBlueAdapter.isDiscovering()) {
-                    mBlueAdapter.startDiscovery();
-                    onStart();
-//                    findPairedDevices();
-                } else {
+                if (!mBlueAdapter.isEnabled()) {
+                    Toast.makeText(getActivity(), "Turn on Bluetooth to find devices", Toast.LENGTH_SHORT).show();
+                }
+                else {
                     mBlueAdapter.cancelDiscovery();
+                    mDeviceListAdapter.clear();
                     mBlueAdapter.startDiscovery();
                     onStart();
                 }
+//                    findPairedDevices();
             }
             });
         return view;
@@ -150,7 +166,7 @@ public class fragment_tab3 extends Fragment{
         }
     }
 
-    BroadcastReceiver receiver = new BroadcastReceiver() {
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -162,11 +178,25 @@ public class fragment_tab3 extends Fragment{
             else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(intent.getAction())) {
                 Toast.makeText(getActivity(), "Finding Devices...", Toast.LENGTH_SHORT).show();
             }
-            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction())) {
+            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
                 Toast.makeText(getActivity(), "Finding Devices Complete", Toast.LENGTH_SHORT).show();
             }
+            scanListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    String deviceName = scanListView.getAdapter().getItem(position).toString();
+                    int i = deviceName.indexOf(":");
+                    deviceName = deviceName.substring(i+2);
+                    BluetoothDevice mDevice = mBlueAdapter.getRemoteDevice(deviceName);
+                    Toast.makeText(getActivity(), "You clicked on " + deviceName, Toast.LENGTH_SHORT).show();
+                    pairDevice(mDevice);
+//                    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+//                    requireActivity().registerReceiver(receiver3, filter);
+                }
+            });
         }
     };
+
     public void onStart() {
 
         super.onStart();
@@ -211,11 +241,57 @@ public class fragment_tab3 extends Fragment{
             }
         }
     };
-//    @Override
-//    public void onDestroy(){
-//        getActivity().unregisterReceiver(receiver);
-//        mBlueAdapter.cancelDiscovery();
-//        super.onDestroy();
-//        getActivity().unregisterReceiver(receiver2);
-//    }
+
+    private final BroadcastReceiver receiver3 = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
+                BluetoothDevice mDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (mDevice.getBondState() == BluetoothDevice.BOND_BONDING) {
+                    Toast.makeText(getActivity(), "Connected!", Toast.LENGTH_SHORT).show();
+                }
+                else if (mDevice.getBondState() == BluetoothDevice.BOND_BONDING){
+                    Toast.makeText(getActivity(), "Connecting...", Toast.LENGTH_SHORT).show();
+                }
+                if (mDevice.getBondState() == BluetoothDevice.BOND_NONE) {
+                    Toast.makeText(getActivity(), "Unable to Connect", Toast.LENGTH_SHORT).show();
+                }
+            }
+            else {
+                Toast.makeText(getActivity(), "No Bonding!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
+    public void pairDevice(BluetoothDevice mDevice) {
+        final BluetoothSocket mSocket;
+        BluetoothSocket tmp = null;
+        try {
+            tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+        } catch (IOException e) {
+            Toast.makeText(getActivity(), "Socket Failed", Toast.LENGTH_SHORT).show();
+        }
+        mSocket = tmp;
+
+        try {
+            mSocket.connect();
+        } catch (IOException connectException) {
+            try {
+                mSocket.close();
+            } catch (IOException closeException) {
+                Toast.makeText(getActivity(), "Could not close socket", Toast.LENGTH_SHORT).show();
+            }
+        }
+        Toast.makeText(getActivity(), "Connected!", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        mBlueAdapter.cancelDiscovery();
+        requireActivity().unregisterReceiver(receiver);
+        requireActivity().unregisterReceiver(receiver2);
+        requireActivity().unregisterReceiver(receiver3);
+    }
 }
