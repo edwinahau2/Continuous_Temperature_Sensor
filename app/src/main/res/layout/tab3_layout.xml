@@ -1,68 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_horizontal"
-    tools:context=".MainActivity">
-    <TextView
-        android:id="@+id/statusBluetoothTv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textAlignment="center"
-        android:textSize="20sp"
-        android:textColor="#000" />
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".fragment_tab3">
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/statusBluetoothTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="20sp"
+                android:textColor="#000"
+                android:layout_gravity="center"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text=""
+                android:id="@+id/response" />
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/simpleSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"
+                android:scaleX="1.2"
+                android:scaleY="1.2"
+                android:text="Bluetooth "
+                android:textOff="OFF"
+                android:textOn="ON"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                android:thumb="@drawable/sw_thumb"
+                app:showText="true"
+                app:track="@drawable/sw_track" />
 
-    <androidx.appcompat.widget.SwitchCompat
-        app:showText="true"
-        android:id="@+id/simpleSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textOn="ON"
-        android:textOff="OFF"
-        android:scaleX="1.2"
-        android:scaleY="1.2"
-        android:text="Bluetooth "
-        android:textSize="25sp"
-        android:textStyle="bold"
-        android:layout_marginTop="40dp"
-        android:thumb="@drawable/sw_thumb"
-        app:track="@drawable/sw_track"/>
+            <ProgressBar
+                android:id="@+id/indeterminateBar"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginTop="20dp"
+                android:indeterminateTint="@color/cardview_shadow_start_color"
+                android:layout_gravity="center"/>
 
-    <ProgressBar
-        android:id="@+id/indeterminateBar"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="20dp"
-        android:indeterminateTint="@color/cardview_shadow_start_color"/>
+            <Button
+                android:id="@+id/discoverableBtn"
+                style="@style/Base.Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_centerInParent = "true"
+                android:minWidth="200dp"
+                android:text="Enable Discoverable"
+                android:textAlignment="center"
+                android:layout_gravity="center"/>
 
-    <Button
-        android:id="@+id/discoverableBtn"
-        android:layout_marginTop="20dp"
-        android:minWidth="200dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Enable Discoverable"
-        android:textAlignment="center"
-        style="@style/Base.Widget.AppCompat.Button.Colored" />
-    <Button
-        android:id="@+id/pairedBtn"
-        android:minWidth="200dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="      Find Devices"
-        android:drawableRight="@drawable/ic_find_devices"
-        style="@style/Base.Widget.AppCompat.Button.Colored" />
+            <Button
+                android:id="@+id/pairedBtn"
+                android:minWidth="200dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="      Find Devices"
+                android:drawableRight="@drawable/ic_find_devices"
+                style="@style/Base.Widget.AppCompat.Button.Colored"
+                android:layout_gravity="center"/>
 
-    <ListView
-        android:id="@+id/scanListView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:descendantFocusability="blocksDescendants"
-        android:layout_marginTop="20dp"
-        android:minWidth="200dp" />
-</LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginTop="20dp"
+                android:text="Available Devices"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="#111"
+                android:id="@+id/pairedDevices"/>
+
+            <ListView
+                android:id="@+id/scanListView"
+                android:layout_width="wrap_content"
+                android:layout_height="300dp"
+                android:layout_marginTop="10dp"
+                android:descendantFocusability="blocksDescendants"
+                android:minWidth="200dp" />
+        </LinearLayout>
+    </RelativeLayout>
+</ScrollView>

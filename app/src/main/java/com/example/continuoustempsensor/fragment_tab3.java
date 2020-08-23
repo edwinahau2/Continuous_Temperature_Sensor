@@ -14,6 +14,9 @@ import android.graphics.Color;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.SyncStateContract;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +30,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,9 +42,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -51,30 +58,37 @@ public class fragment_tab3 extends Fragment {
     private Button buttonDisc, buttonFind;
     private SwitchCompat simpleSwitch;
     private BluetoothAdapter mBlueAdapter;
-    private TextView mStatusBlueTv;
+    private TextView mStatusBlueTv, response;
     private ProgressBar spinner;
     private static final int REQUEST_ENABLE_BT = 0;
     private static final int REQUEST_DISCOVER_BT = 1;
+    TextView paired, other;
     ListView scanListView;
-    ArrayList mDeviceList;
+    ArrayList scanDeviceList;
     ArrayAdapter<String> mDeviceListAdapter;
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    BluetoothSocket mmSocket;
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+    public Handler mHandler;
+    ConnectedThread btt = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
         mStatusBlueTv = view.findViewById(R.id.statusBluetoothTv);
+        response = view.findViewById(R.id.response);
         spinner = view.findViewById(R.id.indeterminateBar);
         spinner.setVisibility(View.GONE);
         simpleSwitch = view.findViewById(R.id.simpleSwitch);
         simpleSwitch.setShowText(true);
         simpleSwitch.setTextOff("OFF");
+        paired = view.findViewById(R.id.pairedDevices);
+        paired.setVisibility(View.GONE);
         buttonDisc = view.findViewById(R.id.discoverableBtn);
         buttonFind = view.findViewById(R.id.pairedBtn);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-        mDeviceList = new ArrayList();
+        scanDeviceList = new ArrayList();
         scanListView = view.findViewById(R.id.scanListView);
-        mDeviceListAdapter = new ArrayAdapter<String>(requireActivity().getApplicationContext(), android.R.layout.simple_list_item_1, mDeviceList);
+        mDeviceListAdapter = new ArrayAdapter<String>(requireActivity().getApplicationContext(), android.R.layout.simple_list_item_1, scanDeviceList);
         scanListView.setAdapter(mDeviceListAdapter);
         if (mBlueAdapter == null) {
             mStatusBlueTv.setText("Bluetooth is not available");
@@ -119,6 +133,8 @@ public class fragment_tab3 extends Fragment {
                     if (mBlueAdapter.isEnabled()){
                         Toast.makeText(getActivity(), "Turning Bluetooth Off...", Toast.LENGTH_SHORT).show();
                         mBlueAdapter.disable();
+                        mStatusBlueTv.setText("Bluetooth is Available");
+                        spinner.setVisibility(View.GONE);
                     }
                     else {
                         Toast.makeText(getActivity(), "Bluetooth is already off", Toast.LENGTH_SHORT).show();
@@ -149,15 +165,21 @@ public class fragment_tab3 extends Fragment {
                     Toast.makeText(getActivity(), "Turn on Bluetooth to find devices", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    mBlueAdapter.cancelDiscovery();
-                    mDeviceListAdapter.clear();
-                    mBlueAdapter.startDiscovery();
-                    onStart();
+                    if (mBlueAdapter.isDiscovering()) {
+                        mBlueAdapter.cancelDiscovery();
+                        buttonFind.setText("      Find Devices");
+                    }
+                    else {
+                        mDeviceListAdapter.clear();
+                        mBlueAdapter.startDiscovery();
+                        buttonFind.setText("  Stop Finding Devices");
+                        findPairedDevices();
+                    }
                 }
-                findPairedDevices();
             }
             });
         return view;
+
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -175,26 +197,32 @@ public class fragment_tab3 extends Fragment {
             if (resultCode == RESULT_OK) {
                 simpleSwitch.setTextOn("ON");
                 Toast.makeText(getActivity(), "Bluetooth is on", Toast.LENGTH_SHORT).show();
+                simpleSwitch.setChecked(true);
             } else {
                 simpleSwitch.setTextOn("OFF");
                 Toast.makeText(getActivity(), "Failed to turn on Bluetooth", Toast.LENGTH_SHORT).show();
+                simpleSwitch.setChecked(false);
             }
         }
     }
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(Context context, final Intent intent) {
             int i = 0;
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (device.getName() == null) {
-                    mDeviceList.add("Unknown Device: " + device.getAddress());
+                    scanDeviceList.add("Unknown Device: " + device.getAddress());
                 }
                 else {
-                    mDeviceList.add(device.getName() + ": " + device.getAddress());
+                    scanDeviceList.add(device.getName() + ": " + device.getAddress());
                 }
+                HashSet<String> hashSet = new HashSet<String>();
+                hashSet.addAll(scanDeviceList);
+                scanDeviceList.clear();
+                scanDeviceList.addAll(hashSet);
                 mDeviceListAdapter.notifyDataSetChanged();
             }
             else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(intent.getAction())) {
@@ -202,20 +230,56 @@ public class fragment_tab3 extends Fragment {
                 Toast.makeText(getActivity(), "Finding Devices...", Toast.LENGTH_SHORT).show();
             }
             else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
-                Toast.makeText(getActivity(), "Finding Devices Complete", Toast.LENGTH_SHORT).show();
                 spinner.setVisibility(View.GONE);
+                buttonFind.setText("      Find Devices");
             }
             scanListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    spinner.setVisibility(View.GONE);
+                    mBlueAdapter.cancelDiscovery();
                     String deviceName = scanListView.getAdapter().getItem(position).toString();
                     int i = deviceName.indexOf(":");
-                    deviceName = deviceName.substring(i+2);
-                    BluetoothDevice mDevice = mBlueAdapter.getRemoteDevice(deviceName);
+                    String deviceAddress = deviceName.substring(i + 2);
+                    deviceName = deviceName.substring(0, i);
+                    BluetoothDevice mDevice = mBlueAdapter.getRemoteDevice(deviceAddress);
                     Toast.makeText(getActivity(), "You clicked on " + deviceName, Toast.LENGTH_SHORT).show();
-                    pairDevice(mDevice);
-//                    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-//                    requireActivity().registerReceiver(receiver3, filter);
+                    if (mmSocket == null) {
+                        BluetoothSocket tmp = null;
+                        try {
+                            tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                            mmSocket = tmp;
+                            mmSocket.connect();
+                            mStatusBlueTv.setText("Connected to " + deviceName);
+                        } catch (IOException e) {
+                            try {
+                                mmSocket.close();
+                            } catch (IOException c) {
+                            }
+                        }
+
+                        mHandler = new Handler(Looper.getMainLooper()) {
+                            @Override
+                            public void handleMessage(@NonNull Message msg) {
+                                super.handleMessage(msg);
+                                if (msg.what == ConnectedThread.RESPONSE_MESSAGE) {
+                                    String txt = (String) msg.obj;
+                                    response.append("\n" + txt);
+                                }
+                            }
+                        };
+
+                        btt = new ConnectedThread(mmSocket, mHandler);
+                        btt.start();
+                    }
+                    else {
+                        Toast.makeText(getActivity(), "Disconnecting from " + deviceName, Toast.LENGTH_SHORT).show();
+                        try {
+                            mmSocket.close();
+                        } catch (IOException e) {}
+                        mmSocket = null;
+                        mStatusBlueTv.setText("Bluetooth is Available");
+                    }
                 }
             });
         }
@@ -232,13 +296,16 @@ public class fragment_tab3 extends Fragment {
         requireActivity().registerReceiver(receiver, filter2);
     }
    private void findPairedDevices() {
-       Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
+       mDeviceListAdapter.clear();
+        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
        if (bluetoothSet.size() > 0) {
            for (BluetoothDevice device : bluetoothSet) {
                String deviceName = device.getName();
                String deviceAddress = device.getAddress();
-               mDeviceList.add(deviceName + ": " + deviceAddress);
+               paired.setVisibility(View.VISIBLE);
+               scanDeviceList.add(deviceName + ": " + deviceAddress);
                mDeviceListAdapter.notifyDataSetChanged();
+               onStart();
            }
        }
    }
@@ -263,52 +330,6 @@ public class fragment_tab3 extends Fragment {
         }
     };
 
-    private final BroadcastReceiver receiver3 = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
-                BluetoothDevice mDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (mDevice.getBondState() == BluetoothDevice.BOND_BONDING) {
-                    Toast.makeText(getActivity(), "Connected!", Toast.LENGTH_SHORT).show();
-                }
-                else if (mDevice.getBondState() == BluetoothDevice.BOND_BONDING){
-                    Toast.makeText(getActivity(), "Connecting...", Toast.LENGTH_SHORT).show();
-                }
-                if (mDevice.getBondState() == BluetoothDevice.BOND_NONE) {
-                    Toast.makeText(getActivity(), "Unable to Connect", Toast.LENGTH_SHORT).show();
-                }
-            }
-            else {
-                Toast.makeText(getActivity(), "No Bonding!", Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
-
-    @SuppressLint("SetTextI18n")
-    public void pairDevice(BluetoothDevice mDevice) {
-        final BluetoothSocket mSocket;
-        BluetoothSocket tmp = null;
-        try {
-            tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-        } catch (IOException e) {
-            Toast.makeText(getActivity(), "Socket Failed", Toast.LENGTH_SHORT).show();
-        }
-        mSocket = tmp;
-        mBlueAdapter.cancelDiscovery();
-        spinner.setVisibility(View.GONE);
-        try {
-            mSocket.connect();
-        } catch (IOException connectException) {
-            try {
-                mSocket.close();
-            } catch (IOException closeException) {
-                Toast.makeText(getActivity(), "Could not close socket", Toast.LENGTH_SHORT).show();
-            }
-        }
-        mStatusBlueTv.setText("Connected to " + mDevice.getName());
-    }
-
     @Override
     public void onDestroy(){
         super.onDestroy();
@@ -316,6 +337,5 @@ public class fragment_tab3 extends Fragment {
         spinner.setVisibility(View.GONE);
         requireActivity().unregisterReceiver(receiver);
         requireActivity().unregisterReceiver(receiver2);
-        requireActivity().unregisterReceiver(receiver3);
     }
 }
