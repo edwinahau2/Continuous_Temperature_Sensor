@@ -41,8 +41,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -54,6 +56,9 @@ import java.util.UUID;
 
 public class fragment_tab3 extends Fragment {
     private static final int REQUEST_CODE = 1;
+//    final int handlerState = 0;
+    public static final int RESPONSE_MESSAGE = 10;
+    private StringBuilder recDataString = new StringBuilder();
     private static final int RESULT_OK = -1;
     private Button buttonDisc, buttonFind;
     private SwitchCompat simpleSwitch;
@@ -62,7 +67,7 @@ public class fragment_tab3 extends Fragment {
     private ProgressBar spinner;
     private static final int REQUEST_ENABLE_BT = 0;
     private static final int REQUEST_DISCOVER_BT = 1;
-    TextView paired, other;
+    TextView paired;
     ListView scanListView;
     ArrayList scanDeviceList;
     ArrayAdapter<String> mDeviceListAdapter;
@@ -258,19 +263,32 @@ public class fragment_tab3 extends Fragment {
                             }
                         }
 
-                        mHandler = new Handler(Looper.getMainLooper()) {
+                       mHandler = new Handler(Looper.getMainLooper()) {
                             @Override
                             public void handleMessage(@NonNull Message msg) {
                                 super.handleMessage(msg);
-                                if (msg.what == ConnectedThread.RESPONSE_MESSAGE) {
-                                    String txt = (String) msg.obj;
-                                    response.append("\n" + txt);
+                                if (msg.what == RESPONSE_MESSAGE) {
+                                    String readMessage = (String) msg.obj;
+                                    recDataString.append(readMessage);
+                                    int endOfLineIndex = recDataString.indexOf("~");
+                                    if (endOfLineIndex > 0) {
+                                        String dataInPrint = recDataString.substring(0, endOfLineIndex);
+                                        Toast.makeText(getActivity(), dataInPrint, Toast.LENGTH_SHORT).show();
+
+                                        if (recDataString.charAt(0) == '#') {
+                                            String sensor = recDataString.substring(1, 6);
+                                            response.setText(sensor);
+                                        }
+                                        recDataString.delete(0, recDataString.length());
+                                        dataInPrint = "";
+                                    }
                                 }
                             }
                         };
-
-                        btt = new ConnectedThread(mmSocket, mHandler);
+                        btt = new ConnectedThread(mmSocket);
                         btt.start();
+//                        btt = new ConnectedThread(mmSocket, mHandler);
+//                        btt.start();
                     }
                     else {
                         Toast.makeText(getActivity(), "Disconnecting from " + deviceName, Toast.LENGTH_SHORT).show();
@@ -284,6 +302,67 @@ public class fragment_tab3 extends Fragment {
             });
         }
     };
+
+    private class ConnectedThread extends Thread {
+        private InputStream mmInStream;
+        private OutputStream mmOutStream;
+
+        public ConnectedThread(BluetoothSocket socket) {
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+            try {
+                tmpIn = socket.getInputStream();
+                tmpOut = socket.getOutputStream();
+            } catch (IOException e) {}
+
+            mmInStream = tmpIn;
+            mmOutStream = tmpOut;
+        }
+
+        public void run() {
+            BufferedReader br;
+            br = new BufferedReader(new InputStreamReader(mmInStream));
+            while (true) {
+                try {
+                    String resp = br.readLine();
+                    Message msg = new Message();
+                    msg.what = RESPONSE_MESSAGE;
+                    msg.obj = resp;
+                    mHandler.sendMessage(msg);
+                } catch (IOException e) {
+                    break;
+                }
+            }
+
+
+
+//            byte[] buffer = new byte[0];
+//            try {
+//                buffer = new byte[mmInStream.available()];
+//                response.setText(String.valueOf(mmInStream.available()));
+//            } catch (IOException e) {
+//                response.setText("Input Stream Not Available");
+//            }
+//            int bytes;
+//            while (true) {
+//                try {
+//                    bytes = mmInStream.read(buffer);
+//                    int i = 0;
+//                    for (i = 0; i < buffer.length && buffer[i] != 0; i++) {}
+//                    String readMessage = new String(buffer, 0, i);
+//                    mHandler.obtainMessage(handlerState, bytes, -1, readMessage).sendToTarget();
+//                } catch (IOException e) {
+//                    break;
+//                }
+        }
+
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) {}
+        }
+    }
+
 
     public void onStart() {
 
@@ -336,6 +415,6 @@ public class fragment_tab3 extends Fragment {
         mBlueAdapter.cancelDiscovery();
         spinner.setVisibility(View.GONE);
         requireActivity().unregisterReceiver(receiver);
-        requireActivity().unregisterReceiver(receiver2);
+//        requireActivity().unregisterReceiver(receiver2);
     }
 }
