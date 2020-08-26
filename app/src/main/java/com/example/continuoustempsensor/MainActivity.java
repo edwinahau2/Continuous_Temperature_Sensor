@@ -1,22 +1,28 @@
 package com.example.continuoustempsensor;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.tabs.TabItem;
-import com.google.android.material.tabs.TabLayout;
-
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.viewpager.widget.ViewPager;
 
 import com.example.continuoustempsensor.ui.main.SectionsPagerAdapter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
 
 public class MainActivity extends AppCompatActivity {
+    private NotificationManagerCompat notificationManager;
+    private EditText editTextTitle;
+    private EditText editTextMessage;
+
+   // Button notify_button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,5 +42,50 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+
+//        notify_button = findViewById(R.id.push);
+//        notify_button.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                //code that appears in the notification
+//                NotificationCompat.Builder mbuilder = (NotificationCompat.Builder)
+//                        new NotificationCompat.Builder(getApplicationContext())
+//                                .setSmallIcon(R.drawable.warning)
+//                                .setContentTitle("Notification")
+//                                .setContentText("you have been warned lol");
+//
+//                NotificationManager notificationManager = (NotificationManager)
+//                        getSystemService(NOTIFICATION_SERVICE);
+//                notificationManager.notify(0, mbuilder.build());
+//            }
+//        });
     }
+
+    public void sendUrgentWarning1(View view) {
+        String title = editTextTitle.getText().toString();
+        String message = editTextMessage.getText().toString();
+        Notification notification = new NotificationCompat.Builder(this, notifications.CHANNEL_1_ID)
+                .setSmallIcon(R.drawable.warning)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .build();
+        notificationManager.notify(1,notification);
+    }
+
+    public void sendUpdate2(View view) {
+        String title = editTextTitle.getText().toString();
+        String message = editTextMessage.getText().toString();
+        Notification notification = new NotificationCompat.Builder(this, notifications.CHANNEL_2_ID)
+                .setSmallIcon(R.drawable.ic_announcement_black_24dp)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setCategory(NotificationCompat.CATEGORY_EVENT)
+                .build();
+        notificationManager.notify(2,notification);
+    }
+
 }
