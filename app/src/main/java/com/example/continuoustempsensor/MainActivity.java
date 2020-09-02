@@ -1,10 +1,7 @@
 package com.example.continuoustempsensor;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,12 +14,15 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
+
+
 public class MainActivity extends AppCompatActivity {
     private NotificationManagerCompat notificationManager;
     private EditText editTextTitle;
     private EditText editTextMessage;
 
    // Button notify_button;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +34,11 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
         FloatingActionButton fab = findViewById(R.id.fab);
+
+        notificationManager = NotificationManagerCompat.from(this);
+
+        editTextTitle = findViewByID(R.edit_text_title);
+        editTextMessage = findViewById(R.id.edit_text_message);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     public void sendUrgentWarning1(View view) {
         String title = editTextTitle.getText().toString();
         String message = editTextMessage.getText().toString();
-        Notification notification = new NotificationCompat.Builder(this, notifications.CHANNEL_1_ID)
+        android.app.Notification notification = new NotificationCompat.Builder(this, notifications.CHANNEL_1_ID)
                 .setSmallIcon(R.drawable.warning)
                 .setContentTitle(title)
                 .setContentText(message)
@@ -78,8 +83,8 @@ public class MainActivity extends AppCompatActivity {
     public void sendUpdate2(View view) {
         String title = editTextTitle.getText().toString();
         String message = editTextMessage.getText().toString();
-        Notification notification = new NotificationCompat.Builder(this, notifications.CHANNEL_2_ID)
-                .setSmallIcon(R.drawable.ic_announcement_black_24dp)
+        android.app.Notification notification = new NotificationCompat.Builder(this, notifications.CHANNEL_2_ID)
+                .setSmallIcon(R.drawable.announcement)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -87,5 +92,6 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         notificationManager.notify(2,notification);
     }
+
 
 }
