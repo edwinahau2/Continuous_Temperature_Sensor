@@ -26,12 +26,14 @@
         android:hint="Message"/>
 
     <Button
+        android:id="@+id/urgent_warning"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Send Urgent Warning"
         android:onClick="sendUrgentWarning1"/>
 
     <Button
+        android:id="@+id/send_update"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Send Update"
