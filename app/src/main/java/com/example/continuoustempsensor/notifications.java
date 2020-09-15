@@ -8,10 +8,10 @@ import android.os.Build;
 public class notifications extends Application {
     public static final String CHANNEL_1_ID = "Temperature Sensor Warming";
     public static final String CHANNEL_2_ID = "Temperature Sensor Update";
+
     @Override
     public void onCreate() {
         super.onCreate();
-
         createNotificationChannels();
     }
 
@@ -23,6 +23,7 @@ public class notifications extends Application {
                     NotificationManager.IMPORTANCE_HIGH
             );
             channel1.setDescription("This provides warnings on worrisome temperature fluctuations");
+            //channel1.setVibrationPattern();, channel1.setSound();, channel1.setLockscreenVisibility(); all at default
 
             NotificationChannel channel2 = new NotificationChannel(
                     CHANNEL_2_ID,
@@ -31,7 +32,7 @@ public class notifications extends Application {
             );
             channel2.setDescription("This provides updates of temperatures recorded periodically");
 
-            NotificationManager manager =getSystemService(NotificationManager.class);
+            NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel1);
             manager.createNotificationChannel(channel2);
         }
