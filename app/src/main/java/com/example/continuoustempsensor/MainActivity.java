@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +21,10 @@ import android.view.View;
 import com.example.continuoustempsensor.ui.main.SectionsPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {
+
+    String TAG_1 = "frag1";
+    String TAG_2  = "frag2";
+    String TAG_3 = "frag3";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

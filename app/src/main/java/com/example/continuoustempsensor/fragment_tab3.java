@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
@@ -25,6 +26,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.provider.SyncStateContract;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -35,6 +37,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -73,6 +76,7 @@ public class fragment_tab3 extends Fragment {
     public static final int RESPONSE_MESSAGE = 10;
     private StringBuilder recDataString = new StringBuilder();
     private ToggleButton button;
+    private CheckBox enable, hide;
     Toast toast;
     private Spinner dropdown;
     private static final String[] options = {"30 mins", "1 hour", "2 hours", "3 hours", "6 hours", "12 hours", "24 hours"};
@@ -80,7 +84,7 @@ public class fragment_tab3 extends Fragment {
     private Button buttonFind, f, c, connect;
     private SwitchCompat simpleSwitch;
     private BluetoothAdapter mBlueAdapter;
-    private TextView response;
+    private TextView response, notify;
     private ProgressBar spinner;
     private static final int REQUEST_ENABLE_BT = 0;
     TextView paired;
@@ -95,21 +99,25 @@ public class fragment_tab3 extends Fragment {
     private OutputStream mmOutStream;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
         button = view.findViewById(R.id.mBlueIv);
         spinner = view.findViewById(R.id.progressBar);
         spinner.setVisibility(View.GONE);
         paired = view.findViewById(R.id.pairedDevices);
+        response = view.findViewById(R.id.response);
         paired.setVisibility(View.GONE);
         buttonFind = view.findViewById(R.id.pairedBtn);
         f = view.findViewById(R.id.fahrenheit);
         c = view.findViewById(R.id.celsius);
         dropdown = view.findViewById(R.id.spinner);
+        enable = view.findViewById(R.id.enable);
+        hide = view.findViewById(R.id.hide);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(requireActivity().getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, options);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dropdown.setAdapter(adapter);
         connect = view.findViewById(R.id.connect);
+        notify = view.findViewById(R.id.notify);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         scanDeviceList = new ArrayList();
         scanListView = view.findViewById(R.id.scanListView);
@@ -160,6 +168,35 @@ public class fragment_tab3 extends Fragment {
                 // code for converting to celsius
             }
         });
+
+        enable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    notify.setTextColor(Color.parseColor("#000000"));
+                } else {
+                    notify.setTextColor(Color.parseColor("#ccc8c8"));
+                }
+            }
+        });
+
+//        hide.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+//                SharedPreferences.Editor editor = prefs.edit();
+//                boolean check = prefs.getBoolean("check", isChecked);
+//                if (isChecked) {
+//                    hide.setChecked(true);
+//                } else {
+//                    hide.setChecked(false);
+//                }
+//                fragment_tab1 f = new fragment_tab1();
+//                Bundle b = new Bundle();
+//                b.putBoolean("check", isChecked);
+//                f.setArguments(b);
+//            }
+//        });
 
         button.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -257,7 +294,15 @@ public class fragment_tab3 extends Fragment {
 
                                     if (recDataString.charAt(0) == '#') {
                                         String sensor = recDataString.substring(1, endOfLineIndex);
-//                                            response.setText(sensor);
+                                        response.setText(sensor);
+//                                        fragment_tab1 ldf = new fragment_tab1();
+//                                        FragmentManager fm = getActivity().getSupportFragmentManager();
+//                                        FragmentTransaction ft = fm.beginTransaction();
+//                                        ft.replace(R.id.fragment1, ldf);
+//                                        ft.commit();
+//                                        Bundle args = new Bundle();
+//                                        args.putString("temperature", sensor);
+//                                        ldf.setArguments(args);
                                     }
                                     recDataString.delete(0, recDataString.length());
                                     dataInPrint = "";
@@ -297,6 +342,7 @@ public class fragment_tab3 extends Fragment {
         return view;
 
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -401,10 +447,11 @@ public class fragment_tab3 extends Fragment {
         IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         requireActivity().registerReceiver(receiver, filter2);
     }
-   private void findPairedDevices() {
-       mDeviceListAdapter.clear();
+
+    private void findPairedDevices() {
+        mDeviceListAdapter.clear();
         Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
-       if (bluetoothSet.size() > 0) {
+        if (bluetoothSet.size() > 0) {
            for (BluetoothDevice device : bluetoothSet) {
                String deviceName = device.getName();
                String deviceAddress = device.getAddress();
@@ -413,8 +460,8 @@ public class fragment_tab3 extends Fragment {
                mDeviceListAdapter.notifyDataSetChanged();
                onStart();
            }
-       }
-   }
+        }
+    }
 
     public void setToast() {
         toast.setGravity(Gravity.BOTTOM, 0, 180);
@@ -422,7 +469,7 @@ public class fragment_tab3 extends Fragment {
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         mBlueAdapter.cancelDiscovery();
         spinner.setVisibility(View.GONE);

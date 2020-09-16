@@ -16,13 +16,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAlignment="center"
-        android:textSize="50sp"
+        android:textSize="70sp"
         android:text="98.7"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/graph"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.15"
+        app:layout_constraintVertical_bias="0.75"
         android:id="@+id/text"/>
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
@@ -34,7 +34,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.35"/>
+        app:layout_constraintVertical_bias="0.45"/>
+
+    <com.lorentzos.flingswipe.SwipeFlingAdapterView
+        android:id="@+id/frame"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#e0e0e0"
+        app:layout_constraintTop_toBottomOf="@+id/graph"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="25dp"
+        app:layout_constraintHeight_max="150dp"
+        app:rotation_degrees="0" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="5dp"
+        android:textAlignment="center"
+        android:textSize="25sp"
+        android:textColor="#FFFFFF"
+        android:id="@+id/counter"
+        app:layout_constraintEnd_toEndOf="@+id/frame"
+        android:background="@drawable/circular_border"
+        app:layout_constraintTop_toBottomOf="@+id/graph"
+
+        />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

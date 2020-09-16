@@ -18,6 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
+            android:id="@+id/response"
             android:text="Your Settings"
             android:textAlignment="center"
             android:textColor="#000"
@@ -112,14 +113,27 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:id="@+id/enable"
                 android:text="Enable Notifications"
                 android:checked="true"/>
-            <CheckBox
-                android:layout_width="0dp"
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Hide In-App Notifications"
-                android:layout_gravity="center"/>
+                android:layout_gravity="start"
+                android:textColor="#000000"
+                android:text="Notify Every"
+                android:id="@+id/notify"/>
+            <Spinner
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:spinnerMode="dropdown"
+                android:id="@+id/spinner"/>
         </LinearLayout>
 
         <LinearLayout
@@ -127,16 +141,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp">
             <CheckBox
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:text="Notify Every" />
-            <Spinner
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:spinnerMode="dropdown"
-                android:id="@+id/spinner"/>
-
+                android:layout_weight="1"
+                android:id="@+id/hide"
+                android:text="Hide In-App Notifications"
+                android:layout_gravity="center"/>
         </LinearLayout>
 
         <LinearLayout
@@ -216,7 +226,7 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="234dp"
             android:layout_marginTop="10dp"
@@ -225,13 +235,8 @@
             <ListView
                 android:id="@+id/scanListView"
                 android:dividerHeight="2dp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                tools:ignore="NestedScrolling" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>
