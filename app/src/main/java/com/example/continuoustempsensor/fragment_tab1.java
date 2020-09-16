@@ -1,6 +1,9 @@
 package com.example.continuoustempsensor;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,12 +37,28 @@ public class fragment_tab1 extends Fragment {
                 String title = editTextTitle.getText().toString();
                 String message = editTextMessage.getText().toString();
                 assert that != null;
+
+                Intent activityIntent = new Intent(that, MainActivity.class); // opens the app at fragment 1 when notification clicked
+                PendingIntent contentIntent = PendingIntent.getActivity(that,
+                        0, activityIntent, 0);
+
+                Intent broadcastIntent = new Intent(that, NotificationReceiver.class);
+                broadcastIntent.putExtra("openApp", message);
+                PendingIntent actionIntent = PendingIntent.getBroadcast(that,
+                        0, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                //update current means that when we create a new pendingintent, it will update putextra
+
                 android.app.Notification notification = new NotificationCompat.Builder(that, notifications.CHANNEL_1_ID)
                         .setSmallIcon(R.drawable.warning)
                         .setContentTitle(title)
                         .setContentText(message)
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setCategory(NotificationCompat.CATEGORY_ALARM)
+                        .setColor(Color.BLUE)
+                        .setContentIntent(contentIntent)
+                        .setAutoCancel(true) //when tapped the notification will go away
+                        //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
+                        .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) //can add up to 3 action buttons
                         .build();
                 notificationManager.notify(1, notification);
             }
