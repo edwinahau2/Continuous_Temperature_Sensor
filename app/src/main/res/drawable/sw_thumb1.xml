@@ -6,7 +6,7 @@
             <size android:width="38dp"
                 android:height="38dp"/>
             <stroke android:width="5dp"
-                android:color="#44db79"/>
+                android:color="#309ae6"/>
         </shape>
     </item>
     <item android:state_checked="false">

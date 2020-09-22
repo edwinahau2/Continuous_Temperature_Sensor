@@ -72,6 +72,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class fragment_tab3 extends Fragment {
+    private Callback mCallback;
     private static final int REQUEST_CODE = 1;
     public static final int RESPONSE_MESSAGE = 10;
     private StringBuilder recDataString = new StringBuilder();
@@ -97,6 +98,9 @@ public class fragment_tab3 extends Fragment {
     ConnectedThread btt = null;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
+    private String tf = "98.7";
+    private String symbol;
+    private boolean check;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
@@ -156,7 +160,8 @@ public class fragment_tab3 extends Fragment {
             public void onClick(View v) {
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
-                // code for converting to fahrenheit
+                symbol = " °F";
+                mCallback.messageFromBt(tf, check, symbol);
             }
         });
 
@@ -165,7 +170,8 @@ public class fragment_tab3 extends Fragment {
             public void onClick(View v) {
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
-                // code for converting to celsius
+                symbol = " °C";
+                mCallback.messageFromBt(tf, check, symbol);
             }
         });
 
@@ -180,23 +186,17 @@ public class fragment_tab3 extends Fragment {
             }
         });
 
-//        hide.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-//                SharedPreferences.Editor editor = prefs.edit();
-//                boolean check = prefs.getBoolean("check", isChecked);
-//                if (isChecked) {
-//                    hide.setChecked(true);
-//                } else {
-//                    hide.setChecked(false);
-//                }
-//                fragment_tab1 f = new fragment_tab1();
-//                Bundle b = new Bundle();
-//                b.putBoolean("check", isChecked);
-//                f.setArguments(b);
-//            }
-//        });
+        hide.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                check = hide.isChecked();
+                if (check) {
+                    mCallback.messageFromBt(tf, true, symbol);
+                } else {
+                    mCallback.messageFromBt(tf, false, symbol);
+                }
+            }
+        });
 
         button.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -208,14 +208,6 @@ public class fragment_tab3 extends Fragment {
                         setToast();
                         Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                         startActivityForResult(intent, REQUEST_ENABLE_BT);
-//                        fragment_tab1 ldf = new fragment_tab1();
-//                        FragmentManager fm = getActivity().getSupportFragmentManager();
-//                        FragmentTransaction ft = fm.beginTransaction();
-//                        ft.replace(R.id.fragment1, ldf);
-//                        ft.commit();
-//                        Bundle args = new Bundle();
-//                        args.putString("temperature", "98.7");
-//                        ldf.setArguments(args);
 
                     }
                     else {
@@ -295,14 +287,8 @@ public class fragment_tab3 extends Fragment {
                                     if (recDataString.charAt(0) == '#') {
                                         String sensor = recDataString.substring(1, endOfLineIndex);
                                         response.setText(sensor);
-//                                        fragment_tab1 ldf = new fragment_tab1();
-//                                        FragmentManager fm = getActivity().getSupportFragmentManager();
-//                                        FragmentTransaction ft = fm.beginTransaction();
-//                                        ft.replace(R.id.fragment1, ldf);
-//                                        ft.commit();
-//                                        Bundle args = new Bundle();
-//                                        args.putString("temperature", sensor);
-//                                        ldf.setArguments(args);
+                                        tf = sensor;
+                                        mCallback.messageFromBt(tf, check, symbol);
                                     }
                                     recDataString.delete(0, recDataString.length());
                                     dataInPrint = "";
@@ -466,6 +452,30 @@ public class fragment_tab3 extends Fragment {
     public void setToast() {
         toast.setGravity(Gravity.BOTTOM, 0, 180);
         toast.show();
+    }
+
+    public void setCallback(Callback callback) {
+        this.mCallback = callback;
+    }
+
+    public interface Callback {
+        public void messageFromBt(String sensor, Boolean b, String symbol);
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof Callback) {
+            mCallback = (Callback) context;
+        } else {
+            throw new RuntimeException(context.toString());
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallback = null;
     }
 
     @Override
