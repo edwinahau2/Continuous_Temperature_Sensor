@@ -204,13 +204,13 @@
                 android:layout_weight="1"/>
         </LinearLayout>
 
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
             android:layout_marginTop="10dp"
             android:id="@+id/progressBar"
             android:layout_gravity="center"
-            android:indeterminateTint="#34cceb"/>
+            android:src="@drawable/anteater_clip"/>
 
         <LinearLayout
             android:layout_width="match_parent"

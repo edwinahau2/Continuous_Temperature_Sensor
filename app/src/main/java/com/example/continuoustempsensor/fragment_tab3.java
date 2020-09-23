@@ -19,10 +19,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Rect;
+import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -39,6 +41,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -73,6 +76,7 @@ import java.util.UUID;
 
 public class fragment_tab3 extends Fragment {
     private Callback mCallback;
+    private static final int CHANGE_LEVEL = 99;
     private static final int REQUEST_CODE = 1;
     public static final int RESPONSE_MESSAGE = 10;
     private StringBuilder recDataString = new StringBuilder();
@@ -82,11 +86,11 @@ public class fragment_tab3 extends Fragment {
     private Spinner dropdown;
     private static final String[] options = {"30 mins", "1 hour", "2 hours", "3 hours", "6 hours", "12 hours", "24 hours"};
     private static final int RESULT_OK = -1;
+    private int mLevel;
     private Button buttonFind, f, c, connect;
-    private SwitchCompat simpleSwitch;
     private BluetoothAdapter mBlueAdapter;
     private TextView response, notify;
-    private ProgressBar spinner;
+    ImageView spinner;
     private static final int REQUEST_ENABLE_BT = 0;
     TextView paired;
     ListView scanListView;
@@ -95,12 +99,15 @@ public class fragment_tab3 extends Fragment {
     BluetoothSocket mmSocket;
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     public Handler mHandler;
+    public Handler imHandler;
     ConnectedThread btt = null;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
     private String tf = "98.7";
     private String symbol;
     private boolean check;
+    private boolean isImage = false;
+    private ClipDrawable mClipDrawable;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
@@ -108,6 +115,9 @@ public class fragment_tab3 extends Fragment {
         button = view.findViewById(R.id.mBlueIv);
         spinner = view.findViewById(R.id.progressBar);
         spinner.setVisibility(View.GONE);
+        mClipDrawable = (ClipDrawable) spinner.getDrawable();
+        mClipDrawable.setLevel(0);
+//        imHandler.post(animateImage);
         paired = view.findViewById(R.id.pairedDevices);
         response = view.findViewById(R.id.response);
         paired.setVisibility(View.GONE);
@@ -359,7 +369,6 @@ public class fragment_tab3 extends Fragment {
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, final Intent intent) {
-            int i = 0;
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
@@ -376,9 +385,11 @@ public class fragment_tab3 extends Fragment {
                 mDeviceListAdapter.notifyDataSetChanged();
             }
             else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(intent.getAction())) {
-                spinner.setVisibility(View.VISIBLE);
                 toast = Toast.makeText(getActivity(), "Finding Devices...", Toast.LENGTH_SHORT);
                 setToast();
+                spinner.setVisibility(View.VISIBLE);
+                mLevel = 0;
+                changeImageView(getView());
             }
             else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
                 spinner.setVisibility(View.GONE);
@@ -386,6 +397,43 @@ public class fragment_tab3 extends Fragment {
             }
         }
     };
+
+    public void changeImageView(View view) {
+        if (!isImage) {
+            isImage = true;
+            imHandler = new Handler(Looper.getMainLooper()) {
+                @Override
+                public void handleMessage(@NonNull Message msg) {
+                    super.handleMessage(msg);
+                    if (msg.what == 99) {
+                        mLevel = mClipDrawable.getLevel() + 60;
+                        if (mLevel >= 10000) {
+                            mLevel = 0;
+                        }
+                        mClipDrawable.setLevel(mLevel);
+                    }
+                }
+            };
+
+            final CountDownTimer timer = new CountDownTimer(Integer.MAX_VALUE, 10) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    if (mClipDrawable.getLevel() >= 10000) {
+                        this.onFinish();
+                        mLevel = 0;
+                    } else {
+                        imHandler.sendEmptyMessage(99);
+                    }
+                }
+
+                @Override
+                public void onFinish() {
+                    isImage = false;
+                }
+            };
+            timer.start();
+        }
+    }
 
     private class ConnectedThread extends Thread {
 
