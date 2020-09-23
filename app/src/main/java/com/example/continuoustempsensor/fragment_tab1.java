@@ -3,6 +3,8 @@ package com.example.continuoustempsensor;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -32,7 +34,7 @@ public class fragment_tab1 extends Fragment {
         editTextMessage = view.findViewById(R.id.edit_text_message);
 
         Button warningButton = view.findViewById(R.id.urgent_warning);
-        warningButton.setOnClickListener(new View.OnClickListener(){
+        warningButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View w) {
                 String title = editTextTitle.getText().toString();
                 String message = editTextMessage.getText().toString();
@@ -48,10 +50,17 @@ public class fragment_tab1 extends Fragment {
                         0, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 //update current means that when we create a new pendingintent, it will update putextra
 
+                Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.temp_spike);
+
                 android.app.Notification notification = new NotificationCompat.Builder(that, notifications.CHANNEL_1_ID)
                         .setSmallIcon(R.drawable.warning)
                         .setContentTitle(title)
                         .setContentText(message)
+                        .setLargeIcon(largeIcon)
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .bigText(getString(R.string.temp_spike_message))
+                                .setBigContentTitle("Fever Temperatures Detected")
+                                .setSummaryText("Summary Text"))
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setCategory(NotificationCompat.CATEGORY_ALARM)
                         .setColor(Color.BLUE)
@@ -66,7 +75,7 @@ public class fragment_tab1 extends Fragment {
         });
 
         Button updateButton = view.findViewById(R.id.send_update);
-        updateButton.setOnClickListener(new View.OnClickListener(){
+        updateButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View w) {
                 String title = editTextTitle.getText().toString();
                 String message = editTextMessage.getText().toString();
@@ -76,26 +85,25 @@ public class fragment_tab1 extends Fragment {
                 PendingIntent contentIntent = PendingIntent.getActivity(that,
                         0, activityIntent, 0);
 
-                Intent broadcastIntent = new Intent(that, NotificationReceiver.class);
-                broadcastIntent.putExtra("buttonUnderneath", message);
-                PendingIntent actionIntent = PendingIntent.getBroadcast(that,
-                        0, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                //update current means that when we create a new pendingintent, it will update putextra
-
                 android.app.Notification notification = new NotificationCompat.Builder(that, notifications.CHANNEL_2_ID)
                         .setSmallIcon(R.drawable.announcement)
                         .setContentTitle(title)
                         .setContentText(message)
+                        .setStyle(new NotificationCompat.InboxStyle()
+                                .addLine("Notification message 1") // can add up to 7 lines
+                                .addLine("Notification message 2")
+                                .addLine("Notification message 3")
+                        )
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .setCategory(NotificationCompat.CATEGORY_EVENT)
                         .setColor(Color.BLUE)
                         .setContentIntent(contentIntent)
                         .setAutoCancel(true)
-                        .addAction(R.mipmap.ic_launcher, "Open App", actionIntent)
                         .build();
                 notificationManager.notify(2, notification);
             }
         });
 
         return view;
-    }}
+    }
+}

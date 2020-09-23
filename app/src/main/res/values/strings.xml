@@ -4,4 +4,6 @@
     <string name="tab_text_2">Data Log</string>
     <string name="tab_text_3">Settings</string>
     <string name="notification_button">Push Notification</string>
+    <string name="temp_spike_message">Your temperature is critically high indicating a fever. You may not be at risk for Coronavirus.
+         Please contact your supervisor and notify the people around you immediately.</string>
 </resources>
