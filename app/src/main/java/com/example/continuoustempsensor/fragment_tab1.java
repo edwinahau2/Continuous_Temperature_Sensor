@@ -22,6 +22,7 @@ public class fragment_tab1 extends Fragment {
     private NotificationManagerCompat notificationManager;
     private EditText editTextTitle;
     private EditText editTextMessage;
+    public final int request_code;
 
     @Nullable
     @Override
@@ -83,7 +84,7 @@ public class fragment_tab1 extends Fragment {
 
                 Intent activityIntent = new Intent(that, MainActivity.class); // opens the app at fragment 1 when notification clicked
                 PendingIntent contentIntent = PendingIntent.getActivity(that,
-                        0, activityIntent, 0);
+                        1, activityIntent, 0);
 
                 android.app.Notification notification = new NotificationCompat.Builder(that, notifications.CHANNEL_2_ID)
                         .setSmallIcon(R.drawable.announcement)

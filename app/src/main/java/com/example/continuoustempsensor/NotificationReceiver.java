@@ -8,6 +8,7 @@ import android.widget.Toast;
 public class NotificationReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
+
         //sends toast when click button called open app under the notification
         String message = intent.getStringExtra("ButtonUnderneath");
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show(); // change to open email settings
