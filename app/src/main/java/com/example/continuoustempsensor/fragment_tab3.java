@@ -76,7 +76,7 @@ import java.util.UUID;
 
 public class fragment_tab3 extends Fragment {
     private Callback mCallback;
-    private static final int CHANGE_LEVEL = 99;
+    private boolean clicked = false;
     private static final int REQUEST_CODE = 1;
     public static final int RESPONSE_MESSAGE = 10;
     private StringBuilder recDataString = new StringBuilder();
@@ -208,6 +208,7 @@ public class fragment_tab3 extends Fragment {
             }
         });
 
+
         button.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -244,17 +245,20 @@ public class fragment_tab3 extends Fragment {
                 if (!mBlueAdapter.isEnabled()) {
                     toast = Toast.makeText(getActivity(), "Turn on Bluetooth to find devices", Toast.LENGTH_SHORT);
                     setToast();
+                    clicked = false;
                 }
                 else {
                     if (mBlueAdapter.isDiscovering()) {
                         mBlueAdapter.cancelDiscovery();
                         buttonFind.setText("Find Devices");
+                        clicked = true;
                     }
                     else {
                         mDeviceListAdapter.clear();
                         mBlueAdapter.startDiscovery();
                         buttonFind.setText("Cancel");
                         findPairedDevices();
+                        clicked = false;
                     }
                 }
             }
@@ -420,6 +424,8 @@ public class fragment_tab3 extends Fragment {
                 public void onTick(long millisUntilFinished) {
                     if (mClipDrawable.getLevel() >= 10000) {
                         this.onFinish();
+                        mLevel = 0;
+                    } else if (clicked) {
                         mLevel = 0;
                     } else {
                         imHandler.sendEmptyMessage(99);

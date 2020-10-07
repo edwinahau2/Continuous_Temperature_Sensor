@@ -2,6 +2,7 @@ package com.example.continuoustempsensor;
 
 import android.os.Bundle;
 
+import com.github.mikephil.charting.data.LineData;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -19,10 +20,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.continuoustempsensor.ui.main.SectionsPagerAdapter;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity implements fragment_tab3.Callback {
+
+    public static ArrayList<String> al = new ArrayList<>();
+    public static LineData data;
+    public static int x;
+    public static double y;
+    public static int i;
+    public static int j;
     private Fragment fragment1 = new fragment_tab1();
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
@@ -31,6 +40,15 @@ public class MainActivity extends AppCompatActivity implements fragment_tab3.Cal
     Fragment active = fragment1;
     private String temp;
     private boolean hide;
+
+    public static void addal(String my) {
+        al.add(my);
+    }
+
+    public static void coordinate(int lastX, double lastY) {
+        x = lastX;
+        y = lastY;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
