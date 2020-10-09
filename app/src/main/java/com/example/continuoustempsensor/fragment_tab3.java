@@ -1,9 +1,7 @@
 package com.example.continuoustempsensor;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -12,69 +10,49 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.Rect;
 import android.graphics.drawable.ClipDrawable;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.preference.PreferenceManager;
-import android.provider.SyncStateContract;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SwitchCompat;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-public class fragment_tab3 extends Fragment {
+public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelectedListener {
     private Callback mCallback;
     private boolean clicked = false;
     private static final int REQUEST_CODE = 1;
@@ -84,7 +62,6 @@ public class fragment_tab3 extends Fragment {
     private CheckBox enable, hide;
     Toast toast;
     private Spinner dropdown;
-    private static final String[] options = {"30 mins", "1 hour", "2 hours", "3 hours", "6 hours", "12 hours", "24 hours"};
     private static final int RESULT_OK = -1;
     private int mLevel;
     private Button buttonFind, f, c, connect;
@@ -127,9 +104,10 @@ public class fragment_tab3 extends Fragment {
         dropdown = view.findViewById(R.id.spinner);
         enable = view.findViewById(R.id.enable);
         hide = view.findViewById(R.id.hide);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(requireActivity().getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, options);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.getContext(), R.array.dropdown_times, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dropdown.setAdapter(adapter);
+        dropdown.setOnItemSelectedListener(this);
         connect = view.findViewById(R.id.connect);
         notify = view.findViewById(R.id.notify);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -166,6 +144,7 @@ public class fragment_tab3 extends Fragment {
         }
 
         f.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onClick(View v) {
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
@@ -176,6 +155,7 @@ public class fragment_tab3 extends Fragment {
         });
 
         c.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onClick(View v) {
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
@@ -440,6 +420,19 @@ public class fragment_tab3 extends Fragment {
             timer.start();
         }
     }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        String text = parent.getItemAtPosition(position).toString();
+        toast = Toast.makeText(parent.getContext(), text, Toast.LENGTH_SHORT);
+        setToast();
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
+
 
     private class ConnectedThread extends Thread {
 
