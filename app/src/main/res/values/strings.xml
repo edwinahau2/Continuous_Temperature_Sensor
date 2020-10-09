@@ -1,8 +1,20 @@
 <resources>
-    <string name="app_name">Continuous Temp Sensor</string>
-    <string name="tab_text_1">Temp</string>
+    <string name="app_name">Continuous Temperature Sensor</string>
+    <string name="tab_text_1">Temperature</string>
     <string name="tab_text_2">Data Log</string>
     <string name="tab_text_3">Settings</string>
+    <string-array name="dropdown_times">
+        <item>30 mins</item>
+        <item>1 hour</item>
+        <item>2 hours</item>
+        <item>3 hours</item>
+        <item>6 hours</item>
+        <item>12 hours</item>
+        <item>24 hours</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+<string name="hello_blank_fragment">Hello blank fragment</string>
+    </resources>
     <string name="notification_button">Push Notification</string>
     <string name="temp_spike_message">Your temperature is critically high indicating a fever. You may not be at risk for Coronavirus.
          Please contact your supervisor and notify the people around you immediately.</string>

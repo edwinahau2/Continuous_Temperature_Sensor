@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/profile"
+        android:icon="@drawable/ic_history"
+        tools:ignore="MenuTitle"/>
+    <item
+        android:id="@+id/home"
+        android:icon="@drawable/ic_temp"
+        tools:ignore="MenuTitle" />
+    <item
+        android:id="@+id/Bt"
+        android:icon="@drawable/ic_gears"
+        tools:ignore="MenuTitle" />
+</menu>
