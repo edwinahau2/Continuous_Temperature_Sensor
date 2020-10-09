@@ -11,7 +11,7 @@ public class inAppNotify {
     private String generalText;
 
     inAppNotify(Intent intent, Context context, int code) {
-        interval = ; //the interval of time for which each notification is sent in app (selected by the user)
+        interval = "30 mins"; //the interval of time for which each notification is sent in app (selected by the user)
         generalText = "Continue to physically distance yourself from others at 6 feet minimum and wear a face covering. Tap here more information.";
 
         if (code == 0) {

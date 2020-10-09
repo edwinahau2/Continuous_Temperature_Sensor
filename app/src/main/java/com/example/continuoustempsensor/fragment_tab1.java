@@ -22,7 +22,7 @@ public class fragment_tab1 extends Fragment {
     private NotificationManagerCompat notificationManager;
     private EditText editTextTitle;
     private EditText editTextMessage;
-    public final int request_code;
+    //public final int request_code;
 
     @Nullable
     @Override
