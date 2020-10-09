@@ -69,10 +69,15 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Collections;
+
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 
 public class fragment_tab3 extends Fragment {
     private Callback mCallback;
@@ -103,7 +108,8 @@ public class fragment_tab3 extends Fragment {
     ConnectedThread btt = null;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
-    private String tf = "98.7";
+    ArrayList<Float> tempVals = new ArrayList<Float>();
+    public String tf;
     private String symbol;
     private boolean check;
     private boolean isImage = false;
@@ -287,18 +293,60 @@ public class fragment_tab3 extends Fragment {
                         @Override
                         public void handleMessage(@NonNull Message msg) {
                             super.handleMessage(msg);
-                            if (msg.what == RESPONSE_MESSAGE) {
+                            if (msg.what == RESPONSE_MESSAGE) { // repeat everytime data is transmitted
                                 String readMessage = (String) msg.obj;
                                 recDataString.append(readMessage);
                                 int endOfLineIndex = recDataString.indexOf("~");
-                                if (endOfLineIndex > 0) {
-                                    String dataInPrint = recDataString.substring(0, endOfLineIndex);
+                                if (endOfLineIndex > 0) // if there still exists values to be read
+                                {
+                                    String dataInPrint = recDataString.substring(0, endOfLineIndex); // extract substring with hashtag
+                                    if (recDataString.charAt(0) == '#')
+                                    {
+                                        String sensor = recDataString.substring(1, endOfLineIndex); // remove hashtag
+                                        float sensorVal =  Float.parseFloat(sensor);
+                                        response.setText(sensor); // sends data to settings
 
-                                    if (recDataString.charAt(0) == '#') {
-                                        String sensor = recDataString.substring(1, endOfLineIndex);
-                                        response.setText(sensor);
-                                        tf = sensor;
-                                        mCallback.messageFromBt(tf, check, symbol);
+                                        tempVals.add(sensorVal);
+                                        boolean legit = TRUE;
+                                        if (tempVals.size()>60){
+                                            double min = Collections.min(tempVals);
+                                            double max = Collections.max(tempVals);
+                                            double total =0;
+                                            for(int i=0;i<tempVals.size();i++)
+                                            {
+                                                total+=tempVals.get(i);
+                                            }
+                                            double mean = total/tempVals.size();
+                                            double total2 =0;
+                                            for (int i=0;i<tempVals.size();i++)
+                                            {
+                                                total2 += Math.pow((i - mean), 2);
+                                            }
+                                            double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
+                                            double gLower = (mean - min)/std;
+                                            double gUpper = (max-mean)/std;
+                                            if(gLower > 3.0269 || gUpper >3.0369){
+                                                // There's an outlier
+                                                legit = FALSE;
+                                            }
+                                            if(std*std > 0.50){
+                                                //Too much variance
+                                                legit =FALSE;
+                                            }
+                                        }
+                                        if(legit) {
+                                            Collections.sort(tempVals);
+                                            double medianTemp;
+                                            if (tempVals.size() % 2 == 0)
+                                            {
+                                                medianTemp = ((double)tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2;
+                                            }
+                                            else {
+                                                medianTemp = (double) tempVals.get(tempVals.size()/2);
+                                            }
+                                            String finalTemp = Double.toString(medianTemp);
+                                            mCallback.messageFromBt(finalTemp, check, symbol); // sends data to home page
+                                        }
                                     }
                                     recDataString.delete(0, recDataString.length());
                                     dataInPrint = "";
