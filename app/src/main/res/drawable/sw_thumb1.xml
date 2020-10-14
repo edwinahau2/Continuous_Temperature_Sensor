@@ -2,11 +2,11 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_checked="true">
         <shape android:shape="oval">
-        <solid android:color="#FFFFFF"/>
-        <size android:width="38dp"
-            android:height="38dp"/>
-        <stroke android:width="5dp"
-            android:color="#f04330"/>
+            <solid android:color="#FFFFFF"/>
+            <size android:width="38dp"
+                android:height="38dp"/>
+            <stroke android:width="5dp"
+                android:color="#309ae6"/>
         </shape>
     </item>
     <item android:state_checked="false">
@@ -15,7 +15,7 @@
             <size android:width="38dp"
                 android:height="38dp"/>
             <stroke android:width="5dp"
-                android:color="#f04330"/>
+                android:color="#D8D7D6"/>
         </shape>
     </item>
 </selector>
