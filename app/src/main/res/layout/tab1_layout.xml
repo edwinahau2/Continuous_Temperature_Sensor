@@ -13,28 +13,4 @@
         android:layout_height="wrap_content"
         android:text="@string/tab_text_1" />
 
-    <EditText
-        android:id="@+id/edit_text_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Title" />
-
-    <EditText
-        android:id="@+id/edit_text_message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Message"/>
-
-    <Button
-        android:id="@+id/urgent_warning"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Send Urgent Warning"/>
-
-    <Button
-        android:id="@+id/send_update"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Send Update"/>
-
 </LinearLayout>
