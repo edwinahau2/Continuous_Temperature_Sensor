@@ -85,6 +85,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private boolean check;
     private boolean isImage = false;
     private ClipDrawable mClipDrawable;
+    private static String textTimeNotify;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
@@ -423,9 +424,13 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        String text = parent.getItemAtPosition(position).toString();
-        toast = Toast.makeText(parent.getContext(), text, Toast.LENGTH_SHORT);
+        textTimeNotify = parent.getItemAtPosition(position).toString();
+        toast = Toast.makeText(parent.getContext(), textTimeNotify, Toast.LENGTH_SHORT);
         setToast();
+    }
+
+    public static String getTimeNotify(){
+        return textTimeNotify;
     }
 
     @Override
