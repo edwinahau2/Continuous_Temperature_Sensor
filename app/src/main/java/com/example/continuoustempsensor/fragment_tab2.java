@@ -18,6 +18,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 
+
+
 public class fragment_tab2 extends Fragment {
     private NotificationManagerCompat notificationManager;
     private EditText editTextTitle;
