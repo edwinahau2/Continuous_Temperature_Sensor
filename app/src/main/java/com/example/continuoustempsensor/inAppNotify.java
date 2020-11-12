@@ -21,6 +21,8 @@ public class inAppNotify {
         } else if (code == 2) {
             text = timeNotification + "\nYou're temperature readings indicate you are having a fever. This is a symptom of Coronavirus. Please isolate yourself immediately and contact your supervisor for further instructions. " + generalText;
         }
+
+        //addNotificationInside()
     }
 
     public int getColor() {
@@ -41,5 +43,9 @@ public class inAppNotify {
 
     public String getGeneralText(){
         return generalText;
+    }
+
+    public static void addNotificationInside() {
+        //
     }
 }

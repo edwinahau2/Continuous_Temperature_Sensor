@@ -66,7 +66,7 @@ public class fragment_tab2 extends Fragment {
                                 .setSummaryText("Summary Text"))
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setCategory(NotificationCompat.CATEGORY_ALARM)
-                        .setColor(Color.BLUE)
+                        .setColor(Color.argb(255, 48, 154, 230))
                         .setContentIntent(contentIntent)
                         .setAutoCancel(true) //when tapped the notification will go away
                         //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
@@ -99,7 +99,7 @@ public class fragment_tab2 extends Fragment {
                         )
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .setCategory(NotificationCompat.CATEGORY_EVENT)
-                        .setColor(Color.BLUE)
+                        .setColor(Color.argb(255, 48, 154, 230))
                         .setContentIntent(contentIntent)
                         .setAutoCancel(true)
                         .build();
