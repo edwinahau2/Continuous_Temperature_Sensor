@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment;
 
 public class fragment_tab2 extends Fragment {
 
+    public static final String TAG = "TWO" ;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
