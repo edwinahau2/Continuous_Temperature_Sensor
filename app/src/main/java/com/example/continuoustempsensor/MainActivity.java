@@ -1,5 +1,7 @@
 package com.example.continuoustempsensor;
 
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
@@ -14,9 +16,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.PersistableBundle;
 import android.util.SparseArray;
 import android.view.MenuItem;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 import org.json.JSONArray;
@@ -28,9 +34,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -42,22 +52,29 @@ public class MainActivity extends AppCompatActivity {
     public static int x;
     public static double y;
     public static int i;
-    public static BluetoothSocket mmSocket;
-    public static BluetoothDevice mDevice;
+    BluetoothSocket mmSocket;
+    BluetoothDevice mDevice;
+    BluetoothAdapter mBlueAdapter;
     public static String deviceName;
+    UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+    ConnectedThread btt = null;
+    StringBuilder recDataString = new StringBuilder();
+    ArrayList<Float> tempVals = new ArrayList<Float>();
+    TextView temp;
+    public static final int RESPONSE_MESSAGE = 10;
     public static int j;
     public static boolean hide;
-    public static String temperature;
-    public static InputStream mmInStream;
+    String temperature;
+    InputStream mmInStream;
     public static int num;
-    public static Handler mHandler;
+    Handler mHandler;
     public static String symbol;
 //    private Fragment fragment1 = new fragment_tab1();
 //    private Fragment fragment2 = new fragment_tab2();
 //    private Fragment fragment3 = new fragment_tab3();
 //    final FragmentManager fm = getSupportFragmentManager();
 //    Fragment active = new fragment_tab1();
-    private String temp;
+//    private String temp;
     private SparseArray savedStateSparseArray = new SparseArray();
     public static final String SAVED_STATE_CONTAINER_KEY = "ContainerKey";
     public static final String SAVED_STATE_CURRENT_TAB_KEY = "CurrentTabKey";
@@ -73,14 +90,105 @@ public class MainActivity extends AppCompatActivity {
         y = lastY;
     }
 
+    @SuppressLint("ShowToast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
+        temp = findViewById(R.id.temp);
         if (savedInstanceState != null) {
             savedStateSparseArray = savedInstanceState.getSparseParcelableArray(SAVED_STATE_CONTAINER_KEY);
             currentSelectedItemId = savedInstanceState.getInt(SAVED_STATE_CURRENT_TAB_KEY);
         }
-        setContentView(R.layout.activity_main);
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            String address = bundle.getString("address");
+            mDevice = mBlueAdapter.getRemoteDevice(address);
+            if (mmSocket == null || !mmSocket.isConnected()) {
+                BluetoothSocket tmp;
+                try {
+                    tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                    mmSocket = tmp;
+                    mmSocket.connect();
+                } catch (IOException e) {
+                    try {
+                        mmSocket.close();
+                    } catch (IOException c) {
+                        e.printStackTrace();
+                    }
+                }
+
+                mHandler  = new Handler(Looper.getMainLooper()) {
+                    @Override
+                    public void handleMessage(@NonNull Message msg) {
+                        super.handleMessage(msg);
+                        if (msg.what == RESPONSE_MESSAGE) {
+                            String readMessage = (String) msg.obj;
+                            recDataString.append(readMessage);
+                            int endOfLineIndex = recDataString.indexOf("~");
+                            if (endOfLineIndex > 0) {
+                                String dataInPrint = recDataString.substring(0, endOfLineIndex);
+
+                                if (recDataString.charAt(0) == '#') {
+                                    String sensor = recDataString.substring(1, endOfLineIndex);
+                                    float sensorVal =  Float.parseFloat(sensor);
+                                    tempVals.add(sensorVal);
+
+                                    boolean legit = true;
+                                    if (tempVals.size()>60){
+                                        double min = Collections.min(tempVals);
+                                        double max = Collections.max(tempVals);
+                                        double total =0;
+                                        for(int i=0;i<tempVals.size();i++)
+                                        {
+                                            total+=tempVals.get(i);
+                                        }
+                                        double mean = total/tempVals.size();
+                                        double total2 =0;
+                                        for (int i=0;i<tempVals.size();i++)
+                                        {
+                                            total2 += Math.pow((i - mean), 2);
+                                        }
+                                        double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
+                                        double gLower = (mean - min)/std;
+                                        double gUpper = (max-mean)/std;
+                                        if(gLower > 3.0269 || gUpper >3.0369){
+                                            // There's an outlier
+                                            legit = false;
+                                        }
+                                        if(std*std > 0.50){
+                                            //Too much variance
+                                            legit =false;
+                                        }
+                                    }
+                                    if(legit) {
+                                        Collections.sort(tempVals);
+                                        double medianTemp;
+                                        if (tempVals.size() % 2 == 0)
+                                        {
+                                            medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
+                                        }
+                                        else {
+                                            medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
+                                        }
+                                        temperature = Double.toString(medianTemp);
+                                        temp.setText(temperature);
+//                                        key = 1;
+//                                            retrieveJSON(tf, check, symbol, key);
+//                                            mCallback.messageFromBt(tf, check, symbol, key);
+                                    }
+                                }
+                                recDataString.delete(0, recDataString.length());
+                                dataInPrint = "";
+                            }
+                        }
+                    }
+                };
+                btt = new ConnectedThread(mmSocket);
+                btt.start();
+            }
+        }
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
         bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
 //        bottomNavigationView.setSelectedItemId(R.id.home);
@@ -132,7 +240,6 @@ public class MainActivity extends AppCompatActivity {
             saveFragmentState(item, TAG);
             createFragment(fragment, item, TAG);
         }
-//
 //        FragmentManager fm = getSupportFragmentManager();
 //        if (fragment_tab1.TAG.equals(TAG)) {
 //            fm.beginTransaction().hide(undesired).replace(R.id.container, fragment).addToBackStack(null).commit();
@@ -182,6 +289,43 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState, outPersistentState);
         outState.putSparseParcelableArray("ContainerKey", savedStateSparseArray);
         outState.putInt("CurrentTabKey", currentSelectedItemId);
+    }
+
+    private class ConnectedThread extends Thread {
+        public ConnectedThread(BluetoothSocket socket) {
+            InputStream tmpIn = null;
+            try {
+                tmpIn = socket.getInputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mmInStream = tmpIn;
+        }
+
+        public void run() {
+            BufferedReader br;
+            br = new BufferedReader(new InputStreamReader(mmInStream));
+            while (true) {
+                try {
+                    String resp = br.readLine();
+                    Message msg = new Message();
+                    msg.what = RESPONSE_MESSAGE;
+                    msg.obj = resp;
+                    mHandler.sendMessage(msg);
+                } catch (IOException e) {
+                    break;
+                }
+            }
+        }
+
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     //    public void onAttachFragment(@NonNull Fragment fragment) {

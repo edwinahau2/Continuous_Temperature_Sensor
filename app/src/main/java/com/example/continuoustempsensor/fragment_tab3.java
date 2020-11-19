@@ -327,114 +327,114 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                 int i = deviceName.indexOf(":");
                 String deviceAddress = deviceName.substring(i + 2);
                 MainActivity.deviceName = deviceName.substring(0, i);
-                MainActivity.mDevice = mBlueAdapter.getRemoteDevice(deviceAddress);
-                if (MainActivity.mmSocket == null || !MainActivity.mmSocket.isConnected()) {
-                    BluetoothSocket tmp;
-                    try {
-                        tmp = MainActivity.mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                        MainActivity.mmSocket = tmp;
-                        MainActivity.mmSocket.connect();
-                        connect.setText(MainActivity.deviceName);
-                    } catch (IOException e) {
-                        try {
-                            MainActivity.mmSocket.close();
-                        } catch (IOException c) {
-                        }
-                    }
-
-                    MainActivity.mHandler = new Handler(Looper.getMainLooper()) {
-                        @Override
-                        public void handleMessage(@NonNull Message msg) {
-                            super.handleMessage(msg);
-                            if (msg.what == RESPONSE_MESSAGE) {
-                                String readMessage = (String) msg.obj;
-                                recDataString.append(readMessage);
-                                int endOfLineIndex = recDataString.indexOf("~");
-                                if (endOfLineIndex > 0) {
-                                    String dataInPrint = recDataString.substring(0, endOfLineIndex);
-
-                                    if (recDataString.charAt(0) == '#') {
-                                        String sensor = recDataString.substring(1, endOfLineIndex);
-                                        float sensorVal =  Float.parseFloat(sensor);
-                                        tempVals.add(sensorVal);
-
-                                        boolean legit = true;
-                                        if (tempVals.size()>60){
-                                            double min = Collections.min(tempVals);
-                                            double max = Collections.max(tempVals);
-                                            double total =0;
-                                            for(int i=0;i<tempVals.size();i++)
-                                            {
-                                                total+=tempVals.get(i);
-                                            }
-                                            double mean = total/tempVals.size();
-                                            double total2 =0;
-                                            for (int i=0;i<tempVals.size();i++)
-                                            {
-                                                total2 += Math.pow((i - mean), 2);
-                                            }
-                                            double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
-                                            double gLower = (mean - min)/std;
-                                            double gUpper = (max-mean)/std;
-                                                if(gLower > 3.0269 || gUpper >3.0369){
-                                                    // There's an outlier
-                                                    legit = false;
-                                                }
-                                                if(std*std > 0.50){
-                                                    //Too much variance
-                                                    legit =false;
-                                                }
-                                            }
-                                        if(legit) {
-                                            Collections.sort(tempVals);
-                                            double medianTemp;
-                                            if (tempVals.size() % 2 == 0)
-                                            {
-                                                medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
-                                            }
-                                            else {
-                                                medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
-                                            }
-                                            tf = Double.toString(medianTemp);
-                                            key = 1;
-                                            MainActivity.temperature = tf;
-//                                            retrieveJSON(tf, check, symbol, key);
-//                                            mCallback.messageFromBt(tf, check, symbol, key);
-                                        }
-                                    }
-                                    recDataString.delete(0, recDataString.length());
-                                    dataInPrint = "";
-                                }
-                            }
-                        }
-                    };
-                    btt = new ConnectedThread(MainActivity.mmSocket);
-                    btt.start();
-                }
-                else {
-                    try {
-                        MainActivity.mmSocket.close();
-                        MainActivity.mmSocket = null;
-                        MainActivity.mmInStream = null;
-                        mmOutStream = null;
-                        connect.setText("Not Connected");
-                    } catch (IOException e) {}
-                }
+//                MainActivity.mDevice = mBlueAdapter.getRemoteDevice(deviceAddress);
+//                if (MainActivity.mmSocket == null || !MainActivity.mmSocket.isConnected()) {
+//                    BluetoothSocket tmp;
+//                    try {
+//                        tmp = MainActivity.mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+//                        MainActivity.mmSocket = tmp;
+//                        MainActivity.mmSocket.connect();
+//                        connect.setText(MainActivity.deviceName);
+//                    } catch (IOException e) {
+//                        try {
+//                            MainActivity.mmSocket.close();
+//                        } catch (IOException c) {
+//                        }
+//                    }
+//
+//                    MainActivity.mHandler = new Handler(Looper.getMainLooper()) {
+//                        @Override
+//                        public void handleMessage(@NonNull Message msg) {
+//                            super.handleMessage(msg);
+//                            if (msg.what == RESPONSE_MESSAGE) {
+//                                String readMessage = (String) msg.obj;
+//                                recDataString.append(readMessage);
+//                                int endOfLineIndex = recDataString.indexOf("~");
+//                                if (endOfLineIndex > 0) {
+//                                    String dataInPrint = recDataString.substring(0, endOfLineIndex);
+//
+//                                    if (recDataString.charAt(0) == '#') {
+//                                        String sensor = recDataString.substring(1, endOfLineIndex);
+//                                        float sensorVal =  Float.parseFloat(sensor);
+//                                        tempVals.add(sensorVal);
+//
+//                                        boolean legit = true;
+//                                        if (tempVals.size()>60){
+//                                            double min = Collections.min(tempVals);
+//                                            double max = Collections.max(tempVals);
+//                                            double total =0;
+//                                            for(int i=0;i<tempVals.size();i++)
+//                                            {
+//                                                total+=tempVals.get(i);
+//                                            }
+//                                            double mean = total/tempVals.size();
+//                                            double total2 =0;
+//                                            for (int i=0;i<tempVals.size();i++)
+//                                            {
+//                                                total2 += Math.pow((i - mean), 2);
+//                                            }
+//                                            double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
+//                                            double gLower = (mean - min)/std;
+//                                            double gUpper = (max-mean)/std;
+//                                                if(gLower > 3.0269 || gUpper >3.0369){
+//                                                    // There's an outlier
+//                                                    legit = false;
+//                                                }
+//                                                if(std*std > 0.50){
+//                                                    //Too much variance
+//                                                    legit =false;
+//                                                }
+//                                            }
+//                                        if(legit) {
+//                                            Collections.sort(tempVals);
+//                                            double medianTemp;
+//                                            if (tempVals.size() % 2 == 0)
+//                                            {
+//                                                medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
+//                                            }
+//                                            else {
+//                                                medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
+//                                            }
+//                                            tf = Double.toString(medianTemp);
+//                                            key = 1;
+//                                            MainActivity.temperature = tf;
+////                                            retrieveJSON(tf, check, symbol, key);
+////                                            mCallback.messageFromBt(tf, check, symbol, key);
+//                                        }
+//                                    }
+//                                    recDataString.delete(0, recDataString.length());
+//                                    dataInPrint = "";
+//                                }
+//                            }
+//                        }
+//                    };
+//                    btt = new ConnectedThread(MainActivity.mmSocket);
+//                    btt.start();
+//                }
+//                else {
+//                    try {
+//                        MainActivity.mmSocket.close();
+//                        MainActivity.mmSocket = null;
+//                        MainActivity.mmInStream = null;
+//                        mmOutStream = null;
+//                        connect.setText("Not Connected");
+//                    } catch (IOException e) {}
+//                }
             }
         });
 
         connect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (MainActivity.mmSocket != null) {
-                    try {
-                        MainActivity.mmSocket.close();
-                        MainActivity.mmSocket = null;
-                        MainActivity.mmInStream = null;
-                        mmOutStream = null;
-                        connect.setText("Not Connected");
-                    } catch (IOException e) {}
-                }
+//                if (MainActivity.mmSocket != null) {
+//                    try {
+//                        MainActivity.mmSocket.close();
+//                        MainActivity.mmSocket = null;
+//                        MainActivity.mmInStream = null;
+//                        mmOutStream = null;
+//                        connect.setText("Not Connected");
+//                    } catch (IOException e) {}
+//                }
             }
         });
         return view;
@@ -562,30 +562,30 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                 tmpOut = socket.getOutputStream();
             } catch (IOException e) {}
 
-            MainActivity.mmInStream = tmpIn;
+//            MainActivity.mmInStream = tmpIn;
             mmOutStream = tmpOut;
         }
 
         public void run() {
             BufferedReader br;
-            br = new BufferedReader(new InputStreamReader(MainActivity.mmInStream));
+//            br = new BufferedReader(new InputStreamReader(MainActivity.mmInStream));
             while (true) {
-                try {
-                    String resp = br.readLine();
-                    Message msg = new Message();
-                    msg.what = RESPONSE_MESSAGE;
-                    msg.obj = resp;
-                    MainActivity.mHandler.sendMessage(msg);
-                } catch (IOException e) {
-                    break;
-                }
+//                try {
+//                    String resp = br.readLine();
+//                    Message msg = new Message();
+//                    msg.what = RESPONSE_MESSAGE;
+//                    msg.obj = resp;
+//                    MainActivity.mHandler.sendMessage(msg);
+//                } catch (IOException e) {
+//                    break;
+//                }
             }
         }
 
         public void cancel() {
-            try {
-                MainActivity.mmSocket.close();
-            } catch (IOException e) {}
+//            try {
+//                MainActivity.mmSocket.close();
+//            } catch (IOException e) {}
         }
     }
 
@@ -705,11 +705,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 //        } catch (IOException | JSONException e) {
 //            e.printStackTrace();
 //        }
-        if (MainActivity.mmSocket != null) {
-            connect.setText(MainActivity.deviceName);
-            btt = new ConnectedThread(MainActivity.mmSocket);
-            btt.start();
-        }
+//        if (MainActivity.mmSocket != null) {
+//            connect.setText(MainActivity.deviceName);
+//            btt = new ConnectedThread(MainActivity.mmSocket);
+//            btt.start();
+//        }
 //        toast = Toast.makeText(getActivity(), "onResume", Toast.LENGTH_SHORT);
 //        setToast();
         if (MainActivity.hide) {
@@ -724,11 +724,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     public void onStop() {
         super.onStop();
         retrieveJSON(tf, check, symbol, key);
-        if (MainActivity.mmSocket != null) {
-            connect.setText(MainActivity.deviceName);
-            btt = new ConnectedThread(MainActivity.mmSocket);
-            btt.start();
-        }
+//        if (MainActivity.mmSocket != null) {
+//            connect.setText(MainActivity.deviceName);
+//            btt = new ConnectedThread(MainActivity.mmSocket);
+//            btt.start();
+//        }
 //        toast = Toast.makeText(getActivity(), "onStop", Toast.LENGTH_SHORT);
 //        setToast();
         MainActivity.hide = check;

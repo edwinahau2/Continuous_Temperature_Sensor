@@ -107,7 +107,7 @@ public class fragment_tab1 extends Fragment implements OnChartValueSelectedListe
         if (getArguments() != null) {
             boolean notif = MainActivity.hide;
             // boolean notif = getArguments().getBoolean("inApp");
-            temp = MainActivity.temperature;
+//            temp = MainActivity.temperature;
 //            temp = getArguments().getString("temperature");
             key = MainActivity.num;
             // key = getArguments().getInt("key");

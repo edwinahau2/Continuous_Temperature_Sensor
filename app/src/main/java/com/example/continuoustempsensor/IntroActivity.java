@@ -36,7 +36,7 @@ public class IntroActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         if (restorePrefData()) {
-            Intent mainActivity = new Intent(getApplicationContext(), MainActivity.class);
+            Intent mainActivity = new Intent(getApplicationContext(), bluetoothActivity.class);
             startActivity(mainActivity);
             finish();
         }
@@ -46,7 +46,7 @@ public class IntroActivity extends AppCompatActivity {
         tabIndicator = findViewById(R.id.tab_indicator);
         btnAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.button_animation);
         final List<ScreenItem> mList = new ArrayList<>();
-        mList.add(new ScreenItem("Fresh Food", "", R.drawable.ic_gears));
+        mList.add(new ScreenItem("Welcome", "", R.drawable.ic_gears));
         mList.add(new ScreenItem("Fast Delivery", "", R.drawable.ic_temp));
         mList.add(new ScreenItem("Easy Payment","", R.drawable.ic_history));
         screenPager = findViewById(R.id.screen_viewpager);
@@ -64,6 +64,10 @@ public class IntroActivity extends AppCompatActivity {
 
                 if (position == mList.size()-1) {
                     loadLastScreen();
+                } else {
+                    btnNext.setVisibility(View.VISIBLE);
+                    btnGetStarted.setVisibility(View.INVISIBLE);
+                    tabIndicator.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -73,6 +77,10 @@ public class IntroActivity extends AppCompatActivity {
             public void onTabSelected(TabLayout.Tab tab) {
                 if (tab.getPosition() == mList.size()-1) {
                     loadLastScreen();
+                } else {
+                    btnNext.setVisibility(View.VISIBLE);
+                    btnGetStarted.setVisibility(View.INVISIBLE);
+                    tabIndicator.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -90,7 +98,7 @@ public class IntroActivity extends AppCompatActivity {
         btnGetStarted.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent mainActivity = new Intent(getApplicationContext(), MainActivity.class);
+                Intent mainActivity = new Intent(getApplicationContext(), bluetoothActivity.class);
                 startActivity(mainActivity);
 
                 savePrefsData();
