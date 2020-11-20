@@ -17,7 +17,6 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textSize="70sp"
-        android:text="98.7 °F"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/sparkView"

@@ -4,9 +4,17 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.graphics.Color;
 import android.os.Bundle;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
@@ -21,6 +29,7 @@ import android.os.Message;
 import android.os.PersistableBundle;
 import android.util.SparseArray;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,11 +52,9 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnChartValueSelectedListener {
 
     public static ArrayList<String> al = new ArrayList<>();
-    private int currentSelectedItemId = R.id.home;
-    private FragmentManager fragmentManager;
     public static LineData data;
     public static int x;
     public static double y;
@@ -61,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
     TextView temp;
+    LineChart mChart;
     public static final int RESPONSE_MESSAGE = 10;
     public static int j;
     public static boolean hide;
@@ -69,11 +77,11 @@ public class MainActivity extends AppCompatActivity {
     public static int num;
     Handler mHandler;
     public static String symbol;
-//    private Fragment fragment1 = new fragment_tab1();
-//    private Fragment fragment2 = new fragment_tab2();
-//    private Fragment fragment3 = new fragment_tab3();
-//    final FragmentManager fm = getSupportFragmentManager();
-//    Fragment active = new fragment_tab1();
+    private Fragment fragment1 = new fragment_tab1();
+    private Fragment fragment2 = new fragment_tab2();
+    private Fragment fragment3 = new fragment_tab3();
+    final FragmentManager fm = getSupportFragmentManager();
+    Fragment active = new fragment_tab1();
 //    private String temp;
     private SparseArray savedStateSparseArray = new SparseArray();
     public static final String SAVED_STATE_CONTAINER_KEY = "ContainerKey";
@@ -97,10 +105,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         temp = findViewById(R.id.temp);
-        if (savedInstanceState != null) {
-            savedStateSparseArray = savedInstanceState.getSparseParcelableArray(SAVED_STATE_CONTAINER_KEY);
-            currentSelectedItemId = savedInstanceState.getInt(SAVED_STATE_CURRENT_TAB_KEY);
-        }
+        mChart = findViewById(R.id.sparkView);
+        mChart.setVisibility(View.VISIBLE);
+        temp.setVisibility(View.VISIBLE);
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             String address = bundle.getString("address");
@@ -191,12 +198,48 @@ public class MainActivity extends AppCompatActivity {
         }
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
         bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
-//        bottomNavigationView.setSelectedItemId(R.id.home);
-//        fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
-//        fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
-//        fm.beginTransaction().add(R.id.container1, fragment1, "1").addToBackStack(null).commit();
+        fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
+        fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
+        fm.beginTransaction().add(R.id.container, fragment1, "1").addToBackStack(null).commit();
         bottomNavigationView.setSelectedItemId(R.id.home);
-        fragmentManager = getSupportFragmentManager();
+
+        mChart.setTouchEnabled(true);
+        mChart.setDragEnabled(true);
+        mChart.setScaleEnabled(true);
+        mChart.setDrawGridBackground(false);
+        mChart.setPinchZoom(true);
+        mChart.setDescription(null);
+        mChart.setBackgroundColor(Color.TRANSPARENT);
+        mChart.setHighlightPerTapEnabled(true);
+        LineData data = new LineData();
+        data.setValueTextColor(Color.WHITE);
+        mChart.setData(data);
+        mChart.setOnChartValueSelectedListener(this);
+        XAxis xl = mChart.getXAxis();
+        xl.setCenterAxisLabels(true);
+        mChart.setVisibleXRangeMaximum(4);
+//            xl.setLabelCount(3, true);
+        mChart.setExtraBottomOffset(10f);
+        xl.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xl.setTextColor(Color.BLACK);
+        xl.setDrawGridLines(false);
+        xl.setAvoidFirstLastClipping(true);
+        xl.setEnabled(true);
+        YAxis yl = mChart.getAxisLeft();
+        yl.setTextColor(Color.BLACK);
+        yl.setAxisMaximum(100f);
+        yl.setAxisMinimum(0f);
+        yl.setDrawGridLines(false);
+        yl.setLabelCount(10);
+        YAxis y2 = mChart.getAxisRight();
+        y2.setEnabled(false);
+        mChart.setDrawBorders(false);
+        Legend l = mChart.getLegend();
+        l.setEnabled(false);
+//        feedMultiple();
+//            handler.post(feedMultiple);
+        mChart.invalidate();
+
     }
 
     private final BottomNavigationView.OnNavigationItemSelectedListener bottomNavMethod = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -205,11 +248,13 @@ public class MainActivity extends AppCompatActivity {
 
             switch (item.getItemId()) {
                 case R.id.home:
-                    Fragment fragment1 = new fragment_tab1();
-                    openFragment(fragment1, fragment_tab1.TAG, item.getItemId());
-
-//                    fm.beginTransaction().hide(active).show(fragment1).commit();
-//                    active = fragment1;
+//                    Fragment fragment1 = new fragment_tab1();
+//                    openFragment(fragment1, fragment_tab1.TAG, item.getItemId());
+                    fm.beginTransaction().hide(active).show(fragment1).commit();
+                    temp.setVisibility(View.VISIBLE);
+                    mChart.setVisibility(View.VISIBLE);
+                    temp.setText(temperature);
+                    active = fragment1;
 //                    if (temp == null) {
 //                        fm.beginTransaction().hide(active).show(fragment1).commit();
 //                        active = fragment1;
@@ -220,26 +265,44 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case R.id.Bt:
-                    Fragment fragment3 = new fragment_tab3();
-                    openFragment(fragment3, fragment_tab3.TAG, item.getItemId());
-//                    fm.beginTransaction().hide(active).show(fragment3).commit();
+//                    Fragment fragment3 = new fragment_tab3();
+//                    openFragment(fragment3, fragment_tab3.TAG, item.getItemId());
+                    fm.beginTransaction().hide(active).show(fragment3).commit();
+                    temp.setVisibility(View.INVISIBLE);
+                    mChart.setVisibility(View.INVISIBLE);
+                    temp.setText(temperature);
+                    active = fragment3;
                     return true;
 
                 case R.id.profile:
-                    Fragment fragment2 = new fragment_tab2();
-                    openFragment(fragment2, fragment_tab2.TAG, item.getItemId());
-//                    fm.beginTransaction().hide(active).show(fragment2).commit();
+//                    Fragment fragment2 = new fragment_tab2();
+//                    openFragment(fragment2, fragment_tab2.TAG, item.getItemId());
+                    fm.beginTransaction().hide(active).show(fragment2).commit();
+                    temp.setVisibility(View.INVISIBLE);
+                    mChart.setVisibility(View.INVISIBLE);
+                    temp.setText(temperature);
+                    active = fragment2;
                     return true;
             }
             return false;
         }
     };
 
-    public void openFragment(Fragment fragment, String TAG, int item) {
-        if (getSupportFragmentManager().findFragmentByTag(TAG) == null) {
-            saveFragmentState(item, TAG);
-            createFragment(fragment, item, TAG);
-        }
+    @Override
+    public void onValueSelected(Entry e, Highlight h) {
+
+    }
+
+    @Override
+    public void onNothingSelected() {
+
+    }
+
+//    public void openFragment(Fragment fragment, String TAG, int item) {
+//        if (getSupportFragmentManager().findFragmentByTag(TAG) == null) {
+//            saveFragmentState(item, TAG);
+//            createFragment(fragment, item, TAG);
+//        }
 //        FragmentManager fm = getSupportFragmentManager();
 //        if (fragment_tab1.TAG.equals(TAG)) {
 //            fm.beginTransaction().hide(undesired).replace(R.id.container, fragment).addToBackStack(null).commit();
@@ -248,48 +311,48 @@ public class MainActivity extends AppCompatActivity {
 //        } else {
 //            fm.beginTransaction().hide(undesired).replace(R.id.container3, fragment).addToBackStack(null).commit();
 //        }
-    }
+//    }
 
-    private void saveFragmentState(int item, String tag) {
-        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.container);
-        if (currentFragment != null) {
-            savedStateSparseArray.put(currentSelectedItemId, getSupportFragmentManager().saveFragmentInstanceState(currentFragment));
-        }
-        currentSelectedItemId = item;
-    }
-
-    private void createFragment(Fragment fragment, int item, String tag) {
-        fragment.setInitialSavedState((Fragment.SavedState) savedStateSparseArray.get(item));
-        getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment, tag).commit();
-    }
-
-    @Override
-    public void onBackPressed() {
-        FragmentManager fm = this.getSupportFragmentManager();
-        List fmList = fm.getFragments();
-        Iterable $receiver$iv = fmList;
-        Iterator var2 = $receiver$iv.iterator();
-
-        while (var2.hasNext()) {
-            Object element$iv = var2.next();
-            Fragment fragment = (Fragment) element$iv;
-            if (fragment != null && fragment.isVisible()) {
-                FragmentManager var6 = fragment.getChildFragmentManager();
-                if (var6.getBackStackEntryCount() > 0) {
-                    var6.popBackStack();
-                    return;
-                }
-            }
-        }
-        super.onBackPressed();
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-        outState.putSparseParcelableArray("ContainerKey", savedStateSparseArray);
-        outState.putInt("CurrentTabKey", currentSelectedItemId);
-    }
+//    private void saveFragmentState(int item, String tag) {
+//        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.container);
+//        if (currentFragment != null) {
+//            savedStateSparseArray.put(currentSelectedItemId, getSupportFragmentManager().saveFragmentInstanceState(currentFragment));
+//        }
+//        currentSelectedItemId = item;
+//    }
+//
+//    private void createFragment(Fragment fragment, int item, String tag) {
+//        fragment.setInitialSavedState((Fragment.SavedState) savedStateSparseArray.get(item));
+//        getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment, tag).commit();
+//    }
+//
+//    @Override
+//    public void onBackPressed() {
+//        FragmentManager fm = this.getSupportFragmentManager();
+//        List fmList = fm.getFragments();
+//        Iterable $receiver$iv = fmList;
+//        Iterator var2 = $receiver$iv.iterator();
+//
+//        while (var2.hasNext()) {
+//            Object element$iv = var2.next();
+//            Fragment fragment = (Fragment) element$iv;
+//            if (fragment != null && fragment.isVisible()) {
+//                FragmentManager var6 = fragment.getChildFragmentManager();
+//                if (var6.getBackStackEntryCount() > 0) {
+//                    var6.popBackStack();
+//                    return;
+//                }
+//            }
+//        }
+//        super.onBackPressed();
+//    }
+//
+//    @Override
+//    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
+//        super.onSaveInstanceState(outState, outPersistentState);
+//        outState.putSparseParcelableArray("ContainerKey", savedStateSparseArray);
+//        outState.putInt("CurrentTabKey", currentSelectedItemId);
+//    }
 
     private class ConnectedThread extends Thread {
         public ConnectedThread(BluetoothSocket socket) {

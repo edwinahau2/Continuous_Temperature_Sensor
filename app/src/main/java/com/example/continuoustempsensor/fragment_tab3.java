@@ -87,7 +87,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private TextView response, notify;
     ImageView spinner;
     private static final int REQUEST_ENABLE_BT = 0;
-    TextView paired;
+//    TextView paired;
     ListView scanListView;
     ArrayList scanDeviceList;
     ArrayAdapter<String> mDeviceListAdapter;
@@ -116,9 +116,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         mClipDrawable = (ClipDrawable) spinner.getDrawable();
         mClipDrawable.setLevel(0);
 //        imHandler.post(animateImage);
-        paired = view.findViewById(R.id.pairedDevices);
         response = view.findViewById(R.id.response);
-        paired.setVisibility(View.GONE);
+        scanListView = view.findViewById(R.id.scan);
+//        paired.setVisibility(View.GONE);
         buttonFind = view.findViewById(R.id.pairedBtn);
         f = view.findViewById(R.id.fahrenheit);
         c = view.findViewById(R.id.celsius);
@@ -133,7 +133,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         notify = view.findViewById(R.id.notify);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         scanDeviceList = new ArrayList();
-        scanListView = view.findViewById(R.id.scanListView);
         mDeviceListAdapter = new ArrayAdapter<String>(requireActivity().getApplicationContext(), android.R.layout.simple_list_item_1, scanDeviceList);
         scanListView.setAdapter(mDeviceListAdapter);
         if (mBlueAdapter == null) {
@@ -189,10 +188,10 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                     String num = stringBuilder.toString();
 
                     JSONObject jsonObject = new JSONObject(num);
-                    tf = jsonObject.getString("temperature");
-                    check = jsonObject.getBoolean("check");
-                    key = jsonObject.getInt("key");
-                    response.setText(tf + symbol);
+//                    tf = jsonObject.getString("temperature");
+//                    check = jsonObject.getBoolean("check");
+//                    key = jsonObject.getInt("key");
+//                    response.setText(tf + symbol);
                 } catch (IOException | JSONException e) {
                     e.printStackTrace();
                 }
@@ -225,10 +224,10 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                     String num = stringBuilder.toString();
 
                     JSONObject jsonObject = new JSONObject(num);
-                    tf = jsonObject.getString("temperature");
-                    check = jsonObject.getBoolean("check");
-                    key = jsonObject.getInt("key");
-                    response.setText(tf + symbol);
+//                    tf = jsonObject.getString("temperature");
+//                    check = jsonObject.getBoolean("check");
+//                    key = jsonObject.getInt("key");
+//                    response.setText(tf + symbol);
                 } catch (IOException | JSONException e) {
                     e.printStackTrace();
                 }
@@ -606,7 +605,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
            for (BluetoothDevice device : bluetoothSet) {
                String deviceName = device.getName();
                String deviceAddress = device.getAddress();
-               paired.setVisibility(View.VISIBLE);
+//               paired.setVisibility(View.VISIBLE);
                scanDeviceList.add(deviceName + ": " + deviceAddress);
                mDeviceListAdapter.notifyDataSetChanged();
                onStart();
@@ -712,11 +711,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 //        }
 //        toast = Toast.makeText(getActivity(), "onResume", Toast.LENGTH_SHORT);
 //        setToast();
-        if (MainActivity.hide) {
-            hide.setChecked(true);
-        } else {
-            hide.setChecked(false);
-        }
+//        if (MainActivity.hide) {
+//            hide.setChecked(true);
+//        } else {
+//            hide.setChecked(false);
+//        }
 
     }
 
@@ -731,7 +730,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 //        }
 //        toast = Toast.makeText(getActivity(), "onStop", Toast.LENGTH_SHORT);
 //        setToast();
-        MainActivity.hide = check;
+//        MainActivity.hide = check;
     }
 
     @Override
