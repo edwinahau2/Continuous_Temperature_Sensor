@@ -169,33 +169,31 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onClick(View v) {
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
-                tf = String.valueOf(Math.random() * 10);
-                symbol = " °F";
-                retrieveJSON(tf, check, symbol, key);
-
-                File file = new File(requireContext().getFilesDir(), "temp.json");
-                try {
-                    FileReader fileReader = new FileReader(file);
-                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line = bufferedReader.readLine();
-                    while (line != null) {
-                        stringBuilder.append(line).append("\n");
-                        line = bufferedReader.readLine();
-                    }
-                    bufferedReader.close();
-
-                    String num = stringBuilder.toString();
-
-                    JSONObject jsonObject = new JSONObject(num);
-//                    tf = jsonObject.getString("temperature");
-//                    check = jsonObject.getBoolean("check");
-//                    key = jsonObject.getInt("key");
-//                    response.setText(tf + symbol);
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
-                }
-//                mCallback.messageFromBt(tf, check, symbol, key);
+                MainActivity.f = true;
+//                retrieveJSON(tf, check, symbol, key);
+//
+//                File file = new File(requireContext().getFilesDir(), "temp.json");
+//                try {
+//                    FileReader fileReader = new FileReader(file);
+//                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+//                    StringBuilder stringBuilder = new StringBuilder();
+//                    String line = bufferedReader.readLine();
+//                    while (line != null) {
+//                        stringBuilder.append(line).append("\n");
+//                        line = bufferedReader.readLine();
+//                    }
+//                    bufferedReader.close();
+//
+//                    String num = stringBuilder.toString();
+//
+//                    JSONObject jsonObject = new JSONObject(num);
+////                    tf = jsonObject.getString("temperature");
+////                    check = jsonObject.getBoolean("check");
+////                    key = jsonObject.getInt("key");
+////                    response.setText(tf + symbol);
+//                } catch (IOException | JSONException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
 
@@ -205,33 +203,31 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onClick(View v) {
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
-                tf = "6";
-                symbol = " °C";
-                retrieveJSON(tf, check, symbol, key);
-
-                File file = new File(requireContext().getFilesDir(), "temp.json");
-                try {
-                    FileReader fileReader = new FileReader(file);
-                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line = bufferedReader.readLine();
-                    while (line != null) {
-                        stringBuilder.append(line).append("\n");
-                        line = bufferedReader.readLine();
-                    }
-                    bufferedReader.close();
-
-                    String num = stringBuilder.toString();
-
-                    JSONObject jsonObject = new JSONObject(num);
-//                    tf = jsonObject.getString("temperature");
-//                    check = jsonObject.getBoolean("check");
-//                    key = jsonObject.getInt("key");
-//                    response.setText(tf + symbol);
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
-                }
-//                mCallback.messageFromBt(tf, check, symbol, key);
+                MainActivity.f = false;
+//                retrieveJSON(tf, check, symbol, key);
+//
+//                File file = new File(requireContext().getFilesDir(), "temp.json");
+//                try {
+//                    FileReader fileReader = new FileReader(file);
+//                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+//                    StringBuilder stringBuilder = new StringBuilder();
+//                    String line = bufferedReader.readLine();
+//                    while (line != null) {
+//                        stringBuilder.append(line).append("\n");
+//                        line = bufferedReader.readLine();
+//                    }
+//                    bufferedReader.close();
+//
+//                    String num = stringBuilder.toString();
+//
+//                    JSONObject jsonObject = new JSONObject(num);
+////                    tf = jsonObject.getString("temperature");
+////                    check = jsonObject.getBoolean("check");
+////                    key = jsonObject.getInt("key");
+////                    response.setText(tf + symbol);
+//                } catch (IOException | JSONException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
 
@@ -254,8 +250,10 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                 check = hide.isChecked();
                 if (check) {
                     retrieveJSON(tf, true, symbol, key);
+                    MainActivity.hide = true;
 //                    mCallback.messageFromBt(tf, true, symbol, key);
                 } else {
+                    MainActivity.hide = false;
                     retrieveJSON(tf, false, symbol, key);
 //                    mCallback.messageFromBt(tf, false, symbol, key);
                 }

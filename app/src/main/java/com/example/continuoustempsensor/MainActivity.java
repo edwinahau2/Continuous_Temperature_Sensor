@@ -13,9 +13,13 @@ import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -30,6 +34,7 @@ import android.os.PersistableBundle;
 import android.util.SparseArray;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,7 +50,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -54,29 +61,32 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements OnChartValueSelectedListener {
 
-    public static ArrayList<String> al = new ArrayList<>();
-    public static LineData data;
+    ArrayList<String> al = new ArrayList<>();
+    LineData data;
     public static int x;
     public static double y;
-    public static int i;
+    int i;
+    public static boolean f = true;
     BluetoothSocket mmSocket;
     BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
+    ArrayList<String> time = new ArrayList<>();
     public static String deviceName;
     UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     ConnectedThread btt = null;
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
     TextView temp;
+    Thread thread;
     LineChart mChart;
+    @SuppressLint("SimpleDateFormat")
+    SimpleDateFormat format = new SimpleDateFormat("h:mm:ss a");
     public static final int RESPONSE_MESSAGE = 10;
     public static int j;
     public static boolean hide;
     String temperature;
     InputStream mmInStream;
-    public static int num;
     Handler mHandler;
-    public static String symbol;
     private Fragment fragment1 = new fragment_tab1();
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
@@ -86,10 +96,13 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
     private SparseArray savedStateSparseArray = new SparseArray();
     public static final String SAVED_STATE_CONTAINER_KEY = "ContainerKey";
     public static final String SAVED_STATE_CURRENT_TAB_KEY = "CurrentTabKey";
+    SwipeFlingAdapterView flingContainer;
+    private TextView counter;
+    private ArrayAdapter<String> arrayAdapter;
 //    private boolean hide;
 
 
-    public static void addal(String my) {
+    public void addal(String my) {
         al.add(my);
     }
 
@@ -108,6 +121,48 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         mChart = findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
         temp.setVisibility(View.VISIBLE);
+        flingContainer = findViewById(R.id.frame);
+        counter = findViewById(R.id.counter);
+        if (i != 1) {
+            addal("Notifications");
+            addal("my");
+            addal("name");
+            addal("is");
+            addal("Aryan");
+            addal("Agarwal");
+            i = 1;
+        }
+        final int[] number = {al.size()};
+        counter.setText(String.valueOf(number[0]));
+        arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
+        flingContainer.setAdapter(arrayAdapter);
+        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
+            @Override
+            public void removeFirstObjectInAdapter() {
+                al.remove(0);
+                arrayAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onLeftCardExit(Object o) {
+                number[0]--;
+                counter.setText(String.valueOf(number[0]));
+            }
+
+            @Override
+            public void onRightCardExit(Object o) {
+                number[0]--;
+                counter.setText(String.valueOf(number[0]));
+            }
+
+            @Override
+            public void onAdapterAboutToEmpty(int i) {
+            }
+
+            @Override
+            public void onScroll(float v) {
+            }
+        });
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             String address = bundle.getString("address");
@@ -125,6 +180,9 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                         e.printStackTrace();
                     }
                 }
+
+                btt = new ConnectedThread(mmSocket);
+                btt.start();
 
                 mHandler  = new Handler(Looper.getMainLooper()) {
                     @Override
@@ -179,11 +237,14 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                                         else {
                                             medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
                                         }
+                                        if (!f) {
+                                            medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
+                                        }
                                         temperature = Double.toString(medianTemp);
                                         temp.setText(temperature);
+                                        feedMultiple();
 //                                        key = 1;
 //                                            retrieveJSON(tf, check, symbol, key);
-//                                            mCallback.messageFromBt(tf, check, symbol, key);
                                     }
                                 }
                                 recDataString.delete(0, recDataString.length());
@@ -192,8 +253,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                         }
                     }
                 };
-                btt = new ConnectedThread(mmSocket);
-                btt.start();
             }
         }
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
@@ -236,8 +295,8 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         mChart.setDrawBorders(false);
         Legend l = mChart.getLegend();
         l.setEnabled(false);
-//        feedMultiple();
-//            handler.post(feedMultiple);
+//        mChart.notifyDataSetChanged();
+////        handler.post(feedMultiple);
         mChart.invalidate();
 
     }
@@ -254,6 +313,8 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
                     temp.setText(temperature);
+                    flingContainer.setVisibility(View.VISIBLE);
+                    counter.setVisibility(View.VISIBLE);
                     active = fragment1;
 //                    if (temp == null) {
 //                        fm.beginTransaction().hide(active).show(fragment1).commit();
@@ -270,6 +331,8 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                     fm.beginTransaction().hide(active).show(fragment3).commit();
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
+                    flingContainer.setVisibility(View.INVISIBLE);
+                    counter.setVisibility(View.INVISIBLE);
                     temp.setText(temperature);
                     active = fragment3;
                     return true;
@@ -280,6 +343,8 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                     fm.beginTransaction().hide(active).show(fragment2).commit();
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
+                    flingContainer.setVisibility(View.INVISIBLE);
+                    counter.setVisibility(View.INVISIBLE);
                     temp.setText(temperature);
                     active = fragment2;
                     return true;
@@ -290,12 +355,77 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
 
     @Override
     public void onValueSelected(Entry e, Highlight h) {
-
+        String currentTime = time.get((int) e.getX());
+        temp.setText("(" + currentTime + ", " + e.getY() + ")");
+        mChart.centerViewTo(e.getX(), e.getY(), mChart.getData().getDataSetByIndex(h.getDataIndex()).getAxisDependency());
     }
 
     @Override
     public void onNothingSelected() {
 
+    }
+
+    private void feedMultiple() {
+        if (thread != null) {
+            thread.interrupt();
+        }
+
+        thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (temperature != null) {
+                    float tf = Float.parseFloat(temperature);
+                    addEntry(tf);
+                    String clock = format.format(Calendar.getInstance().getTime());
+                    time.add(clock);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+//                    text.setText(tf);
+//                    String tf = temp.substring(0, temp.length() - 4);
+//                    float y = Float.parseFloat(tf);
+//                    addEntry(Math.round(y));
+//                    String clock = format.format(Calendar.getInstance().getTime());
+//                    time.add(clock);
+                }
+            }
+        });
+        thread.start();
+    }
+
+    private void addEntry(float y) {
+        data = mChart.getData();
+        if (data != null) {
+            ILineDataSet set = data.getDataSetByIndex(0);
+            if (set == null) {
+                set = createSet();
+                data.addDataSet(set);
+            }
+//            MainActivity.coordinate(set.getEntryCount(), y);
+            data.addEntry(new Entry(set.getEntryCount(), y), 0);
+            XAxis xl = mChart.getXAxis();
+            xl.setValueFormatter(new IndexAxisValueFormatter(time));
+            data.notifyDataChanged();
+            mChart.notifyDataSetChanged();
+            mChart.setVisibleXRangeMaximum(10);
+            mChart.moveViewToX(data.getEntryCount());
+        }
+    }
+
+    private LineDataSet createSet() {
+        LineDataSet set = new LineDataSet(null, null);
+        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set.setLineWidth(3f);
+        set.setColor(Color.rgb(27, 157, 255));
+        set.setHighlightEnabled(true);
+        set.setDrawValues(false);
+        set.setDrawCircles(true);
+        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        set.setCubicIntensity(0.2f);
+        mChart.invalidate();
+        return set;
     }
 
 //    public void openFragment(Fragment fragment, String TAG, int item) {
@@ -391,24 +521,27 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
 
     }
 
-    //    public void onAttachFragment(@NonNull Fragment fragment) {
-//        if (fragment instanceof fragment_tab3) {
-//            fragment_tab3 headlinesFragment = (fragment_tab3) fragment;
-//            headlinesFragment.setCallback(this);
-//        }
-//    }
-//    @Override
-//    public void messageFromBt(String sensor, Boolean b, String symbol, int key) {
-//        temp = sensor + symbol;
-//        temperature = temp;
-//        hide = b;
-//        num = key;
-//        newFrag = new fragment_tab1();
-//        Bundle args = new Bundle();
-//        args.putString("temperature", temp);
-//        args.putBoolean("inApp", b);
-//        args.putInt("key", key);
-//        newFrag.setArguments(args);
-//        fm.beginTransaction().replace(R.id.container1, newFrag, "1").hide(newFrag).addToBackStack(null).commit();
-//    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (hide) {
+            flingContainer.setVisibility(View.GONE);
+            counter.setVisibility(View.GONE);
+        } else {
+            flingContainer.setVisibility(View.VISIBLE);
+            counter.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (hide) {
+            flingContainer.setVisibility(View.GONE);
+            counter.setVisibility(View.GONE);
+        } else {
+            flingContainer.setVisibility(View.VISIBLE);
+            counter.setVisibility(View.VISIBLE);
+        }
+    }
 }

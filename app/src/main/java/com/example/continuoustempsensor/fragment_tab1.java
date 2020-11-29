@@ -89,21 +89,21 @@ public class fragment_tab1 extends Fragment implements OnChartValueSelectedListe
         View view = inflater.inflate(R.layout.tab1_layout, container, false);
 //        text = view.findViewById(R.id.text);
 //        mChart = view.findViewById(R.id.sparkView);
-        flingContainer = view.findViewById(R.id.frame);
-        counter = view.findViewById(R.id.counter);
-        if (MainActivity.i != 1) {
-            MainActivity.addal("Notifications");
-            MainActivity.addal("my");
-            MainActivity.addal("name");
-            MainActivity.addal("is");
-            MainActivity.addal("Aryan");
-            MainActivity.addal("Agarwal");
-            MainActivity.i = 1;
-        }
-        final int[] number = {MainActivity.al.size()};
-        counter.setText(String.valueOf(number[0]));
-        arrayAdapter = new ArrayAdapter<>(requireContext(), R.layout.item, R.id.helloText, MainActivity.al);
-        flingContainer.setAdapter(arrayAdapter);
+//        flingContainer = view.findViewById(R.id.frame);
+//        counter = view.findViewById(R.id.counter);
+//        if (MainActivity.i != 1) {
+//            MainActivity.addal("Notifications");
+//            MainActivity.addal("my");
+//            MainActivity.addal("name");
+//            MainActivity.addal("is");
+//            MainActivity.addal("Aryan");
+//            MainActivity.addal("Agarwal");
+//            MainActivity.i = 1;
+//        }
+//        final int[] number = {MainActivity.al.size()};
+//        counter.setText(String.valueOf(number[0]));
+//        arrayAdapter = new ArrayAdapter<>(requireContext(), R.layout.item, R.id.helloText, MainActivity.al);
+//        flingContainer.setAdapter(arrayAdapter);
         if (getArguments() != null) {
             // boolean notif = getArguments().getBoolean("inApp");
 //            temp = MainActivity.temperature;
@@ -283,33 +283,33 @@ public class fragment_tab1 extends Fragment implements OnChartValueSelectedListe
 ////            handler.post(feedMultiple);
 //            mChart.invalidate();
         }
-        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
-            @Override
-            public void removeFirstObjectInAdapter() {
-                MainActivity.al.remove(0);
-                arrayAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onLeftCardExit(Object o) {
-                number[0]--;
-                counter.setText(String.valueOf(number[0]));
-            }
-
-            @Override
-            public void onRightCardExit(Object o) {
-                number[0]--;
-                counter.setText(String.valueOf(number[0]));
-            }
-
-            @Override
-            public void onAdapterAboutToEmpty(int i) {
-            }
-
-            @Override
-            public void onScroll(float v) {
-            }
-        });
+//        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
+//            @Override
+//            public void removeFirstObjectInAdapter() {
+//                MainActivity.al.remove(0);
+//                arrayAdapter.notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onLeftCardExit(Object o) {
+//                number[0]--;
+//                counter.setText(String.valueOf(number[0]));
+//            }
+//
+//            @Override
+//            public void onRightCardExit(Object o) {
+//                number[0]--;
+//                counter.setText(String.valueOf(number[0]));
+//            }
+//
+//            @Override
+//            public void onAdapterAboutToEmpty(int i) {
+//            }
+//
+//            @Override
+//            public void onScroll(float v) {
+//            }
+//        });
 
         return view;
     }
@@ -317,57 +317,57 @@ public class fragment_tab1 extends Fragment implements OnChartValueSelectedListe
     private void addEntry(float y) {
 //        float e = Float.parseFloat(time);
 //        String r = Float.toString(e);
-        MainActivity.data = mChart.getData();
-        if (MainActivity.data != null) {
-            ILineDataSet set = MainActivity.data.getDataSetByIndex(0);
-            if (set == null) {
-                set = createSet();
-                MainActivity.data.addDataSet(set);
-            }
-            MainActivity.coordinate(set.getEntryCount(), y);
-            MainActivity.data.addEntry(new Entry(set.getEntryCount(), y), 0);
-            XAxis xl = mChart.getXAxis();
-            xl.setValueFormatter(new IndexAxisValueFormatter(time));
-            MainActivity.data.notifyDataChanged();
-            mChart.notifyDataSetChanged();
-            mChart.setVisibleXRangeMaximum(10);
-            mChart.moveViewToX(MainActivity.data.getEntryCount());
-        }
+//        MainActivity.data = mChart.getData();
+//        if (MainActivity.data != null) {
+//            ILineDataSet set = MainActivity.data.getDataSetByIndex(0);
+//            if (set == null) {
+//                set = createSet();
+//                MainActivity.data.addDataSet(set);
+//            }
+//            MainActivity.coordinate(set.getEntryCount(), y);
+//            MainActivity.data.addEntry(new Entry(set.getEntryCount(), y), 0);
+//            XAxis xl = mChart.getXAxis();
+//            xl.setValueFormatter(new IndexAxisValueFormatter(time));
+//            MainActivity.data.notifyDataChanged();
+//            mChart.notifyDataSetChanged();
+//            mChart.setVisibleXRangeMaximum(10);
+//            mChart.moveViewToX(MainActivity.data.getEntryCount());
+//        }
     }
 
-    private LineDataSet createSet() {
-        LineDataSet set = new LineDataSet(null, null);
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        set.setLineWidth(3f);
-        set.setColor(Color.rgb(27, 157, 255));
-        set.setHighlightEnabled(true);
-        set.setDrawValues(false);
-        set.setDrawCircles(true);
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        set.setCubicIntensity(0.2f);
-        mChart.invalidate();
-        return set;
-    }
+//    private LineDataSet createSet() {
+//        LineDataSet set = new LineDataSet(null, null);
+//        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+//        set.setLineWidth(3f);
+//        set.setColor(Color.rgb(27, 157, 255));
+//        set.setHighlightEnabled(true);
+//        set.setDrawValues(false);
+//        set.setDrawCircles(true);
+//        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+//        set.setCubicIntensity(0.2f);
+//        mChart.invalidate();
+//        return set;
+//    }
 
-    private void feedMultiple() {
-        if (thread != null) {
-            thread.interrupt();
-        }
-
-        thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (tf != null) {
-                    text.setText(tf);
-//                    String tf = temp.substring(0, temp.length() - 4);
-//                    float y = Float.parseFloat(tf);
-//                    addEntry(Math.round(y));
+//    private void feedMultiple() {
+//        if (thread != null) {
+//            thread.interrupt();
+//        }
+//
+//        thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (tf != null) {
+//                    text.setText(tf);
+////                    String tf = temp.substring(0, temp.length() - 4);
+////                    float y = Float.parseFloat(tf);
+////                    addEntry(Math.round(y));
 //                    String clock = format.format(Calendar.getInstance().getTime());
-//                    time.add(clock);
-                }
-            }
-        });
-    }
+////                    time.add(clock);
+//                }
+//            }
+//        });
+//    }
 
 //    private final Runnable feedMultiple = new Runnable() {
 //        @Override
@@ -423,18 +423,18 @@ public class fragment_tab1 extends Fragment implements OnChartValueSelectedListe
 //            }
             key = jsonObject.getInt("key");
             text.setText(tf);
-            feedMultiple();
+//            feedMultiple();
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
 
-        if (MainActivity.hide) {
-            flingContainer.setVisibility(View.GONE);
-            counter.setVisibility(View.GONE);
-        } else {
-            flingContainer.setVisibility(View.VISIBLE);
-            counter.setVisibility(View.VISIBLE);
-        }
+//        if (MainActivity.hide) {
+//            flingContainer.setVisibility(View.GONE);
+//            counter.setVisibility(View.GONE);
+//        } else {
+//            flingContainer.setVisibility(View.VISIBLE);
+//            counter.setVisibility(View.VISIBLE);
+//        }
 
     }
 
@@ -467,18 +467,18 @@ public class fragment_tab1 extends Fragment implements OnChartValueSelectedListe
 //            }
             key = jsonObject.getInt("key");
 //            text.setText(tf);
-            feedMultiple();
+//            feedMultiple();
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
-
-        if (MainActivity.hide) {
-            flingContainer.setVisibility(View.GONE);
-            counter.setVisibility(View.GONE);
-        } else {
-            flingContainer.setVisibility(View.VISIBLE);
-            counter.setVisibility(View.VISIBLE);
-        }
+//
+//        if (MainActivity.hide) {
+//            flingContainer.setVisibility(View.GONE);
+//            counter.setVisibility(View.GONE);
+//        } else {
+//            flingContainer.setVisibility(View.VISIBLE);
+//            counter.setVisibility(View.VISIBLE);
+//        }
 
     }
 
