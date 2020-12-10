@@ -236,10 +236,10 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     notify.setTextColor(Color.parseColor("#000000"));
-                    retrieveJSON(tf, check, symbol, key);
+//                    retrieveJSON(tf, check, symbol, key);
                 } else {
                     notify.setTextColor(Color.parseColor("#ccc8c8"));
-                    retrieveJSON(tf, check, symbol, key);
+//                    retrieveJSON(tf, check, symbol, key);
                 }
             }
         });
@@ -249,12 +249,12 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 check = hide.isChecked();
                 if (check) {
-                    retrieveJSON(tf, true, symbol, key);
+//                    retrieveJSON(tf, true, symbol, key);
                     MainActivity.hide = true;
 //                    mCallback.messageFromBt(tf, true, symbol, key);
                 } else {
                     MainActivity.hide = false;
-                    retrieveJSON(tf, false, symbol, key);
+//                    retrieveJSON(tf, false, symbol, key);
 //                    mCallback.messageFromBt(tf, false, symbol, key);
                 }
             }
@@ -611,42 +611,42 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         }
     }
 
-    public void retrieveJSON(String sensor, boolean check, String symbol, int key) {
-        JSONObject object = new JSONObject();
-        try {
-            object.put("temperature", sensor);
-            object.put("check", check);
-            object.put("symbol", symbol);
-            object.put("key", key);
-            String userString = object.toString();
-            File file = new File(requireContext().getFilesDir(), "temp.json");
-            try {
-                FileWriter writer = new FileWriter(file);
-                BufferedWriter bufferedWriter = new BufferedWriter(writer);
-                bufferedWriter.write(userString);
-                bufferedWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-//            writeJSON(object);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void writeJSON(JSONObject object) {
-        String userString = object.toString();
-        File file = new File(requireContext().getFilesDir(), "temp.json");
-        try {
-            FileWriter writer = new FileWriter(file);
-            BufferedWriter bufferedWriter = new BufferedWriter(writer);
-            bufferedWriter.write(userString);
-            bufferedWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//    public void retrieveJSON(String sensor, boolean check, String symbol, int key) {
+//        JSONObject object = new JSONObject();
+//        try {
+//            object.put("temperature", sensor);
+//            object.put("check", check);
+//            object.put("symbol", symbol);
+//            object.put("key", key);
+//            String userString = object.toString();
+//            File file = new File(requireContext().getFilesDir(), "temp.json");
+//            try {
+//                FileWriter writer = new FileWriter(file);
+//                BufferedWriter bufferedWriter = new BufferedWriter(writer);
+//                bufferedWriter.write(userString);
+//                bufferedWriter.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+////            writeJSON(object);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+//
+//    private void writeJSON(JSONObject object) {
+//        String userString = object.toString();
+//        File file = new File(requireContext().getFilesDir(), "temp.json");
+//        try {
+//            FileWriter writer = new FileWriter(file);
+//            BufferedWriter bufferedWriter = new BufferedWriter(writer);
+//            bufferedWriter.write(userString);
+//            bufferedWriter.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 
     public void setToast() {
@@ -681,7 +681,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     @Override
     public void onResume() {
         super.onResume();
-        retrieveJSON(tf, check, symbol, key);
+//        retrieveJSON(tf, check, symbol, key);
 //        File file = new File(requireContext().getFilesDir(), "temp.json");
 //        try {
 //            FileReader fileReader = new FileReader(file);
@@ -720,7 +720,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     @Override
     public void onStop() {
         super.onStop();
-        retrieveJSON(tf, check, symbol, key);
+//        retrieveJSON(tf, check, symbol, key);
 //        if (MainActivity.mmSocket != null) {
 //            connect.setText(MainActivity.deviceName);
 //            btt = new ConnectedThread(MainActivity.mmSocket);

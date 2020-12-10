@@ -18,6 +18,7 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 
@@ -77,12 +78,11 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
     TextView temp;
-    Thread thread;
     LineChart mChart;
     @SuppressLint("SimpleDateFormat")
     SimpleDateFormat format = new SimpleDateFormat("h:mm:ss a");
     public static final int RESPONSE_MESSAGE = 10;
-    public static int j;
+    float j = 0;
     public static boolean hide;
     String temperature;
     InputStream mmInStream;
@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
     SwipeFlingAdapterView flingContainer;
     private TextView counter;
     private ArrayAdapter<String> arrayAdapter;
+    boolean plotData = false;
 //    private boolean hide;
 
 
@@ -118,8 +119,43 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         setContentView(R.layout.activity_main);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         temp = findViewById(R.id.temp);
-        mChart = findViewById(R.id.sparkView);
+        mChart = (LineChart) findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
+        mChart.setDescription(null);
+        mChart.setTouchEnabled(true);
+        mChart.setExtraBottomOffset(10f);
+        mChart.setDragEnabled(true);
+        mChart.setScaleEnabled(true);
+        mChart.setDrawGridBackground(false);
+        mChart.setPinchZoom(true);
+        mChart.setBackgroundColor(Color.WHITE);
+        LineData data = new LineData();
+        data.setValueTextColor(Color.WHITE);
+        mChart.setData(data);
+
+        XAxis xl = mChart.getXAxis();
+        xl.setTextColor(Color.WHITE);
+        xl.setDrawGridLines(true);
+        xl.setAvoidFirstLastClipping(true);
+        xl.setEnabled(true);
+        xl.setPosition(XAxis.XAxisPosition.BOTTOM);
+
+        YAxis leftAxis = mChart.getAxisLeft();
+        leftAxis.setTextColor(Color.WHITE);
+        leftAxis.setDrawGridLines(false);
+        leftAxis.setAxisMaximum(100f);
+        leftAxis.setAxisMinimum(0f);
+        leftAxis.setDrawGridLines(true);
+
+        YAxis rightAxis = mChart.getAxisRight();
+        rightAxis.setEnabled(false);
+
+        mChart.getAxisLeft().setDrawGridLines(false);
+        mChart.getXAxis().setDrawGridLines(false);
+        mChart.setDrawBorders(false);
+        mChart.invalidate();
+//        startPlot();
+
         temp.setVisibility(View.VISIBLE);
         flingContainer = findViewById(R.id.frame);
         counter = findViewById(R.id.counter);
@@ -167,93 +203,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         if (bundle != null) {
             String address = bundle.getString("address");
             mDevice = mBlueAdapter.getRemoteDevice(address);
-            if (mmSocket == null || !mmSocket.isConnected()) {
-                BluetoothSocket tmp;
-                try {
-                    tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                    mmSocket = tmp;
-                    mmSocket.connect();
-                } catch (IOException e) {
-                    try {
-                        mmSocket.close();
-                    } catch (IOException c) {
-                        e.printStackTrace();
-                    }
-                }
-
-                btt = new ConnectedThread(mmSocket);
-                btt.start();
-
-                mHandler  = new Handler(Looper.getMainLooper()) {
-                    @Override
-                    public void handleMessage(@NonNull Message msg) {
-                        super.handleMessage(msg);
-                        if (msg.what == RESPONSE_MESSAGE) {
-                            String readMessage = (String) msg.obj;
-                            recDataString.append(readMessage);
-                            int endOfLineIndex = recDataString.indexOf("~");
-                            if (endOfLineIndex > 0) {
-                                String dataInPrint = recDataString.substring(0, endOfLineIndex);
-
-                                if (recDataString.charAt(0) == '#') {
-                                    String sensor = recDataString.substring(1, endOfLineIndex);
-                                    float sensorVal =  Float.parseFloat(sensor);
-                                    tempVals.add(sensorVal);
-
-                                    boolean legit = true;
-                                    if (tempVals.size()>60){
-                                        double min = Collections.min(tempVals);
-                                        double max = Collections.max(tempVals);
-                                        double total =0;
-                                        for(int i=0;i<tempVals.size();i++)
-                                        {
-                                            total+=tempVals.get(i);
-                                        }
-                                        double mean = total/tempVals.size();
-                                        double total2 =0;
-                                        for (int i=0;i<tempVals.size();i++)
-                                        {
-                                            total2 += Math.pow((i - mean), 2);
-                                        }
-                                        double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
-                                        double gLower = (mean - min)/std;
-                                        double gUpper = (max-mean)/std;
-                                        if(gLower > 3.0269 || gUpper >3.0369){
-                                            // There's an outlier
-                                            legit = false;
-                                        }
-                                        if(std*std > 0.50){
-                                            //Too much variance
-                                            legit =false;
-                                        }
-                                    }
-                                    if(legit) {
-                                        Collections.sort(tempVals);
-                                        double medianTemp;
-                                        if (tempVals.size() % 2 == 0)
-                                        {
-                                            medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
-                                        }
-                                        else {
-                                            medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
-                                        }
-                                        if (!f) {
-                                            medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
-                                        }
-                                        temperature = Double.toString(medianTemp);
-                                        temp.setText(temperature);
-                                        feedMultiple();
-//                                        key = 1;
-//                                            retrieveJSON(tf, check, symbol, key);
-                                    }
-                                }
-                                recDataString.delete(0, recDataString.length());
-                                dataInPrint = "";
-                            }
-                        }
-                    }
-                };
-            }
+            startConnection();
         }
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
         bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
@@ -262,44 +212,28 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         fm.beginTransaction().add(R.id.container, fragment1, "1").addToBackStack(null).commit();
         bottomNavigationView.setSelectedItemId(R.id.home);
 
-        mChart.setTouchEnabled(true);
-        mChart.setDragEnabled(true);
-        mChart.setScaleEnabled(true);
-        mChart.setDrawGridBackground(false);
-        mChart.setPinchZoom(true);
-        mChart.setDescription(null);
-        mChart.setBackgroundColor(Color.TRANSPARENT);
-        mChart.setHighlightPerTapEnabled(true);
-        LineData data = new LineData();
-        data.setValueTextColor(Color.WHITE);
-        mChart.setData(data);
-        mChart.setOnChartValueSelectedListener(this);
-        XAxis xl = mChart.getXAxis();
-        xl.setCenterAxisLabels(true);
-        mChart.setVisibleXRangeMaximum(4);
-//            xl.setLabelCount(3, true);
-        mChart.setExtraBottomOffset(10f);
-        xl.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xl.setTextColor(Color.BLACK);
-        xl.setDrawGridLines(false);
-        xl.setAvoidFirstLastClipping(true);
-        xl.setEnabled(true);
-        YAxis yl = mChart.getAxisLeft();
-        yl.setTextColor(Color.BLACK);
-        yl.setAxisMaximum(100f);
-        yl.setAxisMinimum(0f);
-        yl.setDrawGridLines(false);
-        yl.setLabelCount(10);
-        YAxis y2 = mChart.getAxisRight();
-        y2.setEnabled(false);
-        mChart.setDrawBorders(false);
-        Legend l = mChart.getLegend();
-        l.setEnabled(false);
-//        mChart.notifyDataSetChanged();
-////        handler.post(feedMultiple);
-        mChart.invalidate();
-
     }
+
+//    private void startPlot() {
+//        if (thread != null) {
+//            thread.interrupt();
+//        }
+//        thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (true) {
+//                    plotData = true;
+//                    try {
+//                        Thread.sleep(1000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                }
+//            }
+//        });
+//        thread.start();
+//    }
 
     private final BottomNavigationView.OnNavigationItemSelectedListener bottomNavMethod = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
@@ -365,68 +299,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
 
     }
 
-    private void feedMultiple() {
-        if (thread != null) {
-            thread.interrupt();
-        }
 
-        thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (temperature != null) {
-                    float tf = Float.parseFloat(temperature);
-                    addEntry(tf);
-                    String clock = format.format(Calendar.getInstance().getTime());
-                    time.add(clock);
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-//                    text.setText(tf);
-//                    String tf = temp.substring(0, temp.length() - 4);
-//                    float y = Float.parseFloat(tf);
-//                    addEntry(Math.round(y));
-//                    String clock = format.format(Calendar.getInstance().getTime());
-//                    time.add(clock);
-                }
-            }
-        });
-        thread.start();
-    }
-
-    private void addEntry(float y) {
-        data = mChart.getData();
-        if (data != null) {
-            ILineDataSet set = data.getDataSetByIndex(0);
-            if (set == null) {
-                set = createSet();
-                data.addDataSet(set);
-            }
-//            MainActivity.coordinate(set.getEntryCount(), y);
-            data.addEntry(new Entry(set.getEntryCount(), y), 0);
-            XAxis xl = mChart.getXAxis();
-            xl.setValueFormatter(new IndexAxisValueFormatter(time));
-            data.notifyDataChanged();
-            mChart.notifyDataSetChanged();
-            mChart.setVisibleXRangeMaximum(10);
-            mChart.moveViewToX(data.getEntryCount());
-        }
-    }
-
-    private LineDataSet createSet() {
-        LineDataSet set = new LineDataSet(null, null);
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        set.setLineWidth(3f);
-        set.setColor(Color.rgb(27, 157, 255));
-        set.setHighlightEnabled(true);
-        set.setDrawValues(false);
-        set.setDrawCircles(true);
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        set.setCubicIntensity(0.2f);
-        mChart.invalidate();
-        return set;
-    }
 
 //    public void openFragment(Fragment fragment, String TAG, int item) {
 //        if (getSupportFragmentManager().findFragmentByTag(TAG) == null) {
@@ -484,6 +357,144 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
 //        outState.putInt("CurrentTabKey", currentSelectedItemId);
 //    }
 
+    private void startConnection() {
+        if (mmSocket == null || !mmSocket.isConnected()) {
+            BluetoothSocket tmp;
+            try {
+                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                mmSocket = tmp;
+                mmSocket.connect();
+            } catch (IOException e) {
+                try {
+                    mmSocket.close();
+                } catch (IOException c) {
+                    e.printStackTrace();
+                }
+            }
+
+            btt = new ConnectedThread(mmSocket);
+            btt.start();
+
+            mHandler  = new Handler(Looper.getMainLooper()) {
+                @Override
+                public void handleMessage(@NonNull Message msg) {
+                    super.handleMessage(msg);
+                    if (msg.what == RESPONSE_MESSAGE) {
+                        String readMessage = (String) msg.obj;
+                        recDataString.append(readMessage);
+                        int endOfLineIndex = recDataString.indexOf("~");
+                        if (endOfLineIndex > 0) {
+                            String dataInPrint = recDataString.substring(0, endOfLineIndex);
+
+                            if (recDataString.charAt(0) == '#') {
+                                String sensor = recDataString.substring(1, endOfLineIndex);
+                                float sensorVal =  Float.parseFloat(sensor);
+                                tempVals.add(sensorVal);
+
+                                boolean legit = true;
+                                if (tempVals.size()>60){
+                                    double min = Collections.min(tempVals);
+                                    double max = Collections.max(tempVals);
+                                    double total =0;
+                                    for(int i=0;i<tempVals.size();i++)
+                                    {
+                                        total+=tempVals.get(i);
+                                    }
+                                    double mean = total/tempVals.size();
+                                    double total2 =0;
+                                    for (int i=0;i<tempVals.size();i++)
+                                    {
+                                        total2 += Math.pow((i - mean), 2);
+                                    }
+                                    double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
+                                    double gLower = (mean - min)/std;
+                                    double gUpper = (max-mean)/std;
+                                    if(gLower > 3.0269 || gUpper >3.0369){
+                                        // There's an outlier
+                                        legit = false;
+                                    }
+                                    if(std*std > 0.50){
+                                        //Too much variance
+                                        legit =false;
+                                    }
+                                }
+                                if(legit) {
+                                    Collections.sort(tempVals);
+                                    double medianTemp;
+                                    if (tempVals.size() % 2 == 0)
+                                    {
+                                        medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
+                                    }
+                                    else {
+                                        medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
+                                    }
+                                    if (!f) {
+                                        medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
+                                    }
+                                    temperature = Double.toString(medianTemp);
+                                    temp.setText(temperature);
+                                    plotData = true;
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            while (plotData) {
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        addEntry(temperature);
+                                                        plotData = false;
+                                                    }
+                                                });
+                                                try {
+                                                    Thread.sleep(5000);
+                                                } catch (InterruptedException e){
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
+                                    }).start();
+                                }
+                            }
+                            recDataString.delete(0, recDataString.length());
+                            dataInPrint = "";
+                        }
+                    }
+                }
+            };
+        }
+    }
+
+    private void addEntry(String temperature) {
+        LineData data = mChart.getData();
+        if (data != null) {
+            LineDataSet set = (LineDataSet) data.getDataSetByIndex(0);
+            if (set == null) {
+                set = createSet();
+                data.addDataSet(set);
+            }
+            float y = Float.parseFloat(temperature);
+            data.addEntry(new Entry(set.getEntryCount(), y), 0);
+            data.notifyDataChanged();
+            mChart.notifyDataSetChanged();
+            mChart.setVisibleXRangeMaximum(6);
+            mChart.moveViewToX(data.getEntryCount()-7);
+        }
+    }
+
+    private LineDataSet createSet() {
+        LineDataSet set = new LineDataSet(null, null);
+        set.setDrawCircles(true);
+        set.setFillAlpha(65);
+        set.setFillColor(ColorTemplate.getHoloBlue());
+        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set.setLineWidth(3f);
+        set.setColor(Color.MAGENTA);
+        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        set.setCubicIntensity(0.2f);
+        return set;
+    }
+
+
     private class ConnectedThread extends Thread {
         public ConnectedThread(BluetoothSocket socket) {
             InputStream tmpIn = null;
@@ -518,8 +529,8 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                 e.printStackTrace();
             }
         }
-
     }
+
 
     @Override
     protected void onResume() {
