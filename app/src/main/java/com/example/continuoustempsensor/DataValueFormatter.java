@@ -21,7 +21,6 @@ public class DataValueFormatter extends ValueFormatter {
     public String getFormattedValue(float value) {
         String test = Float.toString(value);
         String test2 = test.substring(0, test.indexOf("."));
-//        String test2 = test.replace(".", "");
         String test1 = test2.replace(",", "");
 
         int o = test1.length();

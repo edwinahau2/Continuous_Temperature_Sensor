@@ -20,6 +20,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.JsonWriter;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,23 +38,39 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelectedListener {
-    private Callback mCallback;
+    public static final String TAG = "THREE";
+    //    private Callback mCallback;
     private boolean clicked = false;
     private static final int REQUEST_CODE = 1;
     public static final int RESPONSE_MESSAGE = 10;
@@ -63,6 +80,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     Toast toast;
     private Spinner dropdown;
     private static final int RESULT_OK = -1;
+    ArrayList<Float> tempVals = new ArrayList<Float>();
     private int mLevel;
     private Button buttonFind, f, c, connect;
     private BluetoothAdapter mBlueAdapter;
@@ -80,12 +98,15 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     ConnectedThread btt = null;
     private InputStream mmInStream;
     private OutputStream mmOutStream;
-    private String tf = "98.7";
-    private String symbol;
+    private String tf;
+    private String symbol = " °F";
     private boolean check;
     private boolean isImage = false;
     private ClipDrawable mClipDrawable;
     private static String textTimeNotify;
+    private int key;
+    boolean yes = true;
+//    private OutputStream out;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
@@ -150,8 +171,33 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onClick(View v) {
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
+                tf = String.valueOf(Math.random() * 10);
                 symbol = " °F";
-                mCallback.messageFromBt(tf, check, symbol);
+                retrieveJSON(tf, check, symbol, key);
+
+                File file = new File(requireContext().getFilesDir(), "temp.json");
+                try {
+                    FileReader fileReader = new FileReader(file);
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line = bufferedReader.readLine();
+                    while (line != null) {
+                        stringBuilder.append(line).append("\n");
+                        line = bufferedReader.readLine();
+                    }
+                    bufferedReader.close();
+
+                    String num = stringBuilder.toString();
+
+                    JSONObject jsonObject = new JSONObject(num);
+                    tf = jsonObject.getString("temperature");
+                    check = jsonObject.getBoolean("check");
+                    key = jsonObject.getInt("key");
+                    response.setText(tf + symbol);
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
+//                mCallback.messageFromBt(tf, check, symbol, key);
             }
         });
 
@@ -161,8 +207,33 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onClick(View v) {
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
+                tf = "6";
                 symbol = " °C";
-                mCallback.messageFromBt(tf, check, symbol);
+                retrieveJSON(tf, check, symbol, key);
+
+                File file = new File(requireContext().getFilesDir(), "temp.json");
+                try {
+                    FileReader fileReader = new FileReader(file);
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line = bufferedReader.readLine();
+                    while (line != null) {
+                        stringBuilder.append(line).append("\n");
+                        line = bufferedReader.readLine();
+                    }
+                    bufferedReader.close();
+
+                    String num = stringBuilder.toString();
+
+                    JSONObject jsonObject = new JSONObject(num);
+                    tf = jsonObject.getString("temperature");
+                    check = jsonObject.getBoolean("check");
+                    key = jsonObject.getInt("key");
+                    response.setText(tf + symbol);
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
+//                mCallback.messageFromBt(tf, check, symbol, key);
             }
         });
 
@@ -171,8 +242,10 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     notify.setTextColor(Color.parseColor("#000000"));
+                    retrieveJSON(tf, check, symbol, key);
                 } else {
                     notify.setTextColor(Color.parseColor("#ccc8c8"));
+                    retrieveJSON(tf, check, symbol, key);
                 }
             }
         });
@@ -182,9 +255,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 check = hide.isChecked();
                 if (check) {
-                    mCallback.messageFromBt(tf, true, symbol);
+                    retrieveJSON(tf, true, symbol, key);
+//                    mCallback.messageFromBt(tf, true, symbol, key);
                 } else {
-                    mCallback.messageFromBt(tf, false, symbol);
+                    retrieveJSON(tf, false, symbol, key);
+//                    mCallback.messageFromBt(tf, false, symbol, key);
                 }
             }
         });
@@ -252,23 +327,23 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                 String deviceName = scanListView.getAdapter().getItem(position).toString();
                 int i = deviceName.indexOf(":");
                 String deviceAddress = deviceName.substring(i + 2);
-                deviceName = deviceName.substring(0, i);
-                BluetoothDevice mDevice = mBlueAdapter.getRemoteDevice(deviceAddress);
-                if (mmSocket == null || !mmSocket.isConnected()) {
+                MainActivity.deviceName = deviceName.substring(0, i);
+                MainActivity.mDevice = mBlueAdapter.getRemoteDevice(deviceAddress);
+                if (MainActivity.mmSocket == null || !MainActivity.mmSocket.isConnected()) {
                     BluetoothSocket tmp;
                     try {
-                        tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                        mmSocket = tmp;
-                        mmSocket.connect();
-                        connect.setText(deviceName);
+                        tmp = MainActivity.mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                        MainActivity.mmSocket = tmp;
+                        MainActivity.mmSocket.connect();
+                        connect.setText(MainActivity.deviceName);
                     } catch (IOException e) {
                         try {
-                            mmSocket.close();
+                            MainActivity.mmSocket.close();
                         } catch (IOException c) {
                         }
                     }
 
-                    mHandler = new Handler(Looper.getMainLooper()) {
+                    MainActivity.mHandler = new Handler(Looper.getMainLooper()) {
                         @Override
                         public void handleMessage(@NonNull Message msg) {
                             super.handleMessage(msg);
@@ -281,9 +356,52 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 
                                     if (recDataString.charAt(0) == '#') {
                                         String sensor = recDataString.substring(1, endOfLineIndex);
-                                        response.setText(sensor);
-                                        tf = sensor;
-                                        mCallback.messageFromBt(tf, check, symbol);
+                                        float sensorVal =  Float.parseFloat(sensor);
+                                        tempVals.add(sensorVal);
+
+                                        boolean legit = true;
+                                        if (tempVals.size()>60){
+                                            double min = Collections.min(tempVals);
+                                            double max = Collections.max(tempVals);
+                                            double total =0;
+                                            for(int i=0;i<tempVals.size();i++)
+                                            {
+                                                total+=tempVals.get(i);
+                                            }
+                                            double mean = total/tempVals.size();
+                                            double total2 =0;
+                                            for (int i=0;i<tempVals.size();i++)
+                                            {
+                                                total2 += Math.pow((i - mean), 2);
+                                            }
+                                            double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
+                                            double gLower = (mean - min)/std;
+                                            double gUpper = (max-mean)/std;
+                                                if(gLower > 3.0269 || gUpper >3.0369){
+                                                    // There's an outlier
+                                                    legit = false;
+                                                }
+                                                if(std*std > 0.50){
+                                                    //Too much variance
+                                                    legit =false;
+                                                }
+                                            }
+                                        if(legit) {
+                                            Collections.sort(tempVals);
+                                            double medianTemp;
+                                            if (tempVals.size() % 2 == 0)
+                                            {
+                                                medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
+                                            }
+                                            else {
+                                                medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
+                                            }
+                                            tf = Double.toString(medianTemp);
+                                            key = 1;
+                                            MainActivity.temperature = tf;
+//                                            retrieveJSON(tf, check, symbol, key);
+//                                            mCallback.messageFromBt(tf, check, symbol, key);
+                                        }
                                     }
                                     recDataString.delete(0, recDataString.length());
                                     dataInPrint = "";
@@ -291,14 +409,14 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                             }
                         }
                     };
-                    btt = new ConnectedThread(mmSocket);
+                    btt = new ConnectedThread(MainActivity.mmSocket);
                     btt.start();
                 }
                 else {
                     try {
-                        mmSocket.close();
-                        mmSocket = null;
-                        mmInStream = null;
+                        MainActivity.mmSocket.close();
+                        MainActivity.mmSocket = null;
+                        MainActivity.mmInStream = null;
                         mmOutStream = null;
                         connect.setText("Not Connected");
                     } catch (IOException e) {}
@@ -309,11 +427,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         connect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mmSocket != null) {
+                if (MainActivity.mmSocket != null) {
                     try {
-                        mmSocket.close();
-                        mmSocket = null;
-                        mmInStream = null;
+                        MainActivity.mmSocket.close();
+                        MainActivity.mmSocket = null;
+                        MainActivity.mmInStream = null;
                         mmOutStream = null;
                         connect.setText("Not Connected");
                     } catch (IOException e) {}
@@ -449,20 +567,20 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                 tmpOut = socket.getOutputStream();
             } catch (IOException e) {}
 
-            mmInStream = tmpIn;
+            MainActivity.mmInStream = tmpIn;
             mmOutStream = tmpOut;
         }
 
         public void run() {
             BufferedReader br;
-            br = new BufferedReader(new InputStreamReader(mmInStream));
+            br = new BufferedReader(new InputStreamReader(MainActivity.mmInStream));
             while (true) {
                 try {
                     String resp = br.readLine();
                     Message msg = new Message();
                     msg.what = RESPONSE_MESSAGE;
                     msg.obj = resp;
-                    mHandler.sendMessage(msg);
+                    MainActivity.mHandler.sendMessage(msg);
                 } catch (IOException e) {
                     break;
                 }
@@ -471,7 +589,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 
         public void cancel() {
             try {
-                mmSocket.close();
+                MainActivity.mmSocket.close();
             } catch (IOException e) {}
         }
     }
@@ -501,33 +619,124 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         }
     }
 
+    public void retrieveJSON(String sensor, boolean check, String symbol, int key) {
+        JSONObject object = new JSONObject();
+        try {
+            object.put("temperature", sensor);
+            object.put("check", check);
+            object.put("symbol", symbol);
+            object.put("key", key);
+            String userString = object.toString();
+            File file = new File(requireContext().getFilesDir(), "temp.json");
+            try {
+                FileWriter writer = new FileWriter(file);
+                BufferedWriter bufferedWriter = new BufferedWriter(writer);
+                bufferedWriter.write(userString);
+                bufferedWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+//            writeJSON(object);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void writeJSON(JSONObject object) {
+        String userString = object.toString();
+        File file = new File(requireContext().getFilesDir(), "temp.json");
+        try {
+            FileWriter writer = new FileWriter(file);
+            BufferedWriter bufferedWriter = new BufferedWriter(writer);
+            bufferedWriter.write(userString);
+            bufferedWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public void setToast() {
         toast.setGravity(Gravity.BOTTOM, 0, 180);
         toast.show();
     }
 
-    public void setCallback(Callback callback) {
-        this.mCallback = callback;
-    }
-
-    public interface Callback {
-        public void messageFromBt(String sensor, Boolean b, String symbol);
-    }
+//    public void setCallback(Callback callback) {
+//        this.mCallback = callback;
+//    }
+//
+//    public interface Callback {
+//        void messageFromBt(String sensor, Boolean b, String symbol, int key);
+//    }
+//
+//    @Override
+//    public void onAttach(@NonNull Context context) {
+//        super.onAttach(context);
+//        if (context instanceof Callback) {
+//            mCallback = (Callback) context;
+//        } else {
+//            throw new RuntimeException(context.toString());
+//        }
+//    }
+//
+//    @Override
+//    public void onDetach() {
+//        super.onDetach();
+//        mCallback = null;
+//    }
 
     @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        if (context instanceof Callback) {
-            mCallback = (Callback) context;
-        } else {
-            throw new RuntimeException(context.toString());
+    public void onResume() {
+        super.onResume();
+        retrieveJSON(tf, check, symbol, key);
+//        File file = new File(requireContext().getFilesDir(), "temp.json");
+//        try {
+//            FileReader fileReader = new FileReader(file);
+//            BufferedReader bufferedReader = new BufferedReader(fileReader);
+//            StringBuilder stringBuilder = new StringBuilder();
+//            String line = bufferedReader.readLine();
+//            while (line != null) {
+//                stringBuilder.append(line).append("\n");
+//                line = bufferedReader.readLine();
+//            }
+//            bufferedReader.close();
+//            String num = stringBuilder.toString();
+//            JSONObject jsonObject = new JSONObject(num);
+//            tf = jsonObject.getString("temperature");
+//            check = jsonObject.getBoolean("check");
+//            key = jsonObject.getInt("key");
+//            response.setText(tf);
+//        } catch (IOException | JSONException e) {
+//            e.printStackTrace();
+//        }
+        if (MainActivity.mmSocket != null) {
+            connect.setText(MainActivity.deviceName);
+            btt = new ConnectedThread(MainActivity.mmSocket);
+            btt.start();
         }
+//        toast = Toast.makeText(getActivity(), "onResume", Toast.LENGTH_SHORT);
+//        setToast();
+        if (MainActivity.hide) {
+            hide.setChecked(true);
+        } else {
+            hide.setChecked(false);
+        }
+
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mCallback = null;
+    public void onStop() {
+        super.onStop();
+        retrieveJSON(tf, check, symbol, key);
+        if (MainActivity.mmSocket != null) {
+            connect.setText(MainActivity.deviceName);
+            btt = new ConnectedThread(MainActivity.mmSocket);
+            btt.start();
+        }
+//        toast = Toast.makeText(getActivity(), "onStop", Toast.LENGTH_SHORT);
+//        setToast();
+        MainActivity.hide = check;
     }
 
     @Override

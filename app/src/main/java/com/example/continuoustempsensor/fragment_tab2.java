@@ -26,6 +26,8 @@ public class fragment_tab2 extends Fragment {
     private EditText editTextMessage;
     //public final int request_code;
 
+    public static final String TAG = "TWO" ;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
