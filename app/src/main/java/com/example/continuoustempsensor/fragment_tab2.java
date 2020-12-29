@@ -18,6 +18,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 
+//import android.widget.EditText;
+
 
 
 public class fragment_tab2 extends Fragment {
@@ -35,14 +37,14 @@ public class fragment_tab2 extends Fragment {
 
         final Context that = this.getContext(); // used "that" because in buttons can't reference parent context from innerclass line 37 and 54 instead of using "this"
         notificationManager = NotificationManagerCompat.from(this.getContext());
-        editTextTitle = view.findViewById(R.id.edit_text_title);
-        editTextMessage = view.findViewById(R.id.edit_text_message);
+//        editTextTitle = view.findViewById(R.id.edit_text_title);
+//        editTextMessage = view.findViewById(R.id.edit_text_message);
 
-        Button warningButton = view.findViewById(R.id.urgent_warning);
-        warningButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View w) {
-                String title = editTextTitle.getText().toString();
-                String message = editTextMessage.getText().toString();
+//        Button warningButton = view.findViewById(R.id.urgent_warning);
+//        warningButton.setOnClickListener(new View.OnClickListener() {
+            public void feverNotification(View v) {
+             /*   String title = editTextTitle.getText().toString();
+                String message = editTextMessage.getText().toString();*/
                 assert that != null;
 
                 Intent activityIntent = new Intent(that, MainActivity.class); // opens the app at fragment 2 when notification clicked
@@ -50,7 +52,7 @@ public class fragment_tab2 extends Fragment {
                         0, activityIntent, 0);
 
                 Intent broadcastIntent = new Intent(that, NotificationReceiver.class);
-                broadcastIntent.putExtra("ButtonUnderneath", message);
+                broadcastIntent.putExtra("ButtonUnderneath", "open app");
                 PendingIntent actionIntent = PendingIntent.getBroadcast(that,
                         0, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 //update current means that when we create a new pendingintent, it will update putextra
@@ -59,8 +61,8 @@ public class fragment_tab2 extends Fragment {
 
                 android.app.Notification notification = new NotificationCompat.Builder(that, notifications.CHANNEL_1_ID)
                         .setSmallIcon(R.drawable.warning)
-                        .setContentTitle(title)
-                        .setContentText(message)
+                        //.setContentTitle(title)
+                        //.setContentText(message)
                         .setLargeIcon(largeIcon)
                         .setStyle(new NotificationCompat.BigTextStyle()
                                 .bigText(getString(R.string.temp_spike_message))
@@ -77,10 +79,10 @@ public class fragment_tab2 extends Fragment {
                         .build();
                 notificationManager.notify(1, notification);
             }
-        });
+//        });
 
-        Button updateButton = view.findViewById(R.id.send_update);
-        updateButton.setOnClickListener(new View.OnClickListener() {
+//        Button updateButton = view.findViewById(R.id.send_update);
+//        updateButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View w) {
                 String title = editTextTitle.getText().toString();
                 String message = editTextMessage.getText().toString();
@@ -107,7 +109,7 @@ public class fragment_tab2 extends Fragment {
                         .build();
                 notificationManager.notify(2, notification);
             }
-        });
+//        });
 
         return view;
     }

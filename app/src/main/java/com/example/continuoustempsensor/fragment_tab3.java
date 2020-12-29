@@ -334,7 +334,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                         } catch (IOException c) {
                         }
                     }
-
+//GRUBBS HERE
                     MainActivity.mHandler = new Handler(Looper.getMainLooper()) {
                         @Override
                         public void handleMessage(@NonNull Message msg) {
@@ -390,7 +390,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                                             }
                                             tf = Double.toString(medianTemp);
                                             key = 1;
+                                            // **** the temperature value is in variable tf as a string
                                             MainActivity.temperature = tf;
+
 //                                            retrieveJSON(tf, check, symbol, key);
 //                                            mCallback.messageFromBt(tf, check, symbol, key);
                                         }

@@ -11,10 +11,6 @@ public class NotificationReceiver extends BroadcastReceiver {
 
         //sends toast when click button called open app under the notification
         String message = intent.getStringExtra("ButtonUnderneath");
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show(); // change to open email settings
-
-        /*Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_APP_EMAIL);
-        getActivity().startActivity(intent);*/
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 }
