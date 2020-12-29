@@ -62,9 +62,6 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
         find = findViewById(R.id.find);
         mData = new ArrayList<>();
 //        mData.add(new BtDevice("HC-06:1234"));
-//        mData.add(new BtDevice("Bluetooth:5678"));
-//        mData.add(new BtDevice("Another one:9123"));
-//        mData.add(new BtDevice("Device:5555"));
         btAdapter = new BtAdapter(this, mData, this);
         btRecycle.setAdapter(btAdapter);
         btRecycle.setLayoutManager(new LinearLayoutManager(this));
@@ -80,20 +77,20 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
         find.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mBlueAdapter.isEnabled()) {
-                    Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(intent, REQUEST_ENABLE_BT);
+            if (!mBlueAdapter.isEnabled()) {
+                Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(intent, REQUEST_ENABLE_BT);
+            } else {
+                if (mBlueAdapter.isDiscovering()) {
+                    mBlueAdapter.cancelDiscovery();
+                    find.setText("Find Devices");
                 } else {
-                    if (mBlueAdapter.isDiscovering()) {
-                        mBlueAdapter.cancelDiscovery();
-                        find.setText("Find Devices");
-                    } else {
-                        mBlueAdapter.startDiscovery();
-                        find.setText("Cancel");
-                        mData.clear();
-                        findPairedDevices();
-                    }
+                    mBlueAdapter.startDiscovery();
+                    find.setText("Cancel");
+                    mData.clear();
+                    findPairedDevices();
                 }
+            }
             }
         });
     }
@@ -180,8 +177,6 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
             mBlueAdapter.cancelDiscovery();
             find.setText("Find Devices");
             addy = mData.get(position).getAddress();
-//            toast = Toast.makeText(this, addy, Toast.LENGTH_SHORT);
-//            setToast();
     }
 
     public void ShowPopUp() {
@@ -202,11 +197,12 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
                 Intent mainActivity = new Intent(getApplicationContext(), MainActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putString("address", addy);
+                bundle.putString("name", correct);
                 mainActivity.putExtras(bundle);
                 startActivity(mainActivity);
 
-//                savePrefsData();
-//                finish();
+                savePrefsData();
+                finish();
             }
         });
         myDialog.show();
@@ -215,7 +211,7 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
     private void savePrefsData() {
         SharedPreferences preferences = getApplicationContext().getSharedPreferences("myPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("isIntroOpen", true);
+        editor.putBoolean("isBtOpen", true);
         editor.apply();
     }
 }

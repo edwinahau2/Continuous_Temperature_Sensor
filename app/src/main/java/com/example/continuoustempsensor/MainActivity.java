@@ -4,11 +4,15 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -16,7 +20,6 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -26,91 +29,73 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.PersistableBundle;
-import android.util.SparseArray;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 
-public class MainActivity extends AppCompatActivity implements OnChartValueSelectedListener {
+public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> al = new ArrayList<>();
-    LineData data;
     public static int x;
     public static double y;
+    public static String name;
     int i;
     public static boolean f = true;
-    BluetoothSocket mmSocket;
+    static BluetoothSocket mmSocket;
     BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
-    public static String deviceName;
     UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     ConnectedThread btt = null;
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
     TextView temp;
     LineChart mChart;
+    public static String address;
     @SuppressLint("SimpleDateFormat")
     SimpleDateFormat format = new SimpleDateFormat("h:mm:ss a");
     public static final int RESPONSE_MESSAGE = 10;
     float j = 0;
-    public static boolean hide;
     String temperature;
-    InputStream mmInStream;
-    Handler mHandler;
+    static InputStream mmInStream;
+    static Handler mHandler;
     private Fragment fragment1 = new fragment_tab1();
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
     Fragment active = new fragment_tab1();
-//    private String temp;
-    private SparseArray savedStateSparseArray = new SparseArray();
-    public static final String SAVED_STATE_CONTAINER_KEY = "ContainerKey";
-    public static final String SAVED_STATE_CURRENT_TAB_KEY = "CurrentTabKey";
     SwipeFlingAdapterView flingContainer;
     private TextView counter;
     private ArrayAdapter<String> arrayAdapter;
     boolean plotData = false;
-//    private boolean hide;
+    public static boolean spark = true;
+    String num;
+    int number;
 
 
     public void addal(String my) {
         al.add(my);
     }
 
-    public static void coordinate(int lastX, double lastY) {
-        x = lastX;
-        y = lastY;
-    }
 
     @SuppressLint("ShowToast")
     @Override
@@ -119,57 +104,55 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         setContentView(R.layout.activity_main);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         temp = findViewById(R.id.temp);
-        mChart = (LineChart) findViewById(R.id.sparkView);
+        mChart = findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
         mChart.setDescription(null);
         mChart.setTouchEnabled(true);
         mChart.setExtraBottomOffset(10f);
+        mChart.setBackgroundColor(Color.TRANSPARENT);
+        mChart.setHighlightPerTapEnabled(true);
         mChart.setDragEnabled(true);
         mChart.setScaleEnabled(true);
         mChart.setDrawGridBackground(false);
         mChart.setPinchZoom(true);
-        mChart.setBackgroundColor(Color.WHITE);
         LineData data = new LineData();
         data.setValueTextColor(Color.WHITE);
         mChart.setData(data);
+        mChart.setMaxHighlightDistance(20);
 
         XAxis xl = mChart.getXAxis();
-        xl.setTextColor(Color.WHITE);
-        xl.setDrawGridLines(true);
+        xl.setTextColor(Color.BLACK);
         xl.setAvoidFirstLastClipping(true);
         xl.setEnabled(true);
+        xl.setDrawGridLines(false);
         xl.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xl.setLabelCount(4, true);
 
         YAxis leftAxis = mChart.getAxisLeft();
-        leftAxis.setTextColor(Color.WHITE);
+        leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(false);
         leftAxis.setAxisMaximum(100f);
         leftAxis.setAxisMinimum(0f);
-        leftAxis.setDrawGridLines(true);
+        leftAxis.setDrawGridLines(false);
+        leftAxis.setEnabled(true);
 
         YAxis rightAxis = mChart.getAxisRight();
         rightAxis.setEnabled(false);
 
-        mChart.getAxisLeft().setDrawGridLines(false);
-        mChart.getXAxis().setDrawGridLines(false);
+        mChart.getLegend().setEnabled(false);
         mChart.setDrawBorders(false);
         mChart.invalidate();
-//        startPlot();
 
         temp.setVisibility(View.VISIBLE);
         flingContainer = findViewById(R.id.frame);
         counter = findViewById(R.id.counter);
-        if (i != 1) {
-            addal("Notifications");
-            addal("my");
-            addal("name");
-            addal("is");
-            addal("Aryan");
-            addal("Agarwal");
-            i = 1;
+        al = restoreArrayData();
+        if (restoreNumData() == -1) {
+            number = al.size();
+        } else {
+            number = restoreNumData();
         }
-        final int[] number = {al.size()};
-        counter.setText(String.valueOf(number[0]));
+        counter.setText(String.valueOf(number));
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         flingContainer.setAdapter(arrayAdapter);
         flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
@@ -177,18 +160,23 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
             public void removeFirstObjectInAdapter() {
                 al.remove(0);
                 arrayAdapter.notifyDataSetChanged();
+                saveArrayData();
             }
 
             @Override
             public void onLeftCardExit(Object o) {
-                number[0]--;
-                counter.setText(String.valueOf(number[0]));
+                number--;
+                num = String.valueOf(number);
+                counter.setText(num);
+                saveArrayData();
             }
 
             @Override
             public void onRightCardExit(Object o) {
-                number[0]--;
-                counter.setText(String.valueOf(number[0]));
+                number--;
+                num = String.valueOf(number);
+                counter.setText(num);
+                saveArrayData();
             }
 
             @Override
@@ -201,39 +189,30 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         });
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            String address = bundle.getString("address");
+            address = bundle.getString("address");
             mDevice = mBlueAdapter.getRemoteDevice(address);
+            name = bundle.getString("name");
+            startConnection();
+            savePrefsData();
+        } else if (mBlueAdapter.isEnabled()) {
+            if (restoreAddressData() == null) {
+                address = ConnectionActivity.restoreTheAddy();
+            } else {
+                address = restoreAddressData();
+            }
+            mDevice = mBlueAdapter.getRemoteDevice(address);
+            name = restoreNameData();
             startConnection();
         }
+
+
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
         bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
         fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
         fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
         fm.beginTransaction().add(R.id.container, fragment1, "1").addToBackStack(null).commit();
         bottomNavigationView.setSelectedItemId(R.id.home);
-
     }
-
-//    private void startPlot() {
-//        if (thread != null) {
-//            thread.interrupt();
-//        }
-//        thread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                while (true) {
-//                    plotData = true;
-//                    try {
-//                        Thread.sleep(1000);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                }
-//            }
-//        });
-//        thread.start();
-//    }
 
     private final BottomNavigationView.OnNavigationItemSelectedListener bottomNavMethod = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
@@ -241,27 +220,21 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
 
             switch (item.getItemId()) {
                 case R.id.home:
-//                    Fragment fragment1 = new fragment_tab1();
-//                    openFragment(fragment1, fragment_tab1.TAG, item.getItemId());
                     fm.beginTransaction().hide(active).show(fragment1).commit();
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
                     temp.setText(temperature);
-                    flingContainer.setVisibility(View.VISIBLE);
-                    counter.setVisibility(View.VISIBLE);
+                    if (restoreHide()) {
+                        flingContainer.setVisibility(View.GONE);
+                        counter.setVisibility(View.GONE);
+                    } else {
+                        flingContainer.setVisibility(View.VISIBLE);
+                        counter.setVisibility(View.VISIBLE);
+                    }
                     active = fragment1;
-//                    if (temp == null) {
-//                        fm.beginTransaction().hide(active).show(fragment1).commit();
-//                        active = fragment1;
-//                    } else {
-//                        fm.beginTransaction().hide(active).show(newFrag).commit();
-//                        active = newFrag;
-//                    }
                     return true;
 
                 case R.id.Bt:
-//                    Fragment fragment3 = new fragment_tab3();
-//                    openFragment(fragment3, fragment_tab3.TAG, item.getItemId());
                     fm.beginTransaction().hide(active).show(fragment3).commit();
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
@@ -272,8 +245,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                     return true;
 
                 case R.id.profile:
-//                    Fragment fragment2 = new fragment_tab2();
-//                    openFragment(fragment2, fragment_tab2.TAG, item.getItemId());
                     fm.beginTransaction().hide(active).show(fragment2).commit();
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
@@ -286,76 +257,6 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
             return false;
         }
     };
-
-    @Override
-    public void onValueSelected(Entry e, Highlight h) {
-        String currentTime = time.get((int) e.getX());
-        temp.setText("(" + currentTime + ", " + e.getY() + ")");
-        mChart.centerViewTo(e.getX(), e.getY(), mChart.getData().getDataSetByIndex(h.getDataIndex()).getAxisDependency());
-    }
-
-    @Override
-    public void onNothingSelected() {
-
-    }
-
-
-
-//    public void openFragment(Fragment fragment, String TAG, int item) {
-//        if (getSupportFragmentManager().findFragmentByTag(TAG) == null) {
-//            saveFragmentState(item, TAG);
-//            createFragment(fragment, item, TAG);
-//        }
-//        FragmentManager fm = getSupportFragmentManager();
-//        if (fragment_tab1.TAG.equals(TAG)) {
-//            fm.beginTransaction().hide(undesired).replace(R.id.container, fragment).addToBackStack(null).commit();
-//        } else if (fragment_tab2.TAG.equals(TAG)) {
-//            fm.beginTransaction().hide(undesired).replace(R.id.container2, fragment).addToBackStack(null).commit();
-//        } else {
-//            fm.beginTransaction().hide(undesired).replace(R.id.container3, fragment).addToBackStack(null).commit();
-//        }
-//    }
-
-//    private void saveFragmentState(int item, String tag) {
-//        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.container);
-//        if (currentFragment != null) {
-//            savedStateSparseArray.put(currentSelectedItemId, getSupportFragmentManager().saveFragmentInstanceState(currentFragment));
-//        }
-//        currentSelectedItemId = item;
-//    }
-//
-//    private void createFragment(Fragment fragment, int item, String tag) {
-//        fragment.setInitialSavedState((Fragment.SavedState) savedStateSparseArray.get(item));
-//        getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment, tag).commit();
-//    }
-//
-//    @Override
-//    public void onBackPressed() {
-//        FragmentManager fm = this.getSupportFragmentManager();
-//        List fmList = fm.getFragments();
-//        Iterable $receiver$iv = fmList;
-//        Iterator var2 = $receiver$iv.iterator();
-//
-//        while (var2.hasNext()) {
-//            Object element$iv = var2.next();
-//            Fragment fragment = (Fragment) element$iv;
-//            if (fragment != null && fragment.isVisible()) {
-//                FragmentManager var6 = fragment.getChildFragmentManager();
-//                if (var6.getBackStackEntryCount() > 0) {
-//                    var6.popBackStack();
-//                    return;
-//                }
-//            }
-//        }
-//        super.onBackPressed();
-//    }
-//
-//    @Override
-//    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
-//        super.onSaveInstanceState(outState, outPersistentState);
-//        outState.putSparseParcelableArray("ContainerKey", savedStateSparseArray);
-//        outState.putInt("CurrentTabKey", currentSelectedItemId);
-//    }
 
     private void startConnection() {
         if (mmSocket == null || !mmSocket.isConnected()) {
@@ -441,6 +342,8 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
+                                                        String clock = format.format(Calendar.getInstance().getTime());
+                                                        time.add(clock);
                                                         addEntry(temperature);
                                                         plotData = false;
                                                     }
@@ -474,10 +377,12 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
             }
             float y = Float.parseFloat(temperature);
             data.addEntry(new Entry(set.getEntryCount(), y), 0);
+            XAxis xl = mChart.getXAxis();
+            xl.setValueFormatter(new IndexAxisValueFormatter(time));
             data.notifyDataChanged();
             mChart.notifyDataSetChanged();
             mChart.setVisibleXRangeMaximum(6);
-            mChart.moveViewToX(data.getEntryCount()-7);
+            mChart.moveViewToX(data.getEntryCount());
         }
     }
 
@@ -495,7 +400,7 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
     }
 
 
-    private class ConnectedThread extends Thread {
+    protected static class ConnectedThread extends Thread {
         public ConnectedThread(BluetoothSocket socket) {
             InputStream tmpIn = null;
             try {
@@ -531,28 +436,57 @@ public class MainActivity extends AppCompatActivity implements OnChartValueSelec
         }
     }
 
+    private void savePrefsData() {
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("device", name);
+        editor.putString("address", address);
+        editor.apply();
+    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (hide) {
-            flingContainer.setVisibility(View.GONE);
-            counter.setVisibility(View.GONE);
+    private void saveArrayData() {
+        Set<String> set = new HashSet<>(al);
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putStringSet("array", set);
+        editor.putString("number", num);
+        editor.apply();
+    }
+
+    private String restoreNameData() {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
+        return pref.getString("device", null);
+    }
+
+    private String restoreAddressData() {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
+        return pref.getString("address", null);
+    }
+
+    private int restoreNumData() {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
+        return Integer.parseInt(pref.getString("number", String.valueOf(-1)));
+    }
+
+    private ArrayList<String> restoreArrayData() {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
+        Set<String> set = pref.getStringSet("array", null);
+        if (set == null) {
+            Set<String> newSet = new HashSet<>();
+            newSet.add("Notifications");
+            newSet.add("my");
+            newSet.add("name");
+            newSet.add("is");
+            newSet.add("Aryan");
+            newSet.add("Agarwal");
+            return new ArrayList<>(newSet);
         } else {
-            flingContainer.setVisibility(View.VISIBLE);
-            counter.setVisibility(View.VISIBLE);
+            return new ArrayList<>(set);
         }
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (hide) {
-            flingContainer.setVisibility(View.GONE);
-            counter.setVisibility(View.GONE);
-        } else {
-            flingContainer.setVisibility(View.VISIBLE);
-            counter.setVisibility(View.VISIBLE);
-        }
+    private Boolean restoreHide() {
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences("hidePref", MODE_PRIVATE);
+        return prefs.getBoolean("hide", false);
     }
 }
