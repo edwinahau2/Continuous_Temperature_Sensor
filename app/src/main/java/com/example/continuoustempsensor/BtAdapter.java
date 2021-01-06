@@ -28,7 +28,6 @@ public class BtAdapter extends RecyclerView.Adapter<BtAdapter.BtViewHolder> {
     @NonNull
     @Override
     public BtViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-
         View layout;
         layout = LayoutInflater.from(mContext).inflate(R.layout.item_devices, parent, false);
         return new BtViewHolder(layout, mOnDeviceListener);

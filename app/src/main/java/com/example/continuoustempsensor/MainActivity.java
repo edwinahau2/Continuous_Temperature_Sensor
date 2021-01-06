@@ -26,9 +26,11 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.PagerAdapter;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -37,9 +39,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -55,17 +64,23 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> al = new ArrayList<>();
-    public static int x;
-    public static double y;
+    File file;
+    FileReader fileReader = null;
+    FileWriter fileWriter = null;
+    BufferedReader bufferedReader = null;
+    BufferedWriter bufferedWriter = null;
+    private JSONObject reading = new JSONObject();
+    private JSONObject today = new JSONObject();
+    private JSONObject obj = new JSONObject();
     public static String name;
-    int i;
+    int i = 0;
     public static boolean f = true;
-    static BluetoothSocket mmSocket;
-    BluetoothDevice mDevice;
+//    static BluetoothSocket mmSocket;
+//    BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
-    UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-    ConnectedThread btt = null;
+//    UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+//    ConnectedThread btt = null;
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
     TextView temp;
@@ -73,11 +88,13 @@ public class MainActivity extends AppCompatActivity {
     public static String address;
     @SuppressLint("SimpleDateFormat")
     SimpleDateFormat format = new SimpleDateFormat("h:mm:ss a");
+    @SuppressLint("SimpleDateFormat")
+    public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
+    public static String jsonDate = date.format(Calendar.getInstance().getTime());
     public static final int RESPONSE_MESSAGE = 10;
-    float j = 0;
     String temperature;
-    static InputStream mmInStream;
-    static Handler mHandler;
+//    static InputStream mmInStream;
+//    static Handler mHandler;
     private Fragment fragment1 = new fragment_tab1();
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
@@ -92,16 +109,15 @@ public class MainActivity extends AppCompatActivity {
     int number;
 
 
-    public void addal(String my) {
-        al.add(my);
-    }
-
 
     @SuppressLint("ShowToast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        String FILE_NAME = "temp.json";
+        file = new File(this.getFilesDir(), FILE_NAME);
+        Bundle bundle = getIntent().getExtras();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         temp = findViewById(R.id.temp);
         mChart = findViewById(R.id.sparkView);
@@ -187,11 +203,13 @@ public class MainActivity extends AppCompatActivity {
             public void onScroll(float v) {
             }
         });
-        Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             address = bundle.getString("address");
-            mDevice = mBlueAdapter.getRemoteDevice(address);
+//            mDevice = mBlueAdapter.getRemoteDevice(address);
             name = bundle.getString("name");
+            Intent intent = new Intent(this, AndroidService.class);
+            intent.putExtra("address", address);
+            startService(intent);
             startConnection();
             savePrefsData();
         } else if (mBlueAdapter.isEnabled()) {
@@ -200,11 +218,28 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 address = restoreAddressData();
             }
-            mDevice = mBlueAdapter.getRemoteDevice(address);
+//            mDevice = mBlueAdapter.getRemoteDevice(address);
             name = restoreNameData();
+            Intent intent = new Intent(this, AndroidService.class);
+            intent.putExtra("address", address);
+            startService(intent);
             startConnection();
         }
 
+        try {
+            String key = "time0";
+            reading.put("temperature", "98.6");
+            reading.put("hour", "1:30");
+            obj.put(key, reading);
+            today.put(jsonDate, obj);
+            String userString = today.toString();
+            fileWriter = new FileWriter(file);
+            bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(userString);
+            bufferedWriter.close();
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
         bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
@@ -223,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
                     fm.beginTransaction().hide(active).show(fragment1).commit();
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
-                    temp.setText(temperature);
+//                    temp.setText(temperature);
                     if (restoreHide()) {
                         flingContainer.setVisibility(View.GONE);
                         counter.setVisibility(View.GONE);
@@ -259,24 +294,24 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void startConnection() {
-        if (mmSocket == null || !mmSocket.isConnected()) {
-            BluetoothSocket tmp;
-            try {
-                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                mmSocket = tmp;
-                mmSocket.connect();
-            } catch (IOException e) {
-                try {
-                    mmSocket.close();
-                } catch (IOException c) {
-                    e.printStackTrace();
-                }
-            }
+//        if (mmSocket == null || !mmSocket.isConnected()) {
+//            BluetoothSocket tmp;
+//            try {
+//                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+//                mmSocket = tmp;
+//                mmSocket.connect();
+//            } catch (IOException e) {
+//                try {
+//                    mmSocket.close();
+//                } catch (IOException c) {
+//                    e.printStackTrace();
+//                }
+//            }
 
-            btt = new ConnectedThread(mmSocket);
-            btt.start();
+//            btt = new ConnectedThread(mmSocket);
+//            btt.start();
 
-            mHandler  = new Handler(Looper.getMainLooper()) {
+            AndroidService.mHandler  = new Handler(Looper.getMainLooper()) {
                 @Override
                 public void handleMessage(@NonNull Message msg) {
                     super.handleMessage(msg);
@@ -333,7 +368,7 @@ public class MainActivity extends AppCompatActivity {
                                         medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
                                     }
                                     temperature = Double.toString(medianTemp);
-                                    temp.setText(temperature);
+//                                    temp.setText(temperature);
                                     plotData = true;
                                     new Thread(new Runnable() {
                                         @Override
@@ -346,6 +381,8 @@ public class MainActivity extends AppCompatActivity {
                                                         time.add(clock);
                                                         addEntry(temperature);
                                                         plotData = false;
+                                                        writeJSON(temperature, clock, i);
+                                                        i++;
                                                     }
                                                 });
                                                 try {
@@ -364,6 +401,24 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             };
+        }
+//    }
+
+    private void writeJSON(String temperature, String clock, int i) {
+        try {
+            String index = String.valueOf(i);
+            String key = "time" + index;
+            reading.put("temperature", temperature);
+            reading.put("hour", clock);
+            obj.put(key, reading);
+            today.put(jsonDate, obj);
+            String userString = today.toString();
+            fileWriter = new FileWriter(file);
+            bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(userString);
+            bufferedWriter.close();
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -399,42 +454,41 @@ public class MainActivity extends AppCompatActivity {
         return set;
     }
 
-
-    protected static class ConnectedThread extends Thread {
-        public ConnectedThread(BluetoothSocket socket) {
-            InputStream tmpIn = null;
-            try {
-                tmpIn = socket.getInputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mmInStream = tmpIn;
-        }
-
-        public void run() {
-            BufferedReader br;
-            br = new BufferedReader(new InputStreamReader(mmInStream));
-            while (true) {
-                try {
-                    String resp = br.readLine();
-                    Message msg = new Message();
-                    msg.what = RESPONSE_MESSAGE;
-                    msg.obj = resp;
-                    mHandler.sendMessage(msg);
-                } catch (IOException e) {
-                    break;
-                }
-            }
-        }
-
-        public void cancel() {
-            try {
-                mmSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    protected static class ConnectedThread extends Thread {
+//        public ConnectedThread(BluetoothSocket socket) {
+//            InputStream tmpIn = null;
+//            try {
+//                tmpIn = socket.getInputStream();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            mmInStream = tmpIn;
+//        }
+//
+//        public void run() {
+//            BufferedReader br;
+//            br = new BufferedReader(new InputStreamReader(mmInStream));
+//            while (true) {
+//                try {
+//                    String resp = br.readLine();
+//                    Message msg = new Message();
+//                    msg.what = RESPONSE_MESSAGE;
+//                    msg.obj = resp;
+//                    mHandler.sendMessage(msg);
+//                } catch (IOException e) {
+//                    break;
+//                }
+//            }
+//        }
+//
+//        public void cancel() {
+//            try {
+//                mmSocket.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
     private void savePrefsData() {
         SharedPreferences preferences = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
@@ -488,5 +542,21 @@ public class MainActivity extends AppCompatActivity {
     private Boolean restoreHide() {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences("hidePref", MODE_PRIVATE);
         return prefs.getBoolean("hide", false);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 }

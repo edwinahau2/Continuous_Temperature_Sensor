@@ -35,6 +35,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -42,6 +43,8 @@ import android.widget.ToggleButton;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -95,12 +98,14 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private int key;
     boolean uhh;
     String sensor;
+    private SwitchCompat darkMode;
 
     @SuppressLint("SetTextI18n")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
+        darkMode = view.findViewById(R.id.powerSwitch);
 //        button = view.findViewById(R.id.mBlueIv);
 //        spinner = view.findViewById(R.id.progressBar);
 //        spinner.setVisibility(View.GONE);
@@ -140,30 +145,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
                 MainActivity.f = true;
-//                retrieveJSON(tf, check, symbol, key);
-//
-//                File file = new File(requireContext().getFilesDir(), "temp.json");
-//                try {
-//                    FileReader fileReader = new FileReader(file);
-//                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-//                    StringBuilder stringBuilder = new StringBuilder();
-//                    String line = bufferedReader.readLine();
-//                    while (line != null) {
-//                        stringBuilder.append(line).append("\n");
-//                        line = bufferedReader.readLine();
-//                    }
-//                    bufferedReader.close();
-//
-//                    String num = stringBuilder.toString();
-//
-//                    JSONObject jsonObject = new JSONObject(num);
-////                    tf = jsonObject.getString("temperature");
-////                    check = jsonObject.getBoolean("check");
-////                    key = jsonObject.getInt("key");
-////                    response.setText(tf + symbol);
-//                } catch (IOException | JSONException e) {
-//                    e.printStackTrace();
-//                }
             }
         });
 
@@ -174,30 +155,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                 c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
                 f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
                 MainActivity.f = false;
-//                retrieveJSON(tf, check, symbol, key);
-//
-//                File file = new File(requireContext().getFilesDir(), "temp.json");
-//                try {
-//                    FileReader fileReader = new FileReader(file);
-//                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-//                    StringBuilder stringBuilder = new StringBuilder();
-//                    String line = bufferedReader.readLine();
-//                    while (line != null) {
-//                        stringBuilder.append(line).append("\n");
-//                        line = bufferedReader.readLine();
-//                    }
-//                    bufferedReader.close();
-//
-//                    String num = stringBuilder.toString();
-//
-//                    JSONObject jsonObject = new JSONObject(num);
-////                    tf = jsonObject.getString("temperature");
-////                    check = jsonObject.getBoolean("check");
-////                    key = jsonObject.getInt("key");
-////                    response.setText(tf + symbol);
-//                } catch (IOException | JSONException e) {
-//                    e.printStackTrace();
-//                }
             }
         });
 
@@ -206,10 +163,8 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     notify.setTextColor(Color.parseColor("#000000"));
-//                    retrieveJSON(tf, check, symbol, key);
                 } else {
                     notify.setTextColor(Color.parseColor("#ccc8c8"));
-//                    retrieveJSON(tf, check, symbol, key);
                 }
             }
         });
@@ -218,9 +173,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 check = hide.isChecked();
-                //                    retrieveJSON(tf, true, symbol, key);
                 //                    mCallback.messageFromBt(tf, true, symbol, key);
-                //                    retrieveJSON(tf, false, symbol, key);
                 //                    mCallback.messageFromBt(tf, false, symbol, key);
                 saveHideData();
             }
@@ -236,6 +189,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         return view;
 
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -314,43 +268,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     public void onNothingSelected(AdapterView<?> parent) {
 
     }
-
-//    public void retrieveJSON(String sensor, boolean check, String symbol, int key) {
-//        JSONObject object = new JSONObject();
-//        try {
-//            object.put("temperature", sensor);
-//            object.put("check", check);
-//            object.put("symbol", symbol);
-//            object.put("key", key);
-//            String userString = object.toString();
-//            File file = new File(requireContext().getFilesDir(), "temp.json");
-//            try {
-//                FileWriter writer = new FileWriter(file);
-//                BufferedWriter bufferedWriter = new BufferedWriter(writer);
-//                bufferedWriter.write(userString);
-//                bufferedWriter.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-////            writeJSON(object);
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
-//
-//    private void writeJSON(JSONObject object) {
-//        String userString = object.toString();
-//        File file = new File(requireContext().getFilesDir(), "temp.json");
-//        try {
-//            FileWriter writer = new FileWriter(file);
-//            BufferedWriter bufferedWriter = new BufferedWriter(writer);
-//            bufferedWriter.write(userString);
-//            bufferedWriter.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
     private void saveNameData() {
         SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
@@ -450,27 +367,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 //            MainActivity.address = restoreTheAddy();
 //        }
 
-//        retrieveJSON(tf, check, symbol, key);
-//        File file = new File(requireContext().getFilesDir(), "temp.json");
-//        try {
-//            FileReader fileReader = new FileReader(file);
-//            BufferedReader bufferedReader = new BufferedReader(fileReader);
-//            StringBuilder stringBuilder = new StringBuilder();
-//            String line = bufferedReader.readLine();
-//            while (line != null) {
-//                stringBuilder.append(line).append("\n");
-//                line = bufferedReader.readLine();
-//            }
-//            bufferedReader.close();
-//            String num = stringBuilder.toString();
-//            JSONObject jsonObject = new JSONObject(num);
-//            tf = jsonObject.getString("temperature");
-//            check = jsonObject.getBoolean("check");
-//            key = jsonObject.getInt("key");
-//            response.setText(tf);
-//        } catch (IOException | JSONException e) {
-//            e.printStackTrace();
-//        }
     }
 
     @Override
@@ -479,14 +375,10 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         if (!mBlueAdapter.isEnabled()) {
             connect.setText("Not Connected");
         }
-//        retrieveJSON(tf, check, symbol, key);
-//        MainActivity.hide = check;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        spinner.setVisibility(View.GONE);
-//        requireActivity().unregisterReceiver(receiver);
     }
 }

@@ -27,6 +27,7 @@ public class IntroActivity extends AppCompatActivity {
     int position = 0;
     Button btnGetStarted;
     Animation btnAnim;
+    public static boolean open;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +109,7 @@ public class IntroActivity extends AppCompatActivity {
 
     private boolean restorePrefData() {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("myPrefs", MODE_PRIVATE);
+        open = pref.getBoolean("isIntroOpen", false);
         return pref.getBoolean("isIntroOpen", false);
     }
 

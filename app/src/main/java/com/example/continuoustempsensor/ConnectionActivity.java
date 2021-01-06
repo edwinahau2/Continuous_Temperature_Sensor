@@ -44,7 +44,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
 
     Button back;
     public static String sensor;
-    Set<BluetoothDevice> combined = new HashSet<>();
+    @SuppressLint("StaticFieldLeak")
     public static Context context;
     TextView status;
     TextView connect;
@@ -66,7 +66,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     BluetoothSocket mmSocket;
     UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     BluetoothDevice mDevice;
-    MainActivity.ConnectedThread btt = null;
+    AndroidService.ConnectedThread btt = null;
     Boolean spark = true;
 
     @Override
@@ -101,7 +101,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         }
         list = findViewById(R.id.list);
         mData = new ArrayList<>();
-//        mData.add(new BtDevice("HC-06:1234"));
+        mData.add(new BtDevice("HC-06:1234"));
         btAdapter = new BtAdapter(this, mData, this);
         list.setAdapter(btAdapter);
         list.setLayoutManager(new LinearLayoutManager(this));
@@ -117,6 +117,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             @Override
             public void onClick(View v) {
                 if (!mBlueAdapter.isEnabled()) {
+                    find.setText("Find Devices");
                     Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(intent, REQUEST_ENABLE_BT);
                 } else {
@@ -245,7 +246,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         mBlueAdapter.cancelDiscovery();
         find.setText("Find Devices");
         addy = mData.get(position).getAddress();
-        if (addy.equals(MainActivity.address) && MainActivity.mmSocket.isConnected()) {
+        if (addy.equals(MainActivity.address) && AndroidService.mmSocket.isConnected()) {
             toast = Toast.makeText(this, "Already connected to " + correct, Toast.LENGTH_SHORT);
             setToast();
         } else {
@@ -269,7 +270,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             @Override
             public void onClick(View v) {
                 MainActivity.address = addy;
-                mDevice = mBlueAdapter.getRemoteDevice(addy);
+//                mDevice = mBlueAdapter.getRemoteDevice(addy);
                 startConnection();
             }
         });
@@ -277,27 +278,30 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     }
 
     private void startConnection() {
-        if (mmSocket == null || !mmSocket.isConnected()) {
-            BluetoothSocket tmp;
-            try {
-                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                mmSocket = tmp;
-                mmSocket.connect();
-            } catch (IOException e) {
-                try {
-                    mmSocket.close();
-                } catch (IOException c) {
-                    e.printStackTrace();
-                }
-            }
-
-            btt = new MainActivity.ConnectedThread(mmSocket);
-            btt.start();
+//        if (mmSocket == null || !mmSocket.isConnected()) {
+//            BluetoothSocket tmp;
+//            try {
+//                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+//                mmSocket = tmp;
+//                mmSocket.connect();
+//            } catch (IOException e) {
+//                try {
+//                    mmSocket.close();
+//                } catch (IOException c) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            btt = new MainActivity.ConnectedThread(mmSocket);
+//            btt.start();
+            Intent intent = new Intent(this, AndroidService.class);
+            intent.putExtra("address", addy);
+            startService(intent);
             myDialog.dismiss();
             status.setText("Connected to " + correct);
             sensor = correct;
             saveNameData();
-        }
+//        }
     }
 
     private void saveNameData() {

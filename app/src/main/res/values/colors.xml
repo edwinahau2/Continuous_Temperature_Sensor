@@ -3,6 +3,7 @@
     <color name="colorPrimary">#000000</color>
     <color name="colorPrimaryDark">#2f333f</color>
     <color name="colorAccent">#03DAC5</color>
+    <color name="textColor">#808080</color>
 
     <color name="gradient_start_color">#4c84ff</color>
     <color name="gradient_end_color">#18a3fe</color>
