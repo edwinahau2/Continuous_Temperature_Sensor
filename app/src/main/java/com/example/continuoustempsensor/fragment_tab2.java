@@ -1,34 +1,18 @@
-//package com.example.continuoustempsensor;
-//
-//import android.app.PendingIntent;
-//import android.content.Context;
-//import android.content.Intent;
-//import android.graphics.Bitmap;
-//import android.graphics.BitmapFactory;
-//import android.graphics.Color;
-//import android.os.Bundle;
-//import android.view.LayoutInflater;
-//import android.view.View;
-//import android.view.ViewGroup;
-//import android.widget.Button;
+package com.example.continuoustempsensor;
+
+import androidx.fragment.app.Fragment;
+
 //import android.widget.EditText;
 //
-//import androidx.annotation.Nullable;
-//import androidx.core.app.NotificationCompat;
-//import androidx.core.app.NotificationManagerCompat;
-//import androidx.fragment.app.Fragment;
-//
-////import android.widget.EditText;
 //
 //
-//
-//public class fragment_tab2 extends Fragment {
+public class fragment_tab2 extends Fragment {
 //    private NotificationManagerCompat notificationManager;
 //    private EditText editTextTitle;
 //    private EditText editTextMessage;
 //    //public final int request_code;
 //
-//    public static final String TAG = "TWO" ;
+    public static final String TAG = "TWO" ;
 //
 //    @Nullable
 //    @Override
@@ -114,4 +98,4 @@
 //
 //        return view;
 //    }
-//}
+}
