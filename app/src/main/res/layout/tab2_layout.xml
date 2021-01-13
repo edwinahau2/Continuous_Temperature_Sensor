@@ -1,41 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_gravity="center"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    tools:context=".fragment_tab2">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/tab_text_2" />
-
-    <EditText
-        android:id="@+id/edit_text_title"
+    android:layout_height="match_parent">
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Title" />
+        android:orientation="vertical"
+        android:id="@+id/constrain">
 
-    <EditText
-        android:id="@+id/edit_text_message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Message"/>
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/viewpager2"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/choice"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+        </androidx.viewpager.widget.ViewPager>
 
-    <Button
-        android:id="@+id/urgent_warning"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Send Urgent Warning"/>
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/choice"
+            android:layout_width="122dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/viewpager2"
+            app:tabBackground="@drawable/indicator_selector" />
 
-    <Button
-        android:id="@+id/send_update"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Send Update"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/alphaRV"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/choice" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="add"
+            tools:layout_editor_absoluteX="309dp"
+            tools:layout_editor_absoluteY="211dp"
+            tools:ignore="MissingConstraints" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

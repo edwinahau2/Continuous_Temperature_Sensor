@@ -4,7 +4,92 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:paddingTop="15dp"
+    android:paddingStart="15dp"
+    android:id="@+id/mainLayout"
+    android:paddingEnd="15dp"
+    tools:context=".MainActivity"
+    android:background="?attr/backgroundColor">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textSize="70sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/sparkView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.70"
+        android:id="@+id/temp"/>
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/sparkView"
+        android:layout_height="200dp"
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.45" />
+
+        <com.lorentzos.flingswipe.SwipeFlingAdapterView
+            android:id="@+id/frame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="35dp"
+            android:layout_marginBottom="135dp"
+            android:background="#e0e0e0"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_max="150dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/sparkView"
+            app:rotation_degrees="0" />
+    <!--        app:layout_constraintTop_toBottomOf="@+id/View"-->
+
+        <TextView
+            android:id="@+id/counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="255dp"
+            android:background="@drawable/circular_border"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="25sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/frame"
+            app:layout_constraintTop_toBottomOf="@+id/sparkView" />
+
+<!--    <com.lorentzos.flingswipe.SwipeFlingAdapterView-->
+<!--        android:id="@+id/frame"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="#e0e0e0"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/sparkView"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        android:layout_marginTop="25dp"-->
+<!--        app:layout_constraintHeight_max="150dp"-->
+<!--        app:rotation_degrees="0" />-->
+<!--    <TextView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:layout_marginTop="5dp"-->
+<!--        android:textAlignment="center"-->
+<!--        android:textSize="25sp"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        android:id="@+id/counter"-->
+<!--        app:layout_constraintEnd_toEndOf="@+id/frame"-->
+<!--        android:background="@drawable/circular_border"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/sparkView" />-->
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
