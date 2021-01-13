@@ -21,7 +21,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
-    public void sendNotification(Context context, int RequestCode){
+    public static void sendNotification(Context context, int RequestCode){
         NotificationManagerCompat notificationManager;
         notificationManager = NotificationManagerCompat.from(context);
 

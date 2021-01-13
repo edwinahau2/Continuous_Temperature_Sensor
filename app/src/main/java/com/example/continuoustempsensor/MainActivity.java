@@ -357,6 +357,9 @@ public class MainActivity extends AppCompatActivity {
                                     temperature = Double.toString(medianTemp);
 //                                    temp.setText(temperature);
                                     plotData = true;
+
+////HERE
+
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -380,6 +383,14 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                         }
                                     }).start();
+
+                                    if (medianTemp >= 100.4) {
+//                                        receiver feverTempNotify = new NotificationReceiver();
+                                        NotificationReceiver.sendNotification(this,0);
+
+                                    }
+
+
                                 }
                             }
                             recDataString.delete(0, recDataString.length());
