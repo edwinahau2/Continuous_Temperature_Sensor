@@ -9,7 +9,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.example.continuoustempsensor.R;
-import com.example.continuoustempsensor.fragment_tab1;
 import com.example.continuoustempsensor.fragment_tab3;
 
 /**
@@ -30,14 +29,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int position) {
         Fragment fragment = null;
-        switch (position) {
-            case 0:
-                fragment = new fragment_tab1();
-                break;
-            case 1:
-                fragment = new fragment_tab3();
-                break;
-        }
+        if (position == 1) fragment = new fragment_tab3();
         return fragment;
     }
 

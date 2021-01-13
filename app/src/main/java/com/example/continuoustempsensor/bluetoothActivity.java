@@ -61,7 +61,7 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
         btRecycle = findViewById(R.id.bt_list);
         find = findViewById(R.id.find);
         mData = new ArrayList<>();
-//        mData.add(new BtDevice("HC-06:1234"));
+        mData.add(new BtDevice("HC-06:1234"));
         btAdapter = new BtAdapter(this, mData, this);
         btRecycle.setAdapter(btAdapter);
         btRecycle.setLayoutManager(new LinearLayoutManager(this));
@@ -172,11 +172,11 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
     @SuppressLint("ShowToast")
     @Override
     public void onDeviceClick(int position) {
-            correct = mData.get(position).getDevice();
-            ShowPopUp();
-            mBlueAdapter.cancelDiscovery();
-            find.setText("Find Devices");
-            addy = mData.get(position).getAddress();
+        correct = mData.get(position).getDevice();
+        ShowPopUp();
+        mBlueAdapter.cancelDiscovery();
+        find.setText("Find Devices");
+        addy = mData.get(position).getAddress();
     }
 
     public void ShowPopUp() {

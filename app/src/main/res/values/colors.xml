@@ -4,7 +4,7 @@
     <color name="colorPrimaryDark">#2f333f</color>
     <color name="colorAccent">#03DAC5</color>
     <color name="textColor">#808080</color>
-
+    <color name="selected_color">#800000</color>
     <color name="gradient_start_color">#4c84ff</color>
     <color name="gradient_end_color">#18a3fe</color>
     <color name="tab_indicator_gray">#c0c0c0</color>
@@ -14,4 +14,5 @@
     <color name="title_text_color">#258bd6</color>
     <color name="content_text_color">#999da4</color>
     <color name="white">#ffffff</color>
+    <color name="colorGray">#c1c1c1</color>
 </resources>

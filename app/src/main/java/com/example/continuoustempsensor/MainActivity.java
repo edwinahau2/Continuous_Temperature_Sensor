@@ -95,16 +95,14 @@ public class MainActivity extends AppCompatActivity {
     String temperature;
 //    static InputStream mmInStream;
 //    static Handler mHandler;
-    private Fragment fragment1 = new fragment_tab1();
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
-    Fragment active = new fragment_tab1();
+    Fragment active;
     SwipeFlingAdapterView flingContainer;
     private TextView counter;
     private ArrayAdapter<String> arrayAdapter;
     boolean plotData = false;
-    public static boolean spark = true;
     String num;
     int number;
 
@@ -163,11 +161,12 @@ public class MainActivity extends AppCompatActivity {
         flingContainer = findViewById(R.id.frame);
         counter = findViewById(R.id.counter);
         al = restoreArrayData();
-        if (restoreNumData() == -1) {
-            number = al.size();
-        } else {
-            number = restoreNumData();
-        }
+        number = al.size();
+//        if (restoreNumData() == -1) {
+//            number = al.size();
+//        } else {
+//            number = restoreNumData();
+//        }
         counter.setText(String.valueOf(number));
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         flingContainer.setAdapter(arrayAdapter);
@@ -205,24 +204,18 @@ public class MainActivity extends AppCompatActivity {
         });
         if (bundle != null) {
             address = bundle.getString("address");
-//            mDevice = mBlueAdapter.getRemoteDevice(address);
             name = bundle.getString("name");
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
-            startService(intent);
+//            startService(intent);
             startConnection();
             savePrefsData();
         } else if (mBlueAdapter.isEnabled()) {
-            if (restoreAddressData() == null) {
-                address = ConnectionActivity.restoreTheAddy();
-            } else {
-                address = restoreAddressData();
-            }
-//            mDevice = mBlueAdapter.getRemoteDevice(address);
+            address = restoreAddressData();
             name = restoreNameData();
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
-            startService(intent);
+//            startService(intent);
             startConnection();
         }
 
@@ -245,7 +238,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
         fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
         fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
-        fm.beginTransaction().add(R.id.container, fragment1, "1").addToBackStack(null).commit();
         bottomNavigationView.setSelectedItemId(R.id.home);
     }
 
@@ -255,22 +247,27 @@ public class MainActivity extends AppCompatActivity {
 
             switch (item.getItemId()) {
                 case R.id.home:
-                    fm.beginTransaction().hide(active).show(fragment1).commit();
+                    if (active != null) {
+                        fm.beginTransaction().hide(active).commit();
+                    }
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
 //                    temp.setText(temperature);
                     if (restoreHide()) {
-                        flingContainer.setVisibility(View.GONE);
-                        counter.setVisibility(View.GONE);
+                        flingContainer.setVisibility(View.INVISIBLE);
+                        counter.setVisibility(View.INVISIBLE);
                     } else {
                         flingContainer.setVisibility(View.VISIBLE);
                         counter.setVisibility(View.VISIBLE);
                     }
-                    active = fragment1;
                     return true;
 
                 case R.id.Bt:
-                    fm.beginTransaction().hide(active).show(fragment3).commit();
+                    if (active != null) {
+                        fm.beginTransaction().hide(active).show(fragment3).commit();
+                    } else {
+                        fm.beginTransaction().show(fragment3).commit();
+                    }
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
                     flingContainer.setVisibility(View.INVISIBLE);
@@ -280,7 +277,11 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case R.id.profile:
-                    fm.beginTransaction().hide(active).show(fragment2).commit();
+                    if (active != null) {
+                        fm.beginTransaction().hide(active).show(fragment2).commit();
+                    } else {
+                        fm.beginTransaction().show(fragment2).commit();
+                    }
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
                     flingContainer.setVisibility(View.INVISIBLE);

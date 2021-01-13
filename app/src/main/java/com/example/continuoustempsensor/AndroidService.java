@@ -18,6 +18,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.UUID;
 
+import static com.example.continuoustempsensor.MainActivity.*;
+
 public class AndroidService extends Service {
 
     static BluetoothSocket mmSocket;
@@ -29,6 +31,7 @@ public class AndroidService extends Service {
     static Handler mHandler;
     String address;
     public static final int RESPONSE_MESSAGE = 10;
+    public static boolean spark = false;
 
     @Override
     public void onCreate() {
@@ -43,7 +46,6 @@ public class AndroidService extends Service {
             mDevice = mBlueAdapter.getRemoteDevice(address);
             startConnection();
         }
-        Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
         return START_STICKY;
     }
 
@@ -54,9 +56,11 @@ public class AndroidService extends Service {
                 tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
                 mmSocket = tmp;
                 mmSocket.connect();
+                spark = true;
             } catch (IOException e) {
                 try {
                     mmSocket.close();
+                    spark = false;
                 } catch (IOException c) {
                     e.printStackTrace();
                 }

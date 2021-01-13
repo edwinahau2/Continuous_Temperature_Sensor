@@ -95,7 +95,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private boolean check;
     private boolean isImage = false;
     private ClipDrawable mClipDrawable;
-    private int key;
     boolean uhh;
     String sensor;
     private SwitchCompat darkMode;
@@ -334,13 +333,26 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 //        mCallback = null;
 //    }
 
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                if (state == BluetoothAdapter.STATE_OFF) {
+                    connect.setText("Not Connected");
+                }
+            }
+        }
+    };
+
     @Override
     public void onResume() {
         super.onResume();
         uhh = restoreBool();
         sensor = restoreNameData();
         if (uhh) {
-            if (MainActivity.spark) {
+            if (AndroidService.spark) {
                 connect.setText("Connected to " + MainActivity.name);
             } else {
                 connect.setText("Not Connected");
@@ -348,20 +360,23 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             uhh = false;
             saveNameData();
         } else {
-            if (ConnectionActivity.sensor != null) {
-                sensor = ConnectionActivity.sensor;
-                connect.setText("Connected to " + sensor);
-                saveNameData();
-            } else if (sensor != null) {
-                connect.setText("Connected to " + sensor);
+            if (ConnectionActivity.daStatus != null) {
+                connect.setText(ConnectionActivity.daStatus);
             } else {
-                connect.setText("Connected to " + MainActivity.name);
+                if (ConnectionActivity.sensor != null) {
+                    sensor = ConnectionActivity.sensor;
+                    connect.setText("Connected to " + sensor);
+                    saveNameData();
+                } else if (sensor != null) {
+                    connect.setText("Connected to " + sensor);
+                } else {
+                    connect.setText("Connected to " + MainActivity.name);
+                }
             }
         }
 
-        if (!mBlueAdapter.isEnabled()) {
-            connect.setText("Not Connected");
-        }
+        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        requireActivity().registerReceiver(mReceiver, intentFilter);
 
 //        if (MainActivity.address == null) {
 //            MainActivity.address = restoreTheAddy();
@@ -372,9 +387,12 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     @Override
     public void onStop() {
         super.onStop();
-        if (!mBlueAdapter.isEnabled()) {
-            connect.setText("Not Connected");
-        }
+//        if (!mBlueAdapter.isEnabled()) {
+//            connect.setText("Not Connected");
+//        }
+
+        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        requireActivity().registerReceiver(mReceiver, intentFilter);
     }
 
     @Override
