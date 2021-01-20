@@ -63,8 +63,6 @@ public class NotificationReceiver extends BroadcastReceiver {
 //                    .setContentText(message)
                     .setStyle(new NotificationCompat.InboxStyle()
                             .addLine("Notification message 1") // can add up to 7 lines
-                            .addLine("Notification message 2")
-                            .addLine("Notification message 3")
                     )
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setCategory(NotificationCompat.CATEGORY_EVENT)
