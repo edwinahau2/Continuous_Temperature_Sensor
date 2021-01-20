@@ -66,7 +66,19 @@
             app:layout_constraintEnd_toEndOf="@+id/frame"
             app:layout_constraintTop_toBottomOf="@+id/sparkView" />
 
-<!--    <com.lorentzos.flingswipe.SwipeFlingAdapterView-->
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="add in app"
+            app:layout_constraintBottom_toTopOf="@+id/temp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <!--    <com.lorentzos.flingswipe.SwipeFlingAdapterView-->
 <!--        android:id="@+id/frame"-->
 <!--        android:layout_width="match_parent"-->
 <!--        android:layout_height="wrap_content"-->

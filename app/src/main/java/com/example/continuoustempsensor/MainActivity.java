@@ -504,6 +504,10 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    private void addArrayData() {
+
+    }
+
     private String restoreNameData() {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
         return pref.getString("device", null);
