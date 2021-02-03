@@ -384,9 +384,11 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }).start();
 
-                                    if (medianTemp >= 100.4) {
+                                    boolean t = false;
+                                    if (medianTemp >= 100.4 && t != true) {
 //                                        receiver feverTempNotify = new NotificationReceiver();
                                         NotificationReceiver.sendNotification(getApplicationContext(),0);
+                                        t = true;
                                     }
 
 
