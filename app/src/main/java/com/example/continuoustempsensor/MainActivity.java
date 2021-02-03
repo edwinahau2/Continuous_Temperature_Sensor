@@ -24,6 +24,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
+import com.marcinmoskala.arcseekbar.ArcSeekBar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -35,9 +36,13 @@ import androidx.viewpager.widget.PagerAdapter;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -105,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     boolean plotData = false;
     String num;
     int number;
-
+    ArcSeekBar arcSeekBar;
 
 
     @SuppressLint("ShowToast")
@@ -113,11 +118,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        arcSeekBar = findViewById(R.id.seekbar);
+        int[] intArray = getResources().getIntArray(R.array.progressGradientColors);
+        arcSeekBar.setProgressBackgroundGradient(intArray);
+        arcSeekBar.setProgressGradient(intArray);
         String FILE_NAME = "temp.json";
         file = new File(this.getFilesDir(), FILE_NAME);
         Bundle bundle = getIntent().getExtras();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         temp = findViewById(R.id.temp);
+        temperature = "97.5";
+        temp.setText(temperature);
         mChart = findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
         mChart.setDescription(null);
@@ -220,10 +231,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-            String key = "time0";
-            reading.put("temperature", "98.6");
-            reading.put("hour", "1:30");
-            obj.put(key, reading);
+            for (int p = 0; p < 4; p++) {
+                String key = "time" + p;
+                reading.put("temperature", "98.6");
+                reading.put("hour", "1:30");
+                obj.put(key, reading);
+            }
             today.put(jsonDate, obj);
             String userString = today.toString();
             fileWriter = new FileWriter(file);
@@ -252,6 +265,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
+                    arcSeekBar.setVisibility(View.VISIBLE);
 //                    temp.setText(temperature);
                     if (restoreHide()) {
                         flingContainer.setVisibility(View.INVISIBLE);
@@ -272,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
                     mChart.setVisibility(View.INVISIBLE);
                     flingContainer.setVisibility(View.INVISIBLE);
                     counter.setVisibility(View.INVISIBLE);
+                    arcSeekBar.setVisibility(View.INVISIBLE);
                     temp.setText(temperature);
                     active = fragment3;
                     return true;
@@ -286,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
                     mChart.setVisibility(View.INVISIBLE);
                     flingContainer.setVisibility(View.INVISIBLE);
                     counter.setVisibility(View.INVISIBLE);
+                    arcSeekBar.setVisibility(View.INVISIBLE);
                     temp.setText(temperature);
                     active = fragment2;
                     return true;
@@ -370,27 +386,22 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     temperature = Double.toString(medianTemp);
 //                                    temp.setText(temperature);
+                                    onResume();
                                     plotData = true;
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            while (plotData) {
-                                                runOnUiThread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        String clock = format.format(Calendar.getInstance().getTime());
-                                                        time.add(clock);
-                                                        addEntry(temperature);
-                                                        plotData = false;
-                                                        writeJSON(temperature, clock, i);
-                                                        i++;
-                                                    }
-                                                });
-                                                try {
-                                                    Thread.sleep(5000);
-                                                } catch (InterruptedException e){
-                                                    e.printStackTrace();
-                                                }
+                                    new Thread(() -> {
+                                        while (plotData) {
+                                            runOnUiThread(() -> {
+                                                String clock = format.format(Calendar.getInstance().getTime());
+                                                time.add(clock);
+                                                addEntry(temperature);
+                                                plotData = false;
+                                                writeJSON(temperature, clock, i);
+                                                i++;
+                                            });
+                                            try {
+                                                Thread.sleep(5000);
+                                            } catch (InterruptedException e){
+                                                e.printStackTrace();
                                             }
                                         }
                                     }).start();
@@ -557,7 +568,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
+        if (temperature.length() != 0) {
+            float y = Float.parseFloat(temperature);
+            if (y <= 95) {
+                arcSeekBar.setProgress(0);
+            } else if (y >= 103.8) {
+                arcSeekBar.setProgress(100);
+            } else if (y > 95 && y <= 97.5) {
+                float z = 10 * y - 950;
+                arcSeekBar.setProgress(Math.round(z));
+            } else if (y >= 97.6 && y <= 98.9) {
+                if (y*10 % 2 == 0) {
+                    float z = 20 * y - 1926;
+                    arcSeekBar.setProgress(Math.round(z));
+                } else {
+                    float z = (float) (20 * (y - 0.1) - 1926);
+                    arcSeekBar.setProgress(Math.round(z));
+                }
+            } else {
+                float z = 10 * y - 938;
+                arcSeekBar.setProgress(Math.round(z));
+            }
+        }
     }
 }

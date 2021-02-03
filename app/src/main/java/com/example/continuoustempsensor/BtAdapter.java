@@ -57,7 +57,7 @@ public class BtAdapter extends RecyclerView.Adapter<BtAdapter.BtViewHolder> {
 
         @Override
         public void onClick(View v) {
-            onDeviceListener.onDeviceClick(getAdapterPosition());
+            onDeviceListener.onDeviceClick(getBindingAdapterPosition());
         }
     }
 

@@ -251,7 +251,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     };
 
     public void setToast() {
-        toast.setGravity(Gravity.BOTTOM, 0, 180);
+        toast.setGravity(Gravity.BOTTOM, 0, 100);
         toast.show();
     }
 

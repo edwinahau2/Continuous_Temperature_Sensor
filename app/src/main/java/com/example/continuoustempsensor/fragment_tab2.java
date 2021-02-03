@@ -44,16 +44,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class fragment_tab2 extends Fragment implements DatePickerFragment.DatePickerListener {
+public class fragment_tab2 extends Fragment  {
 
-    Button calendar;
-    ViewPager viewPager;
     LineChart mChart;
     GraphPageAdapter graphPageAdapter;
-    @SuppressLint("SimpleDateFormat")
-    SimpleDateFormat time = new SimpleDateFormat("h:mm a");
-    @SuppressLint("SimpleDateFormat")
-    SimpleDateFormat day = new SimpleDateFormat("EEE");
+    SimpleDateFormat time = new SimpleDateFormat("h:mm a", Locale.getDefault());
+    SimpleDateFormat day = new SimpleDateFormat("EEE", Locale.getDefault());
     String dayOfWeek = day.format(Calendar.getInstance().getTime());
     LineDataSet set;
     LineData data;
@@ -75,6 +71,12 @@ public class fragment_tab2 extends Fragment implements DatePickerFragment.DatePi
     CalendarDay upToDay;
     WeekDecorator weekDecorator;
     CurrentDayDecorator currentDayDecorator;
+    ViewPager report;
+    ReportViewPageAdapter reportAdapter;
+    List<Entry> tempList = new ArrayList<>();
+    String avg = "Average: 94";
+    String high = "High: 99.2";
+    String low = "Low: 98.2";
 
     @Nullable
     @Override
@@ -82,40 +84,52 @@ public class fragment_tab2 extends Fragment implements DatePickerFragment.DatePi
         View view = inflater.inflate(R.layout.tab2_layout, container, false);
         materialCalendarView = view.findViewById(R.id.calendarView);
         tabLayout = view.findViewById(R.id.daytime);
+        report = view.findViewById(R.id.graph_viewpager);
+        tempList.add(new Entry(1, (float) 98.6));
+        tempList.add(new Entry(2, (float) 98.8));
+        tempList.add(new Entry(3, (float) 97.6));
+        tempList.add(new Entry(4, (float) 98.2));
+        tempList.add(new Entry(5, (float) 99.2));
+        tempList.add(new Entry(6, (float) 98.3));
+        tempList.add(new Entry(7, (float) 98.6));
         materialCalendarView.setDateSelected(myDate, true);
         materialCalendarView.addDecorator(new CurrentDayDecorator(myDate, true));
         selectTab = tabLayout.getTabAt(2);
         selectTab.select();
-        materialCalendarView.setOnDateChangedListener(new OnDateSelectedListener() {
-            @Override
-            public void onDateSelected(@NonNull MaterialCalendarView widget, @NonNull CalendarDay date, boolean selected) {
-                selectTab = tabLayout.getTabAt(0);
-                selectTab.select();
-                materialCalendarView.removeDecorators();
-                materialCalendarView.invalidateDecorators();
-                if (date.equals(myDate)) {
-                    currentDayDecorator = new CurrentDayDecorator(myDate, true);
-                    materialCalendarView.addDecorator(currentDayDecorator);
-                    upToDay = myDate;
-                } else {
-                    currentDayDecorator = new CurrentDayDecorator(myDate, false);
-                    materialCalendarView.addDecorator(currentDayDecorator);
-                    upToDay = date;
-                }
-                materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
+        materialCalendarView.setOnDateChangedListener((widget, date, selected) -> {
+            selectTab = tabLayout.getTabAt(0);
+            selectTab.select();
+            materialCalendarView.removeDecorators();
+            materialCalendarView.invalidateDecorators();
+            if (date.equals(myDate)) {
+                currentDayDecorator = new CurrentDayDecorator(myDate, true);
+                materialCalendarView.addDecorator(currentDayDecorator);
+                upToDay = myDate;
+            } else {
+                currentDayDecorator = new CurrentDayDecorator(myDate, false);
+                materialCalendarView.addDecorator(currentDayDecorator);
+                upToDay = date;
             }
+            materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
+            reportAdapter = new ReportViewPageAdapter(requireContext(), tempList, date, true);
+            report.setAdapter(reportAdapter);
+            // day report stuff
         });
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                materialCalendarView.removeDecorators();
+                materialCalendarView.invalidateDecorators();
                 if (tab.getPosition() == 1) {
+                    report.setVisibility(View.VISIBLE);
                     materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
                     CalendarDay date = materialCalendarView.getSelectedDate();
                     addDays(date);
+                    reportAdapter = new ReportViewPageAdapter(requireContext(), tempList, date,false);
+                    report.setAdapter(reportAdapter);
+                    // weekly report
                 } else if (tab.getPosition() == 2) {
-                    materialCalendarView.removeDecorators();
-                    materialCalendarView.invalidateDecorators();
                     if (upToDay == null || upToDay.equals(myDate)) {
                         currentDayDecorator = new CurrentDayDecorator(myDate, true);
                         materialCalendarView.addDecorator(currentDayDecorator);
@@ -123,7 +137,14 @@ public class fragment_tab2 extends Fragment implements DatePickerFragment.DatePi
                         currentDayDecorator = new CurrentDayDecorator(myDate, false);
                         materialCalendarView.addDecorator(currentDayDecorator);
                     }
+                    report.setVisibility(View.GONE);
                     materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.MONTHS).commit();
+                } else {
+                    report.setVisibility(View.VISIBLE);
+                    CalendarDay date = materialCalendarView.getSelectedDate();
+                    reportAdapter = new ReportViewPageAdapter(requireContext(), tempList, date,true);
+                    report.setAdapter(reportAdapter);
+                    materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
                 }
             }
 
@@ -319,15 +340,5 @@ public class fragment_tab2 extends Fragment implements DatePickerFragment.DatePi
     public void onStop() {
         super.onStop();
         onResume();
-    }
-
-    @Override
-    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.YEAR, year);
-        c.set(Calendar.MONTH, month);
-        c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-        String date = DateFormat.getDateInstance().format(c.getTime());
-        calendar.setText(date);
     }
 }

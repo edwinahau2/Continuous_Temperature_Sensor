@@ -15,4 +15,17 @@
     <color name="content_text_color">#999da4</color>
     <color name="white">#ffffff</color>
     <color name="colorGray">#c1c1c1</color>
+    <array name="progressGradientColors">
+        <item>#1598D2</item>
+        <item>#1598D2</item>
+        <item>#07EE54</item>
+        <item>#15D27E</item>
+        <item>#15D27E</item>
+        <item>#EE7B0F</item>
+        <item>#EE7B0F</item>
+        <item>#D22615</item>
+        <item>#D22615</item>
+        <item>#D22615</item>
+<!--        <item>#007c6a</item>-->
+    </array>
 </resources>
