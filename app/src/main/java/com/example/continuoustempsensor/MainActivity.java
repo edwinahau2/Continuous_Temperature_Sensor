@@ -385,10 +385,14 @@ public class MainActivity extends AppCompatActivity {
                                     }).start();
 
                                     boolean t = false;
+                                    Calendar cal = Calendar.getInstance();
+                                    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyy HH:mm:ss");
+                                    currentTime = formatter.format(cal.getTime());
+                                    int hour =
                                     if (medianTemp >= 100.4 && t != true) {
 //                                        receiver feverTempNotify = new NotificationReceiver();
                                         NotificationReceiver.sendNotification(getApplicationContext(),0);
-                                        t = true;
+                                                                                        t = true;
                                     }
 
 
