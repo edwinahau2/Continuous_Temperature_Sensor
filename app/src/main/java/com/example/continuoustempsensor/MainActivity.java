@@ -95,7 +95,11 @@ public class MainActivity extends AppCompatActivity {
     String num;
     int number;
 
-
+    boolean firstTime = false;
+    int minBetweenNotif = 10;
+    Calendar cal = Calendar.getInstance();
+    int initHour = 0;
+    int initMin = 0;
 
     @SuppressLint("ShowToast")
     @Override
@@ -384,18 +388,26 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }).start();
 
-                                    boolean t = false;
-                                    Calendar cal = Calendar.getInstance();
-                                    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyy HH:mm:ss");
-                                    currentTime = formatter.format(cal.getTime());
-                                    int hour =
-                                    if (medianTemp >= 100.4 && t != true) {
-//                                        receiver feverTempNotify = new NotificationReceiver();
-                                        NotificationReceiver.sendNotification(getApplicationContext(),0);
-                                                                                        t = true;
+
+//                                    boolean firstTime = false;
+//                                    int minBetweenNotif = 10;
+//                                    Calendar cal = Calendar.getInstance();
+//                                    int initHour = 0;
+//                                    int initMin = 0;
+// ADD A THREAD HERE AND TEST THE CODE
+                                    if (medianTemp >= 100.4) {
+                                        if (firstTime == false) {
+                                            //receiver feverTempNotify = new NotificationReceiver();
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 0);
+                                            firstTime = true;
+                                            initHour = cal.HOUR_OF_DAY;
+                                            initMin = cal.MINUTE;
+                                        }
+                                        else if (cal.MINUTE - initMin > minBetweenNotif){
+                                            NotificationReceiver.sendNotification(getApplicationContext(),0);
+                                            firstTime = false;
+                                        }
                                     }
-
-
                                 }
                             }
                             recDataString.delete(0, recDataString.length());

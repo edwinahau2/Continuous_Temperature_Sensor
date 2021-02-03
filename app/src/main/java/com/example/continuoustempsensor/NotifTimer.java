@@ -8,7 +8,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class NotifTimer extends TimerTask {
-
+//USE THIS AS TIMER FOR GEN NOTIFICATIONS
     @Override
     public void run() {
         //System.out.println("Timer task started at:"+new Date());
