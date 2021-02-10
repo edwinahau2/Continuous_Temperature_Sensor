@@ -31,5 +31,15 @@
       <option name="name" value="MavenRepo" />
       <option name="url" value="https://repo.maven.apache.org/maven2/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven2" />
+      <option name="name" value="maven2" />
+      <option name="url" value="https://www.myget.org/F/abtsoftware/maven" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven2" />
+      <option name="name" value="maven2" />
+      <option name="url" value="http://repo.aws.10clouds.com:8081/artifactory/gradle-dev-local/" />
+    </remote-repository>
   </component>
 </project>
