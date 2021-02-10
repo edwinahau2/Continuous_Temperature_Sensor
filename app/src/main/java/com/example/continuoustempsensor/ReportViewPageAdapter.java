@@ -14,10 +14,14 @@ import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
@@ -68,36 +72,35 @@ public class ReportViewPageAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        Calendar calendar = Calendar.getInstance();
+        String bruh = String.valueOf(date);
+        String bruhpt2 = bruh.substring(12, bruh.length()-1);
+        SimpleDateFormat first_sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        try {
+            Date dateObj = first_sdf.parse(bruhpt2);
+            calendar.setTime(dateObj);
+            String dayOfWeek = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault());
+            String year = String.valueOf(calendar.get(Calendar.YEAR));
+            int month = (calendar.get(Calendar.MONTH)) + 1;
+            String Month;
+            if (month < 10) {
+                Month = "0" + month;
+            } else {
+                Month = String.valueOf(month);
+            }
+            int day = (calendar.get(Calendar.DAY_OF_MONTH));
+            String Day;
+            if (day < 10) {
+                Day = "0"+day;
+            } else {
+                Day = String.valueOf(day);
+            }
+            time = dayOfWeek + "." + year + "." + Month + "." + Day;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         if (daily) {
             layoutScreen = inflater.inflate(R.layout.daily_report, null);
-            Calendar calendar = Calendar.getInstance();
-            String bruh = String.valueOf(date);
-            String bruhpt2 = bruh.substring(12, bruh.length()-1);
-            SimpleDateFormat first_sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            SimpleDateFormat sdf = new SimpleDateFormat("EEE.yyyy.MM.dd", Locale.getDefault());
-            try {
-                Date dateObj = first_sdf.parse(bruhpt2);
-                calendar.setTime(dateObj);
-                String dayOfWeek = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault());
-                String year = String.valueOf(calendar.get(Calendar.YEAR));
-                int month = (calendar.get(Calendar.MONTH)) + 1;
-                String Month;
-                if (month < 10) {
-                    Month = "0" + month;
-                } else {
-                    Month = String.valueOf(month);
-                }
-                int day = (calendar.get(Calendar.DAY_OF_MONTH));
-                String Day;
-                if (day < 10) {
-                    Day = "0"+day;
-                } else {
-                    Day = String.valueOf(day);
-                }
-                time = dayOfWeek + "." + year + "." + Month + "." + Day;
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
             try {
                 fileReader = new FileReader(file);
                 bufferedReader = new BufferedReader(fileReader);
@@ -115,13 +118,33 @@ public class ReportViewPageAdapter extends PagerAdapter {
                 for (int i = 0; i < values.names().length(); i++) {
                     String time = "time" + i;
                     JSONObject obj = values.getJSONObject(time);
-                    array.add(new String[] {obj.getString("temperature"), obj.getString("hour")});
+                    array.add(new String[] {obj.getString("temperature"), obj.getString("hour"), obj.getString("unit")});
                 }
                 ArrayList<Float> temp = new ArrayList<>();
                 int k = 0;
+                float x;
+                String unit;
+                if (MainActivity.f) {
+                    unit = "°F";
+                } else {
+                    unit = "°C";
+                }
                 for (String[] row : array) {
-                    float x = Float.parseFloat(array.get(k)[0]);
+                    if (MainActivity.f) {
+                        if (array.get(k)[2].equals("°C")) {
+                            x = ((Float.parseFloat(array.get(k)[0]))*9)/5 + 32;
+                        } else {
+                            x  = Float.parseFloat(array.get(k)[0]);
+                        }
+                    } else {
+                        if (array.get(k)[2].equals("°F")) {
+                            x = ((Float.parseFloat(array.get(k)[0]))-32)*5/9;
+                        } else {
+                            x  = Float.parseFloat(array.get(k)[0]);
+                        }
+                    }
                     temp.add(x);
+                    k++;
                 }
                 float max = temp.get(0);
                 float min = temp.get(0);
@@ -138,11 +161,11 @@ public class ReportViewPageAdapter extends PagerAdapter {
                 }
                 float avgTemp = total / temp.size();
                 TextView dailyAvg = layoutScreen.findViewById(R.id.average);
-                dailyAvg.setText(String.valueOf(avgTemp));
+                dailyAvg.setText(avgTemp + " " + unit);
                 TextView dailyHigh = layoutScreen.findViewById(R.id.high);
-                dailyHigh.setText(String.valueOf(max));
+                dailyHigh.setText(max + " " + unit);
                 TextView dailyLow = layoutScreen.findViewById(R.id.low);
-                dailyLow.setText(String.valueOf(min));
+                dailyLow.setText(min + " " + unit);
                 mChart = layoutScreen.findViewById(R.id.lineChart);
                 mChart.setVisibility(View.VISIBLE);
                 mChart.setDescription(null);
@@ -211,9 +234,235 @@ public class ReportViewPageAdapter extends PagerAdapter {
             }
         } else {
             layoutScreen = inflater.inflate(R.layout.weekly_report, null);
+            barChart = layoutScreen.findViewById(R.id.barChart);
+            String line;
+            try {
+                fileReader = new FileReader(file);
+                bufferedReader = new BufferedReader(fileReader);
+                StringBuilder stringBuilder = new StringBuilder();
+                line = bufferedReader.readLine();
+                while (line != null) {
+                    stringBuilder.append(line).append("\n");
+                    line = bufferedReader.readLine();
+                }
+                bufferedReader.close();
+                int c = calendar.get(Calendar.DAY_OF_WEEK);
+                List<String[]> array = new ArrayList<>();
+                ArrayList<Float> avgTemp = new ArrayList<>();
+                SimpleDateFormat sdf = new SimpleDateFormat("EEE.yyyy.MM.dd");
+                switch(c) {
+                    case 1:
+                        for (int j = 0; j < 7; j++) {
+                            if (j != 0) {
+                                calendar.add(Calendar.DATE, +j);
+                                time = sdf.format(calendar.getTime());
+                            }
+                            String response = stringBuilder.toString();
+                            JSONObject jsonObject  = new JSONObject(response);
+                            JSONObject values = (JSONObject) jsonObject.get(time);
+                            for (int i = 0; i < values.names().length(); i++) {
+                                String time = "time" + i;
+                                JSONObject obj = values.getJSONObject(time);
+                                array.add(new String[]{obj.getString("temperature"), obj.getString("unit")});
+                            }
+                            avgTemp.add(averageCalc(array, MainActivity.f));
+                        }
+                        break;
+                    case 2:
+                        for (int j = 1; j < 7; j++) {
+                            if (j != 2) {
+                                if (j < 2) {
+                                    calendar.add(Calendar.DATE, -j);
+                                    time = sdf.format(calendar.getTime());
+                                } else {
+                                    calendar.add(Calendar.DATE, +(j - 2));
+                                    time = sdf.format(calendar.getTime());
+                                }
+                            }
+                            String response = stringBuilder.toString();
+                            JSONObject jsonObject  = new JSONObject(response);
+                            JSONObject values = (JSONObject) jsonObject.get(time);
+                            for (int i = 0; i < values.names().length(); i++) {
+                                String time = "time" + i;
+                                JSONObject obj = values.getJSONObject(time);
+                                array.add(new String[]{obj.getString("temperature"), obj.getString("unit")});
+                            }
+                            avgTemp.add(averageCalc(array, MainActivity.f));
+                        }
+                        break;
+                    case 3:
+                        for (int j = 1; j < 8; j++) {
+                            if (j != 3) {
+                                if (j < 3) {
+                                    calendar.add(Calendar.DATE, -(3-j));
+                                    time = sdf.format(calendar.getTime());
+                                } else {
+                                    calendar.add(Calendar.DATE, +(j - 3));
+                                    time = sdf.format(calendar.getTime());
+                                }
+                            }
+                            String response = stringBuilder.toString();
+                            JSONObject jsonObject  = new JSONObject(response);
+                            JSONObject values = (JSONObject) jsonObject.get(time);
+                            for (int i = 0; i < values.names().length(); i++) {
+                                String time = "time" + i;
+                                JSONObject obj = values.getJSONObject(time);
+                                array.add(new String[]{obj.getString("temperature"), obj.getString("unit")});
+                            }
+                            avgTemp.add(averageCalc(array, MainActivity.f));
+                        }
+                        break;
+                    case 4:
+                        for (int j = 1; j < 8; j++) {
+                            if (j != 4) {
+                                if (j < 4) {
+                                    calendar.add(Calendar.DATE, -(4-j));
+                                    time = sdf.format(calendar.getTime());
+                                } else {
+                                    calendar.add(Calendar.DATE, +(j - 4));
+                                    time = sdf.format(calendar.getTime());
+                                }
+                            }
+                            String response = stringBuilder.toString();
+                            JSONObject jsonObject  = new JSONObject(response);
+                            JSONObject values = (JSONObject) jsonObject.get(time);
+                            for (int i = 0; i < values.names().length(); i++) {
+                                String time = "time" + i;
+                                JSONObject obj = values.getJSONObject(time);
+                                array.add(new String[]{obj.getString("temperature"), obj.getString("unit")});
+                            }
+                            avgTemp.add(averageCalc(array, MainActivity.f));
+                        }
+                        break;
+                    case 5:
+                        for (int j = 1; j < 8; j++) {
+                            if (j != 5) {
+                                if (j < 5) {
+                                    calendar.add(Calendar.DATE, -(5-j));
+                                    time = sdf.format(calendar.getTime());
+                                } else {
+                                    calendar.add(Calendar.DATE, +(j - 5));
+                                    time = sdf.format(calendar.getTime());
+                                }
+                            }
+                            String response = stringBuilder.toString();
+                            JSONObject jsonObject  = new JSONObject(response);
+                            JSONObject values = (JSONObject) jsonObject.get(time);
+                            for (int i = 0; i < values.names().length(); i++) {
+                                String time = "time" + i;
+                                JSONObject obj = values.getJSONObject(time);
+                                array.add(new String[]{obj.getString("temperature"), obj.getString("unit")});
+                            }
+                            avgTemp.add(averageCalc(array, MainActivity.f));
+                        }
+                        break;
+                    case 6:
+                        for (int j = 1; j < 8; j++) {
+                            if (j != 6) {
+                                if (j < 6) {
+                                    calendar.add(Calendar.DATE, -(6-j));
+                                    time = sdf.format(calendar.getTime());
+                                } else {
+                                    calendar.add(Calendar.DATE, +(j - 6));
+                                    time = sdf.format(calendar.getTime());
+                                }
+                            }
+                            String response = stringBuilder.toString();
+                            JSONObject jsonObject  = new JSONObject(response);
+                            JSONObject values = (JSONObject) jsonObject.get(time);
+                            for (int i = 0; i < values.names().length(); i++) {
+                                String time = "time" + i;
+                                JSONObject obj = values.getJSONObject(time);
+                                array.add(new String[]{obj.getString("temperature"), obj.getString("unit")});
+                            }
+                            avgTemp.add(averageCalc(array, MainActivity.f));
+                        }
+                        break;
+                    case 7:
+                        for (int j = 12; j > 5 ; j--) {
+                            if (j != 6) {
+                                calendar.add(Calendar.DATE, -(13-j));
+                                time = sdf.format(calendar.getTime());
+                            }
+                            String response = stringBuilder.toString();
+                            JSONObject jsonObject  = new JSONObject(response);
+                            JSONObject values = (JSONObject) jsonObject.get(time);
+                            for (int i = 0; i < values.names().length(); i++) {
+                                String time = "time" + i;
+                                JSONObject obj = values.getJSONObject(time);
+                                array.add(new String[]{obj.getString("temperature"), obj.getString("unit")});
+                            }
+                            avgTemp.add(averageCalc(array, MainActivity.f));
+                        }
+                        break;
+                }
+                String[] daysOfWeek = {"SUN", "MON", "TUES", "WED", "THURS", "FRI", "SAT"};
+                barChart.setVisibility(View.VISIBLE);
+                barChart.setPinchZoom(false);
+                barChart.setDragEnabled(false);
+                barChart.setDrawBarShadow(false);
+                barChart.setDrawGridBackground(false);
+                barChart.getDescription().setEnabled(false);
+                barChart.setDrawValueAboveBar(false);
+                barChart.setTouchEnabled(false);
+                barChart.setHighlightFullBarEnabled(false);
+                barChart.getAxisRight().setEnabled(false);
+                barChart.getLegend().setEnabled(false);
+                XAxis xl = barChart.getXAxis();
+                xl.setPosition(XAxis.XAxisPosition.BOTTOM);
+                xl.setLabelCount(7);
+                xl.setCenterAxisLabels(true);
+                xl.setValueFormatter(new ValueFormatter() {
+                    @Override
+                    public String getFormattedValue(float value) {
+                        if (((int) value) > -1 && ((int) value) < 7) {
+                            return daysOfWeek[((int) value)];
+                        }
+                        return "";
+                    }
+                });
+                ArrayList<BarEntry> barValues = new ArrayList<>();
+                for (int d = 0; d < 7; d++) {
+                    barValues.add(new BarEntry(d, avgTemp.get(d)));
+                }
+                BarDataSet set = new BarDataSet(barValues, null);
+                BarData barData = new BarData(set);
+                barChart.setData(barData);
+                barChart.notifyDataSetChanged();
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
         }
         container.addView(layoutScreen);
         return layoutScreen;
+    }
+
+    private Float averageCalc(List<String[]> array, boolean f) {
+        ArrayList<Float> temp = new ArrayList<>();
+        int k = 0;
+        float x;
+        for (String[] row : array) {
+            if (f) {
+                if (array.get(k)[1].equals("°C")) {
+                    x = ((Float.parseFloat(array.get(k)[0]))*9)/5 + 32;
+                } else {
+                    x  = Float.parseFloat(array.get(k)[0]);
+                }
+            } else {
+                if (array.get(k)[1].equals("°F")) {
+                    x = ((Float.parseFloat(array.get(k)[0]))-32)*5/9;
+                } else {
+                    x  = Float.parseFloat(array.get(k)[0]);
+                }
+            }
+            temp.add(x);
+            k++;
+        }
+        float total = 0;
+        for (int l = 0; l < temp.size(); l++) {
+            total = total + temp.get(l);
+        }
+        return total / temp.size();
     }
 
     @Override

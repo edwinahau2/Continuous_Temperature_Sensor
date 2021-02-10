@@ -74,12 +74,13 @@ public class MainActivity extends AppCompatActivity {
     FileWriter fileWriter = null;
     BufferedReader bufferedReader = null;
     BufferedWriter bufferedWriter = null;
-    private JSONObject reading = new JSONObject();
-    private JSONObject today = new JSONObject();
-    private JSONObject obj = new JSONObject();
+//    private JSONObject reading = new JSONObject();
+//    private JSONObject today = new JSONObject();
+//    private JSONObject obj = new JSONObject();
     public static String name;
     int i = 0;
     public static boolean f = true;
+    String unit;
 //    static BluetoothSocket mmSocket;
 //    BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
@@ -229,20 +230,56 @@ public class MainActivity extends AppCompatActivity {
 //            startService(intent);
             startConnection();
         }
-
         try {
-            for (int p = 0; p < 4; p++) {
-                String key = "time" + p;
-                reading.put("temperature", "98.6");
-                reading.put("hour", "1:30");
-                obj.put(key, reading);
+            for (int r = 0; r < 7; r++) {
+                JSONObject obj = new JSONObject();
+                for (int p = 0; p < 4; p++) {
+                    String key = "time" + p;
+                    JSONObject reading = new JSONObject();
+                    if (p == 0) {
+                        reading.put("temperature", "98.6");
+                    } else if (p == 1) {
+                        reading.put("temperature", "96.7");
+                    } else if (p == 2) {
+                        reading.put("temperature", "99.0");
+                    } else {
+                        reading.put("temperature", "97.8");
+                    }
+                    reading.put("hour", "1:30");
+                    reading.put("unit", "°F");
+                    obj.put(key, reading);
+                }
+                JSONObject today = new JSONObject();
+                switch(r) {
+                    case(0):
+                        today.put("Sun.2021.02.07", obj);
+                        break;
+                    case(1):
+                        today.put("Mon.2021.02.08", obj);
+                         break;
+                    case(2):
+                        today.put("Tue.2021.02.09", obj);
+                        break;
+                    case(3):
+                        today.put("Wed.2021.02.10", obj);
+                        break;
+                    case(4):
+                        today.put("Thu.2021.02.11", obj);
+                        break;
+                    case(5):
+                        today.put("Fri.2021.02.12", obj);
+                        break;
+                    case(6):
+                        today.put("Sat.2021.02.13", obj);
+                        break;
+                }
+//                today.put("Sun.2021.02.07", obj);
+                String userString = today.toString();
+                fileWriter = new FileWriter(file, true);
+                bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write(userString);
+                bufferedWriter.close();
             }
-            today.put(jsonDate, obj);
-            String userString = today.toString();
-            fileWriter = new FileWriter(file);
-            bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.write(userString);
-            bufferedWriter.close();
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
@@ -395,7 +432,12 @@ public class MainActivity extends AppCompatActivity {
                                                 time.add(clock);
                                                 addEntry(temperature);
                                                 plotData = false;
-                                                writeJSON(temperature, clock, i);
+                                                if (f) {
+                                                    unit = "°F";
+                                                } else {
+                                                    unit = "°C";
+                                                }
+                                                writeJSON(temperature, clock, i, unit);
                                                 i++;
                                             });
                                             try {
@@ -416,13 +458,17 @@ public class MainActivity extends AppCompatActivity {
         }
 //    }
 
-    private void writeJSON(String temperature, String clock, int i) {
+    private void writeJSON(String temperature, String clock, int i, String unit) {
         try {
             String index = String.valueOf(i);
             String key = "time" + index;
+            JSONObject reading = new JSONObject();
             reading.put("temperature", temperature);
             reading.put("hour", clock);
+            reading.put("unit", unit);
+            JSONObject obj = new JSONObject();
             obj.put(key, reading);
+            JSONObject today = new JSONObject();
             today.put(jsonDate, obj);
             String userString = today.toString();
             fileWriter = new FileWriter(file);
