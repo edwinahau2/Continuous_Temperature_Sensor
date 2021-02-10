@@ -394,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
 //                                    Calendar cal = Calendar.getInstance();
 //                                    int initHour = 0;
 //                                    int initMin = 0;
-// ADD A THREAD HERE AND TEST THE CODE
+// ADD A background THREAD HERE AND TEST THE CODE
                                     if (medianTemp >= 100.4) {
                                         if (firstTime == false) {
                                             //receiver feverTempNotify = new NotificationReceiver();
