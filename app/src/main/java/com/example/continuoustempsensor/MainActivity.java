@@ -400,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
                                         if (arbitrary == false) {
  //                                           Toast.makeText(getApplicationContext(), "testing is false", Toast.LENGTH_SHORT).show();
                                             Toast.makeText(getApplicationContext(), cal.MINUTE, Toast.LENGTH_SHORT).show();
-                                            // app crashes when trying to 
+                                            // app crashes when trying to read cal.MINUTE
                                         }
                                         if (firstTime == false) {
                                             //receiver feverTempNotify = new NotificationReceiver();
