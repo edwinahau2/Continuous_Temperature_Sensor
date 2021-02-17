@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     String num;
     int number;
 
-    boolean firstTime = false;
+    static boolean firstTime = false;
     int minBetweenNotif = 10;
     Calendar cal = Calendar.getInstance();
     int initHour = 0;
@@ -395,17 +395,19 @@ public class MainActivity extends AppCompatActivity {
 //                                    int initHour = 0;
 //                                    int initMin = 0;
 // ADD A background THREAD HERE AND TEST THE CODE
-                                    if (medianTemp >= 100.4) {
+                                    if (medianTemp >= 50) {
                                         if (firstTime == false) {
                                             //receiver feverTempNotify = new NotificationReceiver();
                                             NotificationReceiver.sendNotification(getApplicationContext(), 0);
                                             firstTime = true;
                                             initHour = cal.HOUR_OF_DAY;
                                             initMin = cal.MINUTE;
+                                            Toast.makeText(getApplicationContext(), "first time", Toast.LENGTH_SHORT).show();
                                         }
-                                        else if (cal.MINUTE - initMin > minBetweenNotif){
+                                        else if ((cal.MINUTE - initMin) > minBetweenNotif){
                                             NotificationReceiver.sendNotification(getApplicationContext(),0);
                                             firstTime = false;
+                                            Toast.makeText(getApplicationContext(), "again", Toast.LENGTH_SHORT).show();
                                         }
                                     }
                                 }
