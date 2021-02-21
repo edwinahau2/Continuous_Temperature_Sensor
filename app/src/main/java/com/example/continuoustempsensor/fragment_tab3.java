@@ -363,7 +363,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             if (ConnectionActivity.daStatus != null) {
                 connect.setText(ConnectionActivity.daStatus);
             } else {
-                if (ConnectionActivity.sensor != null) {
+                if (!AndroidService.spark) {
+                    connect.setText("Not Connected");
+                } else if (ConnectionActivity.sensor != null) {
                     sensor = ConnectionActivity.sensor;
                     connect.setText("Connected to " + sensor);
                     saveNameData();
