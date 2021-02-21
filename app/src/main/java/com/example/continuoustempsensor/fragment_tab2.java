@@ -3,11 +3,13 @@ package com.example.continuoustempsensor;
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,6 +34,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -46,20 +49,9 @@ import java.util.Locale;
 
 public class fragment_tab2 extends Fragment  {
 
-    LineChart mChart;
-    GraphPageAdapter graphPageAdapter;
-    SimpleDateFormat time = new SimpleDateFormat("h:mm a", Locale.getDefault());
-    SimpleDateFormat day = new SimpleDateFormat("EEE", Locale.getDefault());
-    String dayOfWeek = day.format(Calendar.getInstance().getTime());
-    LineDataSet set;
-    LineData data;
-    List<Entry> tempEntries = new ArrayList<>();
-    int i = 0;
     File file;
     FileReader fileReader = null;
     BufferedReader bufferedReader = null;
-    List<String> dayArray = new ArrayList<>();
-    List<Item> daysList;
     MaterialCalendarView materialCalendarView;
     TabLayout tabLayout;
     TabLayout.Tab selectTab;
@@ -73,32 +65,26 @@ public class fragment_tab2 extends Fragment  {
     CurrentDayDecorator currentDayDecorator;
     ViewPager report;
     ReportViewPageAdapter reportAdapter;
-    List<Entry> tempList = new ArrayList<>();
-    String avg = "Average: 94";
-    String high = "High: 99.2";
-    String low = "Low: 98.2";
+    String current;
+    Toast toast;
+    String response;
+    int index;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab2_layout, container, false);
         materialCalendarView = view.findViewById(R.id.calendarView);
+        String FILE_NAME = "temp.json";
+        file = new File(requireContext().getFilesDir(), FILE_NAME);
         tabLayout = view.findViewById(R.id.daytime);
         report = view.findViewById(R.id.graph_viewpager);
-        tempList.add(new Entry(1, (float) 98.6));
-        tempList.add(new Entry(2, (float) 98.8));
-        tempList.add(new Entry(3, (float) 97.6));
-        tempList.add(new Entry(4, (float) 98.2));
-        tempList.add(new Entry(5, (float) 99.2));
-        tempList.add(new Entry(6, (float) 98.3));
-        tempList.add(new Entry(7, (float) 98.6));
         materialCalendarView.setDateSelected(myDate, true);
         materialCalendarView.addDecorator(new CurrentDayDecorator(myDate, true));
         selectTab = tabLayout.getTabAt(2);
         selectTab.select();
         materialCalendarView.setOnDateChangedListener((widget, date, selected) -> {
-            selectTab = tabLayout.getTabAt(0);
-            selectTab.select();
+            current = convertCalendar(date);
             materialCalendarView.removeDecorators();
             materialCalendarView.invalidateDecorators();
             if (date.equals(myDate)) {
@@ -110,10 +96,30 @@ public class fragment_tab2 extends Fragment  {
                 materialCalendarView.addDecorator(currentDayDecorator);
                 upToDay = date;
             }
-            materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
-            reportAdapter = new ReportViewPageAdapter(requireContext(), tempList, date, true);
-            report.setAdapter(reportAdapter);
-            // day report stuff
+            current = convertCalendar(upToDay);
+            try {
+                fileReader = new FileReader(file);
+                bufferedReader = new BufferedReader(fileReader);
+                StringBuilder stringBuilder = new StringBuilder();
+                String line = bufferedReader.readLine();
+                while (line != null) {
+                    stringBuilder.append(line).append("\n");
+                    line = bufferedReader.readLine();
+                }
+                bufferedReader.close();
+                response = stringBuilder.toString();
+                index = response.indexOf(current);
+                if (index < 0) {
+                    toast = Toast.makeText(getContext(), "No data found for this day", Toast.LENGTH_SHORT);
+                    setToast();
+                    report.setVisibility(View.GONE);
+                } else {
+                    selectTab = tabLayout.getTabAt(0);
+                    selectTab.select();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -122,13 +128,20 @@ public class fragment_tab2 extends Fragment  {
                 materialCalendarView.removeDecorators();
                 materialCalendarView.invalidateDecorators();
                 if (tab.getPosition() == 1) {
-                    report.setVisibility(View.VISIBLE);
-                    materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
                     CalendarDay date = materialCalendarView.getSelectedDate();
-                    addDays(date);
-                    reportAdapter = new ReportViewPageAdapter(requireContext(), tempList, date,false);
-                    report.setAdapter(reportAdapter);
-                    // weekly report
+                    boolean verify = check(date);
+                    if (verify) {
+                        toast = Toast.makeText(getContext(), "No data found for this day", Toast.LENGTH_SHORT);
+                        setToast();
+                        report.setVisibility(View.GONE);
+                    } else {
+                        addDays(date);
+                        current = convertCalendar(date);
+                        reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
+                        report.setVisibility(View.VISIBLE);
+                        materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
+                        report.setAdapter(reportAdapter);
+                    }
                 } else if (tab.getPosition() == 2) {
                     if (upToDay == null || upToDay.equals(myDate)) {
                         currentDayDecorator = new CurrentDayDecorator(myDate, true);
@@ -141,10 +154,10 @@ public class fragment_tab2 extends Fragment  {
                     materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.MONTHS).commit();
                 } else {
                     report.setVisibility(View.VISIBLE);
-                    CalendarDay date = materialCalendarView.getSelectedDate();
-                    reportAdapter = new ReportViewPageAdapter(requireContext(), tempList, date,true);
-                    report.setAdapter(reportAdapter);
+                    String object = response.substring(index - 2);
                     materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
+                    reportAdapter = new ReportViewPageAdapter(requireContext(), current, object, true);
+                    report.setAdapter(reportAdapter);
                 }
             }
 
@@ -158,32 +171,65 @@ public class fragment_tab2 extends Fragment  {
 
             }
         });
-////      viewPager = view.findViewById(R.id.viewpager2);
-//        ItemAdapter itemAdapter = new ItemAdapter(requireContext(), buildItemList());
-        String FILE_NAME = "temp.json";
-        file = new File(requireContext().getFilesDir(), FILE_NAME);
-//        tempEntries.add(new Entry(1, (float) 98.6));
-//        tempEntries.add(new Entry(2, (float) 98.8));
-//        tempEntries.add(new Entry(3, (float) 97.6));
-//        tempEntries.add(new Entry(4, (float) 98.2));
-//        tempEntries.add(new Entry(5, (float) 99.2));
-//        tempEntries.add(new Entry(6, (float) 98.3));
-//        tempEntries.add(new Entry(7, (float) 98.6));
-//        try {
-//            String key = "time0";
-//            reading.put("temperature", "98.6");
-//            reading.put("hour", "1:30");
-//            obj.put(key, reading);
-//            today.put(dayOfWeek, obj);
-//            String userString = today.toString();
-//            fileWriter = new FileWriter(file);
-//            bufferedWriter = new BufferedWriter(fileWriter);
-//            bufferedWriter.write(userString);
-//            bufferedWriter.close();
-//        } catch (JSONException | IOException e) {
-//            e.printStackTrace();
-//        }
         return view;
+    }
+
+    private boolean check(CalendarDay date) {
+        String words = convertCalendar(date);
+        boolean verify = false;
+        try {
+            fileReader = new FileReader(file);
+            bufferedReader = new BufferedReader(fileReader);
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                stringBuilder.append(line).append("\n");
+                line = bufferedReader.readLine();
+            }
+            bufferedReader.close();
+            response = stringBuilder.toString();
+            index = response.indexOf(words);
+            if (index < 0) {
+                verify = true;
+            } else {
+                verify = false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return verify;
+    }
+
+
+        private String convertCalendar(CalendarDay date) {
+        Calendar calendar = Calendar.getInstance();
+        String bruh = String.valueOf(date);
+        String bruhpt2 = bruh.substring(12, bruh.length()-1);
+        SimpleDateFormat first_sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        try {
+            Date dateObj = first_sdf.parse(bruhpt2);
+            calendar.setTime(dateObj);
+            String dayOfWeek = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.getDefault());
+            String year = String.valueOf(calendar.get(Calendar.YEAR));
+            int month = (calendar.get(Calendar.MONTH)) + 1;
+            String Month;
+            if (month < 10) {
+                Month = "0" + month;
+            } else {
+                Month = String.valueOf(month);
+            }
+            int day = (calendar.get(Calendar.DAY_OF_MONTH));
+            String Day;
+            if (day < 10) {
+                Day = "0" + day;
+            } else {
+                Day = String.valueOf(day);
+            }
+            current = dayOfWeek + "." + year + "." + Month + "." + Day;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return current;
     }
 
     private void addDays(CalendarDay date) {
@@ -283,57 +329,14 @@ public class fragment_tab2 extends Fragment  {
         materialCalendarView.addDecorators(weekDecorator);
     }
 
-    private List<Item> buildItemList() {
-        daysList = new ArrayList<>();
-        for (int i=0; i<10; i++) {
-            Item item = new Item("Week " + i);
-            daysList.add(item);
-        }
-        return daysList;
+    public void setToast() {
+        toast.setGravity(Gravity.BOTTOM, 0, 100);
+        toast.show();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        String now = time.format(Calendar.getInstance().getTime());
-        while (!now.equals("12:00 AM")) {
-            dayArray.add(dayOfWeek);
-            try {
-                fileReader = new FileReader(file);
-                bufferedReader = new BufferedReader(fileReader);
-                StringBuilder stringBuilder = new StringBuilder();
-                String line = bufferedReader.readLine();
-                while (line != null) {
-                    stringBuilder.append(line).append("\n");
-                    line = bufferedReader.readLine();
-                }
-                bufferedReader.close();
-                String response = stringBuilder.toString();
-                JSONObject jsonObject = new JSONObject(response);
-                JSONObject mainObject = jsonObject.getJSONObject(MainActivity.jsonDate);
-                JSONObject timeObject = mainObject.getJSONObject("time0");
-                String x = timeObject.getString("temperature");
-                tempEntries.add(new Entry(i, Float.parseFloat(x)));
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
-            }
-            set = new LineDataSet(tempEntries, null);
-            set.setDrawCircles(true);
-            set.setFillAlpha(65);
-            set.setFillColor(ColorTemplate.getHoloBlue());
-            set.setAxisDependency(YAxis.AxisDependency.LEFT);
-            set.setLineWidth(3f);
-            set.setColor(Color.MAGENTA);
-            set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-            set.setCubicIntensity(0.2f);
-            data = new LineData(set);
-            data.setValueTextColor(Color.WHITE);
-            List<LineData> dat = new ArrayList<>();
-            dat.add(data);
-            graphPageAdapter = new GraphPageAdapter(requireContext(), dat, mChart, dayArray);
-//            viewPager.setAdapter(graphPageAdapter);
-            break;
-        }
     }
 
     @Override

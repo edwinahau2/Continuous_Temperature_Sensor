@@ -159,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
         leftAxis.setDrawGridLines(false);
         leftAxis.setAxisMaximum(100f);
         leftAxis.setAxisMinimum(0f);
-        leftAxis.setDrawGridLines(false);
         leftAxis.setEnabled(true);
 
         YAxis rightAxis = mChart.getAxisRight();
