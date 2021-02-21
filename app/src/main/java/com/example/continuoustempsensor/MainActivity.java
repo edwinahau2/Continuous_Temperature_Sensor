@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
     int number;
 
     static boolean firstTime = false;
-    int minBetweenNotif = 1;
+    int minBetweenNotif = 3;
     Calendar cal = Calendar.getInstance();
     int initHour = 0;
     int initMin = 0;
@@ -388,32 +388,31 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }).start();
 
-
-//                                    boolean firstTime = false;
-//                                    int minBetweenNotif = 10;
-//                                    Calendar cal = Calendar.getInstance();
-//                                    int initHour = 0;
-//                                    int initMin = 0;
 // ADD A background THREAD HERE AND TEST THE CODE
                                     if (medianTemp >= 50) {
                                         boolean arbitrary = (cal.get(cal.MINUTE) - initMin) > minBetweenNotif;
                                         if (arbitrary == false) {
- //                                           Toast.makeText(getApplicationContext(), "testing is false", Toast.LENGTH_SHORT).show();
-                                            Toast.makeText(getApplicationContext(), cal.get(cal.MINUTE), Toast.LENGTH_SHORT).show();
-                                            // app crashes when trying to read cal.MINUTE
+                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getApplicationContext(), String.valueOf(cal.get(cal.MINUTE)), Toast.LENGTH_SHORT).show();
                                         }
+
+
+
                                         if (firstTime == false) {
                                             //receiver feverTempNotify = new NotificationReceiver();
                                             NotificationReceiver.sendNotification(getApplicationContext(), 0);
                                             firstTime = true;
-                                            initHour = cal.HOUR_OF_DAY;
-                                            initMin = cal.MINUTE;
+ //                                           initHour = cal.get(cal.HOUR_OF_DAY);
+                                            initMin = cal.get(cal.MINUTE);
                                             Toast.makeText(getApplicationContext(), "first time", Toast.LENGTH_SHORT).show();
                                         }
                                         else if ((cal.MINUTE - initMin) > minBetweenNotif){
                                             NotificationReceiver.sendNotification(getApplicationContext(),0);
                                             firstTime = false;
                                             Toast.makeText(getApplicationContext(), "again", Toast.LENGTH_SHORT).show();
+                                        }
+                                        else{
+                                            Toast.makeText(getApplicationContext(), "not yet", Toast.LENGTH_SHORT).show();
                                         }
                                     }
                                 }
