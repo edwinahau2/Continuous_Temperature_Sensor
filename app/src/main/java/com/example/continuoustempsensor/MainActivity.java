@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
     static boolean firstTime = false;
     int minBetweenNotif = 3;
-    Calendar cal = Calendar.getInstance();
+//    Calendar cal = Calendar.getInstance();
     int initHour = 0;
     int initMin = 0;
 
@@ -390,6 +390,7 @@ public class MainActivity extends AppCompatActivity {
 
 // ADD A background THREAD HERE AND TEST THE CODE
                                     if (medianTemp >= 50) {
+                                        Calendar cal = Calendar.getInstance();
                                         boolean arbitrary = (cal.get(cal.MINUTE) - initMin) > minBetweenNotif;
                                         if (arbitrary == false) {
                                             Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show();
