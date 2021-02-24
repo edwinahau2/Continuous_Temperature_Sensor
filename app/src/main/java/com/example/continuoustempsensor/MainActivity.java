@@ -393,8 +393,8 @@ public class MainActivity extends AppCompatActivity {
                                         Calendar cal = Calendar.getInstance();
                                         boolean arbitrary = (cal.get(cal.MINUTE) - initMin) > minBetweenNotif;
                                         if (arbitrary == false) {
+     //                                       Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show();
                                             Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show();
-                                            Toast.makeText(getApplicationContext(), String.valueOf(cal.get(cal.MINUTE)), Toast.LENGTH_SHORT).show();
                                         }
 
 
@@ -405,9 +405,12 @@ public class MainActivity extends AppCompatActivity {
                                             firstTime = true;
  //                                           initHour = cal.get(cal.HOUR_OF_DAY);
                                             initMin = cal.get(cal.MINUTE);
+                                            if((initMin + minBetweenNotif) >= 60){
+                                                initMin = 
+                                            }
                                             Toast.makeText(getApplicationContext(), "first time", Toast.LENGTH_SHORT).show();
                                         }
-                                        else if ((cal.MINUTE - initMin) > minBetweenNotif){
+                                        else if ((cal.get(cal.MINUTE) - initMin) >= minBetweenNotif){
                                             NotificationReceiver.sendNotification(getApplicationContext(),0);
                                             firstTime = false;
                                             Toast.makeText(getApplicationContext(), "again", Toast.LENGTH_SHORT).show();
