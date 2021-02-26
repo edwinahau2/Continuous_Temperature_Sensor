@@ -405,11 +405,15 @@ public class MainActivity extends AppCompatActivity {
                                             firstTime = true;
  //                                           initHour = cal.get(cal.HOUR_OF_DAY);
                                             initMin = cal.get(cal.MINUTE);
-                                            if((initMin + minBetweenNotif) >= 60){
-                                                initMin = 
-                                            }
+                                          /*  if((initMin + minBetweenNotif) >= 60){
+                                                initMin = minBetweenNotif - (60 - initMin);
+                                            }*/
                                             Toast.makeText(getApplicationContext(), "first time", Toast.LENGTH_SHORT).show();
                                         }
+                                        // add code so that if initMin + minBetween > 60 maybe evaluate hour as well
+                                        /*if((initMin + minBetweenNotif) >= 60){
+                                            initMin = minBetweenNotif - (60 - initMin);
+                                        }*/
                                         else if ((cal.get(cal.MINUTE) - initMin) >= minBetweenNotif){
                                             NotificationReceiver.sendNotification(getApplicationContext(),0);
                                             firstTime = false;
