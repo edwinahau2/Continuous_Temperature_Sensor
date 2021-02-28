@@ -10,8 +10,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 
+import com.blure.complexview.ComplexView;
+import com.blure.complexview.Shadow;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -38,11 +42,15 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Display;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,18 +69,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import static android.widget.RelativeLayout.CENTER_IN_PARENT;
 
 
 public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> al = new ArrayList<>();
     File file;
-    FileReader fileReader = null;
     FileWriter fileWriter = null;
-    BufferedReader bufferedReader = null;
     BufferedWriter bufferedWriter = null;
 //    private JSONObject reading = new JSONObject();
 //    private JSONObject today = new JSONObject();
@@ -93,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
     LineChart mChart;
     public static String address;
     @SuppressLint("SimpleDateFormat")
-    SimpleDateFormat format = new SimpleDateFormat("h:mm:ss a");
+    SimpleDateFormat format = new SimpleDateFormat("h:ss:mm a");
     @SuppressLint("SimpleDateFormat")
     public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
@@ -105,31 +114,62 @@ public class MainActivity extends AppCompatActivity {
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
     Fragment active;
-    SwipeFlingAdapterView flingContainer;
-    private TextView counter;
     private ArrayAdapter<String> arrayAdapter;
     boolean plotData = false;
     String num;
     int number;
-    ArcSeekBar arcSeekBar;
+    ImageView img;
+    ImageView btSym;
+    TextView btStat;
+    ImageView notif;
+    ComplexView shadow;
 
 
     @SuppressLint("ShowToast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        arcSeekBar = findViewById(R.id.seekbar);
-        int[] intArray = getResources().getIntArray(R.array.progressGradientColors);
-        arcSeekBar.setProgressBackgroundGradient(intArray);
-        arcSeekBar.setProgressGradient(intArray);
         String FILE_NAME = "temp.json";
         file = new File(this.getFilesDir(), FILE_NAME);
+        ViewGroup vg = (ViewGroup) getLayoutInflater().inflate(R.layout.activity_main, null);
+        setContentView(vg);
+        img = findViewById(R.id.imageView);
+        img.setImageResource(R.drawable.celsius);
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        float width = size.x;
+        float height = size.y;
+        int h = (int) Math.round(height/2);
+        int w = (int) Math.round(width*0.4);
+        shadow = new ComplexView(this);
+        ComplexView.LayoutParams params = new ComplexView.LayoutParams((int) (width*0.6), (int) (width*0.6));
+        float[] radii = {200, 200, 200, 200, 200, 200, 200, 200};
+        shadow.setShadow(new Shadow(2, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+        params.setMargins(w, 30, 10, h);
+        shadow.setLayoutParams(params);
+        ComplexView white = new ComplexView(this);
+        ComplexView.LayoutParams whiteParam = new ComplexView.LayoutParams(ComplexView.LayoutParams.MATCH_PARENT, ComplexView.LayoutParams.MATCH_PARENT);
+        white.setRadius(200);
+        white.setColor(Color.parseColor("#FFFFFF"));
+        white.setLayoutParams(whiteParam);
+        temp = new TextView(this);
+        ComplexView.LayoutParams tempParam = new ComplexView.LayoutParams(ComplexView.LayoutParams.WRAP_CONTENT, ComplexView.LayoutParams.WRAP_CONTENT);
+        tempParam.addRule(CENTER_IN_PARENT);
+        tempParam.setMargins(5,5,5,5);
+        temp.setLayoutParams(tempParam);
+        temperature = "97.5 °F";
+        temp.setText(temperature);
+        temp.setTextSize((float) (height*0.04));
+        white.addView(temp);
+        shadow.addView(white);
+        vg.addView(shadow);
+        btSym = findViewById(R.id.btSym);
+        btStat = findViewById(R.id.btStat);
+        notif = findViewById(R.id.notif);
         Bundle bundle = getIntent().getExtras();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-        temp = findViewById(R.id.temp);
-        temperature = "97.5";
-        temp.setText(temperature);
+//        temp = findViewById(R.id.temp);
         mChart = findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
         mChart.setDescription(null);
@@ -169,8 +209,6 @@ public class MainActivity extends AppCompatActivity {
         mChart.invalidate();
 
         temp.setVisibility(View.VISIBLE);
-        flingContainer = findViewById(R.id.frame);
-        counter = findViewById(R.id.counter);
         al = restoreArrayData();
         number = al.size();
 //        if (restoreNumData() == -1) {
@@ -178,41 +216,7 @@ public class MainActivity extends AppCompatActivity {
 //        } else {
 //            number = restoreNumData();
 //        }
-        counter.setText(String.valueOf(number));
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
-        flingContainer.setAdapter(arrayAdapter);
-        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
-            @Override
-            public void removeFirstObjectInAdapter() {
-                al.remove(0);
-                arrayAdapter.notifyDataSetChanged();
-                saveArrayData();
-            }
-
-            @Override
-            public void onLeftCardExit(Object o) {
-                number--;
-                num = String.valueOf(number);
-                counter.setText(num);
-                saveArrayData();
-            }
-
-            @Override
-            public void onRightCardExit(Object o) {
-                number--;
-                num = String.valueOf(number);
-                counter.setText(num);
-                saveArrayData();
-            }
-
-            @Override
-            public void onAdapterAboutToEmpty(int i) {
-            }
-
-            @Override
-            public void onScroll(float v) {
-            }
-        });
         if (bundle != null) {
             address = bundle.getString("address");
             name = bundle.getString("name");
@@ -283,6 +287,21 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        notif.setOnClickListener((View.OnClickListener) v -> {
+            Intent intent = new Intent(getApplicationContext(), notifActivity.class);
+            startActivity(intent);
+        });
+
+        btSym.setOnClickListener((View.OnClickListener) v -> {
+            Intent connectActivity = new Intent(getApplicationContext(), ConnectionActivity.class);
+            startActivity(connectActivity);
+        });
+
+        btStat.setOnClickListener((View.OnClickListener) v -> {
+            Intent connectActivity = new Intent(getApplicationContext(), ConnectionActivity.class);
+            startActivity(connectActivity);
+        });
+
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
         bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
         fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
@@ -301,15 +320,19 @@ public class MainActivity extends AppCompatActivity {
                     }
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
-                    arcSeekBar.setVisibility(View.VISIBLE);
+                    img.setVisibility(View.VISIBLE);
+                    shadow.setVisibility(View.VISIBLE);
+                    btStat.setVisibility(View.VISIBLE);
+                    btSym.setVisibility(View.VISIBLE);
+                    notif.setVisibility(View.VISIBLE);
 //                    temp.setText(temperature);
-                    if (restoreHide()) {
-                        flingContainer.setVisibility(View.INVISIBLE);
-                        counter.setVisibility(View.INVISIBLE);
-                    } else {
-                        flingContainer.setVisibility(View.VISIBLE);
-                        counter.setVisibility(View.VISIBLE);
-                    }
+//                    if (restoreHide()) {
+//                        flingContainer.setVisibility(View.INVISIBLE);
+//                        counter.setVisibility(View.INVISIBLE);
+//                    } else {
+//                        flingContainer.setVisibility(View.VISIBLE);
+//                        counter.setVisibility(View.VISIBLE);
+//                    }
                     return true;
 
                 case R.id.Bt:
@@ -320,10 +343,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
-                    flingContainer.setVisibility(View.INVISIBLE);
-                    counter.setVisibility(View.INVISIBLE);
-                    arcSeekBar.setVisibility(View.INVISIBLE);
                     temp.setText(temperature);
+                    img.setVisibility(View.INVISIBLE);
+                    shadow.setVisibility(View.INVISIBLE);
+                    btStat.setVisibility(View.INVISIBLE);
+                    btSym.setVisibility(View.INVISIBLE);
+                    notif.setVisibility(View.INVISIBLE);
                     active = fragment3;
                     return true;
 
@@ -335,10 +360,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
-                    flingContainer.setVisibility(View.INVISIBLE);
-                    counter.setVisibility(View.INVISIBLE);
-                    arcSeekBar.setVisibility(View.INVISIBLE);
                     temp.setText(temperature);
+                    img.setVisibility(View.INVISIBLE);
+                    shadow.setVisibility(View.INVISIBLE);
+                    btStat.setVisibility(View.INVISIBLE);
+                    btSym.setVisibility(View.INVISIBLE);
+                    notif.setVisibility(View.INVISIBLE);
                     active = fragment2;
                     return true;
             }
@@ -615,27 +642,27 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (temperature.length() != 0) {
-            float y = Float.parseFloat(temperature);
-            if (y <= 95) {
-                arcSeekBar.setProgress(0);
-            } else if (y >= 103.8) {
-                arcSeekBar.setProgress(100);
-            } else if (y > 95 && y <= 97.5) {
-                float z = 10 * y - 950;
-                arcSeekBar.setProgress(Math.round(z));
-            } else if (y >= 97.6 && y <= 98.9) {
-                if (y*10 % 2 == 0) {
-                    float z = 20 * y - 1926;
-                    arcSeekBar.setProgress(Math.round(z));
-                } else {
-                    float z = (float) (20 * (y - 0.1) - 1926);
-                    arcSeekBar.setProgress(Math.round(z));
-                }
-            } else {
-                float z = 10 * y - 938;
-                arcSeekBar.setProgress(Math.round(z));
-            }
-        }
+//        if (temperature.length() != 0) {
+//            float y = Float.parseFloat(temperature);
+//            if (y <= 95) {
+//                arcSeekBar.setProgress(0);
+//            } else if (y >= 103.8) {
+//                arcSeekBar.setProgress(100);
+//            } else if (y > 95 && y <= 97.5) {
+//                float z = 10 * y - 950;
+//                arcSeekBar.setProgress(Math.round(z));
+//            } else if (y >= 97.6 && y <= 98.9) {
+//                if (y*10 % 2 == 0) {
+//                    float z = 20 * y - 1926;
+//                    arcSeekBar.setProgress(Math.round(z));
+//                } else {
+//                    float z = (float) (20 * (y - 0.1) - 1926);
+//                    arcSeekBar.setProgress(Math.round(z));
+//                }
+//            } else {
+//                float z = 10 * y - 938;
+//                arcSeekBar.setProgress(Math.round(z));
+//            }
+//        }
     }
 }

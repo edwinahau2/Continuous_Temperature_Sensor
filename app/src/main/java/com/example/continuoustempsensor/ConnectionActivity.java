@@ -119,25 +119,22 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             }
         });
 
-        find.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!mBlueAdapter.isEnabled()) {
+        find.setOnClickListener(v -> {
+            if (!mBlueAdapter.isEnabled()) {
+                find.setText("Find Devices");
+                Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(intent, REQUEST_ENABLE_BT);
+            } else {
+                if (mBlueAdapter.isDiscovering()) {
+                    mBlueAdapter.cancelDiscovery();
                     find.setText("Find Devices");
-                    Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(intent, REQUEST_ENABLE_BT);
                 } else {
-                    if (mBlueAdapter.isDiscovering()) {
-                        mBlueAdapter.cancelDiscovery();
-                        find.setText("Find Devices");
-                    } else {
-                        mBlueAdapter.startDiscovery();
-                        find.setText("Cancel");
-                        mData.clear();
-                        toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
-                        setToast();
-                        findPairedDevices();
-                    }
+                    mBlueAdapter.startDiscovery();
+                    find.setText("Cancel");
+                    mData.clear();
+                    toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
+                    setToast();
+                    findPairedDevices();
                 }
             }
         });

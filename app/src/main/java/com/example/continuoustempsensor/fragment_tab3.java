@@ -178,12 +178,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             }
         });
 
-        connect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent connectActivity = new Intent(requireContext().getApplicationContext(), ConnectionActivity.class);
-                startActivity(connectActivity);
-            }
+        connect.setOnClickListener(v -> {
+            Intent connectActivity = new Intent(requireContext().getApplicationContext(), ConnectionActivity.class);
+            startActivity(connectActivity);
         });
         return view;
 

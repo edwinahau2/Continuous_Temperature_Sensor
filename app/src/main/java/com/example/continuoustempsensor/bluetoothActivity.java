@@ -18,6 +18,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -30,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class bluetoothActivity extends AppCompatActivity implements BtAdapter.OnDeviceListener {
+public class bluetoothActivity extends AppCompatActivity {
 
     RecyclerView btRecycle;
     Dialog myDialog;
@@ -62,7 +64,7 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
         find = findViewById(R.id.find);
         mData = new ArrayList<>();
         mData.add(new BtDevice("HC-06:1234"));
-        btAdapter = new BtAdapter(this, mData, this);
+//        btAdapter = new BtAdapter(this, mData, this);
         btRecycle.setAdapter(btAdapter);
         btRecycle.setLayoutManager(new LinearLayoutManager(this));
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -74,24 +76,29 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
         }
 
-        find.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            if (!mBlueAdapter.isEnabled()) {
-                Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(intent, REQUEST_ENABLE_BT);
-            } else {
-                if (mBlueAdapter.isDiscovering()) {
-                    mBlueAdapter.cancelDiscovery();
-                    find.setText("Find Devices");
-                } else {
-                    mBlueAdapter.startDiscovery();
-                    find.setText("Cancel");
-                    mData.clear();
-                    findPairedDevices();
-                }
-            }
-            }
+        find.setOnClickListener(v -> {
+            Handler handler = new Handler();
+            Runnable checkSettings = () -> {
+                Intent i = new Intent(bluetoothActivity.this, bluetoothActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(i);
+            };
+            startActivityForResult(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS), 0);
+            handler.postDelayed(checkSettings, 120000);
+//        if (!mBlueAdapter.isEnabled()) {
+//            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//            startActivityForResult(intent, REQUEST_ENABLE_BT);
+//        } else {
+//            if (mBlueAdapter.isDiscovering()) {
+//                mBlueAdapter.cancelDiscovery();
+//                find.setText("Find Devices");
+//            } else {
+//                mBlueAdapter.startDiscovery();
+//                find.setText("Cancel");
+//                mData.clear();
+//                findPairedDevices();
+//            }
+//        }
         });
     }
 
@@ -100,35 +107,35 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
         return pref.getBoolean("isBtOpen", false);
     }
 
-    @SuppressLint("ShowToast")
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_ENABLE_BT) {
-            if (resultCode == RESULT_OK) {
-                mBlueAdapter.startDiscovery();
-                find.setText("Cancel");
-                findPairedDevices();
-            } else {
-                toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
-                setToast();
-                mBlueAdapter.cancelDiscovery();
-            }
-        }
-    }
+//    @SuppressLint("ShowToast")
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == REQUEST_ENABLE_BT) {
+//            if (resultCode == RESULT_OK) {
+//                mBlueAdapter.startDiscovery();
+//                find.setText("Cancel");
+//                findPairedDevices();
+//            } else {
+//                toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
+//                setToast();
+//                mBlueAdapter.cancelDiscovery();
+//            }
+//        }
+//    }
 
-    private void findPairedDevices() {
-        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
-        if (bluetoothSet.size() > 0) {
-            for (BluetoothDevice device : bluetoothSet) {
-                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-                this.registerReceiver(receiver, filter);
-                IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-                this.registerReceiver(receiver, filter1);
-                IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-                this.registerReceiver(receiver, filter2);
-            }
-        }
-    }
+//    private void findPairedDevices() {
+//        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
+//        if (bluetoothSet.size() > 0) {
+//            for (BluetoothDevice device : bluetoothSet) {
+//                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+//                this.registerReceiver(receiver, filter);
+//                IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+//                this.registerReceiver(receiver, filter1);
+//                IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+//                this.registerReceiver(receiver, filter2);
+//            }
+//        }
+//    }
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -164,20 +171,20 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
         }
     };
 
-    public void setToast() {
-        toast.setGravity(Gravity.BOTTOM, 0, 180);
-        toast.show();
-    }
+//    public void setToast() {
+//        toast.setGravity(Gravity.BOTTOM, 0, 180);
+//        toast.show();
+//    }
 
-    @SuppressLint("ShowToast")
-    @Override
-    public void onDeviceClick(int position) {
-        correct = mData.get(position).getDevice();
-        ShowPopUp();
-        mBlueAdapter.cancelDiscovery();
-        find.setText("Find Devices");
-        addy = mData.get(position).getAddress();
-    }
+//    @SuppressLint("ShowToast")
+//    @Override
+//    public void onDeviceClick(int position) {
+//        correct = mData.get(position).getDevice();
+//        ShowPopUp();
+//        mBlueAdapter.cancelDiscovery();
+//        find.setText("Find Devices");
+//        addy = mData.get(position).getAddress();
+//    }
 
     public void ShowPopUp() {
         myDialog.setContentView(R.layout.popup);
