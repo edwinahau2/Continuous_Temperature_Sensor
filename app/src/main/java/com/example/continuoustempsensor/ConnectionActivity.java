@@ -107,17 +107,12 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         }
         list = findViewById(R.id.list);
         mData = new ArrayList<>();
-        mData.add(new BtDevice("HC-06:1234"));
+//        mData.add(new BtDevice("HC-06:1234"));
         btAdapter = new BtAdapter(this, mData, this);
         list.setAdapter(btAdapter);
         list.setLayoutManager(new LinearLayoutManager(this));
 
-        back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        back.setOnClickListener(v -> onBackPressed());
 
         find.setOnClickListener(v -> {
             if (!mBlueAdapter.isEnabled()) {
@@ -139,35 +134,31 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             }
         });
 
-        rename.setOnClickListener(new View.OnClickListener() {
-            @SuppressLint("ShowToast")
-            @Override
-            public void onClick(View v) {
-                if (AndroidService.spark && mBlueAdapter.isEnabled()) {
-                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(c);
-                    alertDialog.setTitle("Rename Sensor");
-                    final EditText userInput = new EditText(c);
-                    alertDialog.setView(userInput);
-                    alertDialog.setCancelable(false).setPositiveButton("Rename", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            sensor = userInput.getText().toString();
-                            daStatus = "Connected to " + sensor;
-                            status.setText(daStatus);
-                            dialog.cancel();
-                            saveNameData();
-                        }
-                    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    });
-                    alertDialog.show();
-                } else {
-                    toast = Toast.makeText(getBaseContext(), "Please connect to a device", Toast.LENGTH_SHORT);
-                    setToast();
-                }
+        rename.setOnClickListener(v -> {
+            if (AndroidService.spark && mBlueAdapter.isEnabled()) {
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(c);
+                alertDialog.setTitle("Rename Sensor");
+                final EditText userInput = new EditText(c);
+                alertDialog.setView(userInput);
+                alertDialog.setCancelable(false).setPositiveButton("Rename", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        sensor = userInput.getText().toString();
+                        daStatus = "Connected to " + sensor;
+                        status.setText(daStatus);
+                        dialog.cancel();
+                        saveNameData();
+                    }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                alertDialog.show();
+            } else {
+                toast = Toast.makeText(getBaseContext(), "Please connect to a device", Toast.LENGTH_SHORT);
+                setToast();
             }
         });
     }
@@ -274,27 +265,21 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         no = myDialog.findViewById(R.id.no);
         connect = myDialog.findViewById(R.id.connection);
         connect.setText("Connect to " + correct + "?");
-        no.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
-            }
-        });
-        yes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
+        no.setOnClickListener(v -> myDialog.dismiss());
+        yes.setOnClickListener(v -> {
+            try {
+                if (AndroidService.mmSocket != null) {
                     AndroidService.mmSocket.close();
                     AndroidService.spark = false;
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-                MainActivity.address = addy;
-                find.setText("Find Devices");
-                mBlueAdapter.cancelDiscovery();
-//                mDevice = mBlueAdapter.getRemoteDevice(addy);
-                startConnection();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            MainActivity.address = addy;
+            find.setText("Find Devices");
+            mBlueAdapter.cancelDiscovery();
+//                mDevice = mBlueAdapter.getRemoteDevice(addy);
+            startConnection();
         });
         myDialog.show();
     }
@@ -305,27 +290,19 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         no = myDialog.findViewById(R.id.no);
         connect = myDialog.findViewById(R.id.connection);
         connect.setText("Would you like to disconnect from " + correct + "?");
-        no.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
+        no.setOnClickListener(v -> myDialog.dismiss());
+        yes.setOnClickListener(v -> {
+            try {
+                AndroidService.mmSocket.close();
+                AndroidService.spark = false;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        });
-        yes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    AndroidService.mmSocket.close();
-                    AndroidService.spark = false;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                find.setText("Find Devices");
-                daStatus = "Not Connected";
-                status.setText(daStatus);
-                mBlueAdapter.cancelDiscovery();
-                myDialog.dismiss();
-            }
+            find.setText("Find Devices");
+            daStatus = "Not Connected";
+            status.setText(daStatus);
+            mBlueAdapter.cancelDiscovery();
+            myDialog.dismiss();
         });
         myDialog.show();
     }

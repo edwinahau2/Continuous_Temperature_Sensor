@@ -26,7 +26,6 @@
             android:id="@+id/btSym"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:background="@drawable/ic_b1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@id/guide1"
             app:layout_constraintTop_toTopOf="parent"/>
@@ -45,11 +44,10 @@
             android:id="@+id/notif"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:background="@drawable/bell"
+            android:background="@drawable/bell2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toTopOf="@id/guide1"
             app:layout_constraintTop_toTopOf="parent"/>
-
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guide1"
@@ -57,26 +55,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             app:layout_constraintGuide_percent="0.05"/>
-
-        <androidx.constraintlayout.widget.Guideline
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.4"
-            android:id="@+id/verticalGuide"/>
-
-
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toTopOf="@+id/guide"
-                app:layout_constraintTop_toTopOf="@+id/guide1"
-                app:layout_constraintEnd_toEndOf="@+id/verticalGuide"
-                android:id="@+id/imageView"
-                android:layout_marginEnd="15dp"/>
 
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/sparkView"
@@ -113,17 +91,6 @@
 <!--            app:layout_constraintStart_toStartOf="@id/seekbar"-->
 <!--            app:layout_constraintTop_toTopOf="@id/seekbar" />-->
 
-
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPager2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="@id/guide"
-            app:layout_constraintEnd_toStartOf="@id/verticalGuide"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/guide1"
-            android:layout_marginEnd="15dp"/>
-
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guide"
             android:layout_width="match_parent"
@@ -131,13 +98,30 @@
             android:orientation="horizontal"
             app:layout_constraintGuide_percent="0.50" />
 
-        <androidx.cardview.widget.CardView
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide3"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@+id/guide"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/guide1" />
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.42" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/verticalGuide"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.25" />
+
+<!--        <ImageView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:background="@drawable/bars"-->
+<!--            app:layout_constraintBottom_toTopOf="@+id/sparkView"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/guide3"-->
+<!--            app:layout_constraintEnd_toStartOf="@id/verticalGuide"-->
+<!--            android:elevation="2dp"/>-->
+
 
         <!--    <com.lorentzos.flingswipe.SwipeFlingAdapterView-->
         <!--        android:id="@+id/frame"-->

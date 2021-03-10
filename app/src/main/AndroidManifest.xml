@@ -4,7 +4,7 @@
     package="com.example.continuoustempsensor">
 
     <uses-feature android:name="android.hardware.bluetooth" />
-
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -37,7 +37,12 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".AndroidService" />
+        <service android:name=".AndroidService"
+            android:enabled="true"
+            android:stopWithTask="false"/>
+        <service android:name=".TestJobService"
+            android:enabled="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
     </application>
 
 </manifest>

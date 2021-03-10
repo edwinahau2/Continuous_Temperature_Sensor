@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class bluetoothActivity extends AppCompatActivity {
+public class bluetoothActivity extends AppCompatActivity implements BtAdapter.OnDeviceListener {
 
     RecyclerView btRecycle;
     Dialog myDialog;
@@ -48,6 +48,8 @@ public class bluetoothActivity extends AppCompatActivity {
     TextView connect;
     String correct;
     String addy;
+    BluetoothDevice device;
+    BroadcastReceiver mReciever;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +65,8 @@ public class bluetoothActivity extends AppCompatActivity {
         btRecycle = findViewById(R.id.bt_list);
         find = findViewById(R.id.find);
         mData = new ArrayList<>();
-        mData.add(new BtDevice("HC-06:1234"));
-//        btAdapter = new BtAdapter(this, mData, this);
+//        mData.add(new BtDevice("HC-06:1234"));
+        btAdapter = new BtAdapter(this, mData, this);
         btRecycle.setAdapter(btAdapter);
         btRecycle.setLayoutManager(new LinearLayoutManager(this));
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -77,28 +79,21 @@ public class bluetoothActivity extends AppCompatActivity {
         }
 
         find.setOnClickListener(v -> {
-            Handler handler = new Handler();
-            Runnable checkSettings = () -> {
-                Intent i = new Intent(bluetoothActivity.this, bluetoothActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(i);
-            };
-            startActivityForResult(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS), 0);
-            handler.postDelayed(checkSettings, 120000);
-//        if (!mBlueAdapter.isEnabled()) {
-//            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//            startActivityForResult(intent, REQUEST_ENABLE_BT);
-//        } else {
-//            if (mBlueAdapter.isDiscovering()) {
-//                mBlueAdapter.cancelDiscovery();
-//                find.setText("Find Devices");
-//            } else {
-//                mBlueAdapter.startDiscovery();
-//                find.setText("Cancel");
-//                mData.clear();
-//                findPairedDevices();
-//            }
-//        }
+        if (!mBlueAdapter.isEnabled()) {
+            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(intent, REQUEST_ENABLE_BT);
+        } else {
+            if (mBlueAdapter.isDiscovering()) {
+                mBlueAdapter.cancelDiscovery();
+                find.setText("Find Devices");
+            } else {
+                mBlueAdapter.startDiscovery();
+                find.setText("Cancel");
+                Toast.makeText(this, "Make sure your device is on", Toast.LENGTH_SHORT).show();
+                mData.clear();
+                findPairedDevices();
+            }
+        }
         });
     }
 
@@ -107,35 +102,39 @@ public class bluetoothActivity extends AppCompatActivity {
         return pref.getBoolean("isBtOpen", false);
     }
 
-//    @SuppressLint("ShowToast")
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == REQUEST_ENABLE_BT) {
-//            if (resultCode == RESULT_OK) {
-//                mBlueAdapter.startDiscovery();
-//                find.setText("Cancel");
-//                findPairedDevices();
-//            } else {
-//                toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
-//                setToast();
-//                mBlueAdapter.cancelDiscovery();
-//            }
-//        }
-//    }
+    @SuppressLint("ShowToast")
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == RESULT_OK) {
+                mBlueAdapter.startDiscovery();
+                find.setText("Cancel");
+                findPairedDevices();
+            } else {
+                toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
+                setToast();
+                mBlueAdapter.cancelDiscovery();
+            }
+        }
+    }
 
-//    private void findPairedDevices() {
-//        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
-//        if (bluetoothSet.size() > 0) {
-//            for (BluetoothDevice device : bluetoothSet) {
-//                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-//                this.registerReceiver(receiver, filter);
-//                IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-//                this.registerReceiver(receiver, filter1);
-//                IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-//                this.registerReceiver(receiver, filter2);
-//            }
-//        }
-//    }
+    private void findPairedDevices() {
+        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
+        if (bluetoothSet.size() > 0) {
+            for (BluetoothDevice device : bluetoothSet) {
+                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                this.registerReceiver(receiver, filter);
+                IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+                this.registerReceiver(receiver, filter1);
+                IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+                this.registerReceiver(receiver, filter2);
+            }
+        } else {
+            Toast.makeText(this, "No Devices Found", Toast.LENGTH_SHORT).show();
+            mBlueAdapter.cancelDiscovery();
+            find.setText("Find Devices");
+        }
+    }
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -171,20 +170,20 @@ public class bluetoothActivity extends AppCompatActivity {
         }
     };
 
-//    public void setToast() {
-//        toast.setGravity(Gravity.BOTTOM, 0, 180);
-//        toast.show();
-//    }
+    public void setToast() {
+        toast.setGravity(Gravity.BOTTOM, 0, 180);
+        toast.show();
+    }
 
-//    @SuppressLint("ShowToast")
-//    @Override
-//    public void onDeviceClick(int position) {
-//        correct = mData.get(position).getDevice();
-//        ShowPopUp();
-//        mBlueAdapter.cancelDiscovery();
-//        find.setText("Find Devices");
-//        addy = mData.get(position).getAddress();
-//    }
+    @SuppressLint("ShowToast")
+    @Override
+    public void onDeviceClick(int position) {
+        correct = mData.get(position).getDevice();
+        ShowPopUp();
+        mBlueAdapter.cancelDiscovery();
+        find.setText("Find Devices");
+        addy = mData.get(position).getAddress();
+    }
 
     public void ShowPopUp() {
         myDialog.setContentView(R.layout.popup);
@@ -192,25 +191,17 @@ public class bluetoothActivity extends AppCompatActivity {
         no = myDialog.findViewById(R.id.no);
         connect = myDialog.findViewById(R.id.connection);
         connect.setText("Connect to " + correct + "?");
-        no.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                myDialog.dismiss();
-            }
-        });
-        yes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent mainActivity = new Intent(getApplicationContext(), MainActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putString("address", addy);
-                bundle.putString("name", correct);
-                mainActivity.putExtras(bundle);
-                startActivity(mainActivity);
+        no.setOnClickListener(v -> myDialog.dismiss());
+        yes.setOnClickListener(v -> {
+            Intent mainActivity = new Intent(getApplicationContext(), MainActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putString("address", addy);
+            bundle.putString("name", correct);
+            mainActivity.putExtras(bundle);
+            startActivity(mainActivity);
 
-                savePrefsData();
-                finish();
-            }
+            savePrefsData();
+            finish();
         });
         myDialog.show();
     }

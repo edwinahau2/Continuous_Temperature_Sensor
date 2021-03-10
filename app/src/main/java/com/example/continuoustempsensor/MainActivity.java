@@ -1,10 +1,13 @@
 package com.example.continuoustempsensor;
 
 import android.annotation.SuppressLint;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -28,7 +31,6 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
-import com.marcinmoskala.arcseekbar.ArcSeekBar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -40,8 +42,10 @@ import androidx.viewpager.widget.PagerAdapter;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PersistableBundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Display;
 import android.view.MenuItem;
 import android.view.View;
@@ -74,6 +78,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import kotlinx.coroutines.Job;
+
 import static android.widget.RelativeLayout.CENTER_IN_PARENT;
 
 
@@ -82,7 +88,8 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> al = new ArrayList<>();
     File file;
     FileWriter fileWriter = null;
-    BufferedWriter bufferedWriter = null;
+    BufferedWriter bufferedWriter = null;;
+    private static final String TAG = "MainActivity";
 //    private JSONObject reading = new JSONObject();
 //    private JSONObject today = new JSONObject();
 //    private JSONObject obj = new JSONObject();
@@ -102,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
     LineChart mChart;
     public static String address;
     @SuppressLint("SimpleDateFormat")
-    SimpleDateFormat format = new SimpleDateFormat("h:ss:mm a");
+    SimpleDateFormat format = new SimpleDateFormat("h:mm a");
     @SuppressLint("SimpleDateFormat")
     public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
@@ -116,14 +123,13 @@ public class MainActivity extends AppCompatActivity {
     Fragment active;
     private ArrayAdapter<String> arrayAdapter;
     boolean plotData = false;
-    String num;
     int number;
-    ImageView img;
     ImageView btSym;
     TextView btStat;
     ImageView notif;
-    ComplexView shadow;
-
+    ComplexView shadow, white;
+    ViewGroup vg;
+    Point size;
 
     @SuppressLint("ShowToast")
     @Override
@@ -131,45 +137,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         String FILE_NAME = "temp.json";
         file = new File(this.getFilesDir(), FILE_NAME);
-        ViewGroup vg = (ViewGroup) getLayoutInflater().inflate(R.layout.activity_main, null);
+        vg = (ViewGroup) getLayoutInflater().inflate(R.layout.activity_main, null);
         setContentView(vg);
-        img = findViewById(R.id.imageView);
-        img.setImageResource(R.drawable.celsius);
         Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
+        size = new Point();
         display.getSize(size);
-        float width = size.x;
-        float height = size.y;
-        int h = (int) Math.round(height/2);
-        int w = (int) Math.round(width*0.4);
-        shadow = new ComplexView(this);
-        ComplexView.LayoutParams params = new ComplexView.LayoutParams((int) (width*0.6), (int) (width*0.6));
-        float[] radii = {200, 200, 200, 200, 200, 200, 200, 200};
-        shadow.setShadow(new Shadow(2, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
-        params.setMargins(w, 30, 10, h);
-        shadow.setLayoutParams(params);
-        ComplexView white = new ComplexView(this);
-        ComplexView.LayoutParams whiteParam = new ComplexView.LayoutParams(ComplexView.LayoutParams.MATCH_PARENT, ComplexView.LayoutParams.MATCH_PARENT);
-        white.setRadius(200);
-        white.setColor(Color.parseColor("#FFFFFF"));
-        white.setLayoutParams(whiteParam);
-        temp = new TextView(this);
-        ComplexView.LayoutParams tempParam = new ComplexView.LayoutParams(ComplexView.LayoutParams.WRAP_CONTENT, ComplexView.LayoutParams.WRAP_CONTENT);
-        tempParam.addRule(CENTER_IN_PARENT);
-        tempParam.setMargins(5,5,5,5);
-        temp.setLayoutParams(tempParam);
-        temperature = "97.5 °F";
-        temp.setText(temperature);
-        temp.setTextSize((float) (height*0.04));
-        white.addView(temp);
-        shadow.addView(white);
-        vg.addView(shadow);
+        tempDisplay(vg, size, 0);
         btSym = findViewById(R.id.btSym);
         btStat = findViewById(R.id.btStat);
         notif = findViewById(R.id.notif);
         Bundle bundle = getIntent().getExtras();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-//        temp = findViewById(R.id.temp);
         mChart = findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
         mChart.setDescription(null);
@@ -208,21 +186,14 @@ public class MainActivity extends AppCompatActivity {
         mChart.setDrawBorders(false);
         mChart.invalidate();
 
-        temp.setVisibility(View.VISIBLE);
-        al = restoreArrayData();
-        number = al.size();
-//        if (restoreNumData() == -1) {
-//            number = al.size();
-//        } else {
-//            number = restoreNumData();
-//        }
+        temperature = "99.6";
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         if (bundle != null) {
             address = bundle.getString("address");
             name = bundle.getString("name");
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
-//            startService(intent);
+            startService(intent);
             startConnection();
             savePrefsData();
         } else if (mBlueAdapter.isEnabled()) {
@@ -230,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
             name = restoreNameData();
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
-//            startService(intent);
+            startService(intent);
             startConnection();
         }
         try {
@@ -287,17 +258,17 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        notif.setOnClickListener((View.OnClickListener) v -> {
+        notif.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), notifActivity.class);
             startActivity(intent);
         });
 
-        btSym.setOnClickListener((View.OnClickListener) v -> {
+        btSym.setOnClickListener(v -> {
             Intent connectActivity = new Intent(getApplicationContext(), ConnectionActivity.class);
             startActivity(connectActivity);
         });
 
-        btStat.setOnClickListener((View.OnClickListener) v -> {
+        btStat.setOnClickListener(v -> {
             Intent connectActivity = new Intent(getApplicationContext(), ConnectionActivity.class);
             startActivity(connectActivity);
         });
@@ -307,6 +278,53 @@ public class MainActivity extends AppCompatActivity {
         fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
         fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
         bottomNavigationView.setSelectedItemId(R.id.home);
+    }
+
+    private void tempDisplay(ViewGroup vg, Point size, int num) {
+        float width = size.x;
+        float height = size.y;
+        int h = (int) Math.round(height*0.1);
+        int w = (int) Math.round(width/2);
+        shadow = new ComplexView(this);
+        ComplexView.LayoutParams params = new ComplexView.LayoutParams((int) (width/2), (int) (width/2));
+        float[] radii = {200, 200, 200, 200, 200, 200, 200, 200};
+        temp = new TextView(this);
+        if (num == 0) {
+            shadow.setShadow(new Shadow(2, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            temperature = "--";
+            temp.setText(temperature);
+            temp.setTextSize((float) (height*0.04));
+        } else if (num == 1) {
+            shadow.setShadow(new Shadow(2, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            temp.setText(temperature + " " + unit);
+            temp.setTextSize((float) (height * 0.04));
+        } else if (num == 2) {
+            shadow.setShadow(new Shadow(2, 100, "#00FFCC", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            temp.setText(temperature + " " + unit);
+            temp.setTextSize((float) (height*0.04));
+        } else if (num == 3) {
+            shadow.setShadow(new Shadow(2, 100, "#FFFF00", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            temp.setText(temperature + " " + unit);
+            temp.setTextSize((float) (height*0.04));
+        } else {
+            shadow.setShadow(new Shadow(2, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            temp.setText(temperature + " " + unit);
+            temp.setTextSize((float) (height*0.04));
+        }
+        params.setMargins((int) (width*0.25), h, 0, 0);
+        shadow.setLayoutParams(params);
+        white = new ComplexView(this);
+        ComplexView.LayoutParams whiteParam = new ComplexView.LayoutParams(ComplexView.LayoutParams.MATCH_PARENT, ComplexView.LayoutParams.MATCH_PARENT);
+        white.setRadius(200);
+        white.setColor(Color.parseColor("#FFFFFF"));
+        white.setLayoutParams(whiteParam);
+        ComplexView.LayoutParams tempParam = new ComplexView.LayoutParams(ComplexView.LayoutParams.WRAP_CONTENT, ComplexView.LayoutParams.WRAP_CONTENT);
+        tempParam.addRule(CENTER_IN_PARENT);
+        tempParam.setMargins(5,5,5,5);
+        temp.setLayoutParams(tempParam);
+        white.addView(temp);
+        shadow.addView(white);
+        vg.addView(shadow);
     }
 
     private final BottomNavigationView.OnNavigationItemSelectedListener bottomNavMethod = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -320,19 +338,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
-                    img.setVisibility(View.VISIBLE);
                     shadow.setVisibility(View.VISIBLE);
+                    white.setVisibility(View.VISIBLE);
                     btStat.setVisibility(View.VISIBLE);
                     btSym.setVisibility(View.VISIBLE);
                     notif.setVisibility(View.VISIBLE);
 //                    temp.setText(temperature);
-//                    if (restoreHide()) {
-//                        flingContainer.setVisibility(View.INVISIBLE);
-//                        counter.setVisibility(View.INVISIBLE);
-//                    } else {
-//                        flingContainer.setVisibility(View.VISIBLE);
-//                        counter.setVisibility(View.VISIBLE);
-//                    }
                     return true;
 
                 case R.id.Bt:
@@ -343,9 +354,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
-                    temp.setText(temperature);
-                    img.setVisibility(View.INVISIBLE);
                     shadow.setVisibility(View.INVISIBLE);
+                    white.setVisibility(View.INVISIBLE);
                     btStat.setVisibility(View.INVISIBLE);
                     btSym.setVisibility(View.INVISIBLE);
                     notif.setVisibility(View.INVISIBLE);
@@ -360,9 +370,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
-                    temp.setText(temperature);
-                    img.setVisibility(View.INVISIBLE);
                     shadow.setVisibility(View.INVISIBLE);
+                    white.setVisibility(View.INVISIBLE);
                     btStat.setVisibility(View.INVISIBLE);
                     btSym.setVisibility(View.INVISIBLE);
                     notif.setVisibility(View.INVISIBLE);
@@ -582,15 +591,6 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void saveArrayData() {
-        Set<String> set = new HashSet<>(al);
-        SharedPreferences preferences = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putStringSet("array", set);
-        editor.putString("number", num);
-        editor.apply();
-    }
-
     private String restoreNameData() {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
         return pref.getString("device", null);
@@ -604,28 +604,6 @@ public class MainActivity extends AppCompatActivity {
     private int restoreNumData() {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
         return Integer.parseInt(pref.getString("number", String.valueOf(-1)));
-    }
-
-    private ArrayList<String> restoreArrayData() {
-        SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
-        Set<String> set = pref.getStringSet("array", null);
-        if (set == null) {
-            Set<String> newSet = new HashSet<>();
-            newSet.add("Notifications");
-            newSet.add("my");
-            newSet.add("name");
-            newSet.add("is");
-            newSet.add("Aryan");
-            newSet.add("Agarwal");
-            return new ArrayList<>(newSet);
-        } else {
-            return new ArrayList<>(set);
-        }
-    }
-
-    private Boolean restoreHide() {
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences("hidePref", MODE_PRIVATE);
-        return prefs.getBoolean("hide", false);
     }
 
     @Override
@@ -642,27 +620,28 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        if (temperature.length() != 0) {
-//            float y = Float.parseFloat(temperature);
-//            if (y <= 95) {
-//                arcSeekBar.setProgress(0);
-//            } else if (y >= 103.8) {
-//                arcSeekBar.setProgress(100);
-//            } else if (y > 95 && y <= 97.5) {
-//                float z = 10 * y - 950;
-//                arcSeekBar.setProgress(Math.round(z));
-//            } else if (y >= 97.6 && y <= 98.9) {
-//                if (y*10 % 2 == 0) {
-//                    float z = 20 * y - 1926;
-//                    arcSeekBar.setProgress(Math.round(z));
-//                } else {
-//                    float z = (float) (20 * (y - 0.1) - 1926);
-//                    arcSeekBar.setProgress(Math.round(z));
-//                }
-//            } else {
-//                float z = 10 * y - 938;
-//                arcSeekBar.setProgress(Math.round(z));
-//            }
-//        }
+        if (AndroidService.spark) {
+            btStat.setText("Connected");
+            btSym.setBackgroundResource(R.drawable.ic_b1);
+        } else {
+            btStat.setText("Not Connected");
+            btSym.setBackgroundResource(R.drawable.ic_b2);
+        }
+        int num;
+        if (temperature.length() != 0) {
+            float y = Float.parseFloat(temperature);
+            if (y <= 98.99 || y <= 37.2) {
+                num = 1;
+            } else if ((y < 100.4 && y >= 99) || (y < 38 && y > 37.2)) {
+                num = 2;
+            } else if ((y <= 103 && y >= 100.4) || (y <= 39.4 && y >= 38)) {
+                num = 3;
+            } else {
+                num = 4;
+            }
+        } else {
+            num = 0;
+        }
+        tempDisplay(vg, size, num);
     }
 }
