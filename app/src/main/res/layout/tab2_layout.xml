@@ -14,6 +14,20 @@
         android:orientation="vertical"
         android:id="@+id/constrain">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/dataLog"
+            android:text="Temperature Data Log"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:textColor="#000"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/daytime"
             android:layout_width="0dp"
@@ -23,7 +37,8 @@
             android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dataLog"
+            app:layout_constraintBottom_toTopOf="@id/firstRelative"
             app:tabBackground="@color/card_bg_color"
             app:tabIndicatorColor="#498bc5"
             app:tabIndicator="@drawable/tab_day_outline"
@@ -32,17 +47,17 @@
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="D" />
+                android:text="24 HOURS" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="W" />
+                android:text="7 DAYS" />
 
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="M" />
+<!--            <com.google.android.material.tabs.TabItem-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="M" />-->
         </com.google.android.material.tabs.TabLayout>
 
         <RelativeLayout
@@ -51,6 +66,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/daytime"
+            app:layout_constraintBottom_toTopOf="@id/secondRelative"
             android:id="@+id/firstRelative">
 
             <com.prolificinteractive.materialcalendarview.MaterialCalendarView
@@ -60,7 +76,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -69,19 +85,18 @@
         </RelativeLayout>
 
         <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:id="@+id/secondRelative"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/firstRelative">
 
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/graph_viewpager"
-                android:layout_width="wrap_content"
-                android:layout_height="500dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:layout_width="match_parent"
+                android:layout_height="1000dp" />
         </RelativeLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 

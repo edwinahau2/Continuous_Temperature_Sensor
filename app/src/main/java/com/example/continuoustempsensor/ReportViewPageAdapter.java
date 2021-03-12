@@ -62,6 +62,10 @@ public class ReportViewPageAdapter extends PagerAdapter {
     BarChart barChart;
     Toast toast;
     String response;
+    String red = "#FF0000";
+    String yellow = "#00B0F0";
+    String green = "#00B050";
+    String blue = "#00B0F0";
 
     public ReportViewPageAdapter(Context mContext, String date, String response, Boolean daily) {
         this.context = mContext;
@@ -164,16 +168,45 @@ public class ReportViewPageAdapter extends PagerAdapter {
                             min = temp.get(w);
                         }
                     }
+                    TextView dailyAvg = layoutScreen.findViewById(R.id.average);
+                    TextView dailyHigh = layoutScreen.findViewById(R.id.high);
+                    TextView dailyLow = layoutScreen.findViewById(R.id.low);
+                    if (max <= 98.99 || max <= 37.2) {
+                        dailyHigh.setTextColor(Color.parseColor(green));
+                    } else if ((max < 100.4 && max >= 99) || (max < 38 && max > 37.2)) {
+                        dailyHigh.setTextColor(Color.parseColor(yellow));
+                    } else if ((max <= 103 && max >= 100.4) || (max <= 39.4 && max >= 38)) {
+                        dailyHigh.setTextColor(Color.parseColor(red));
+                    } else {
+                        dailyHigh.setTextColor(Color.parseColor(blue));
+                    }
+
+                    if (min <= 98.99 || min <= 37.2) {
+                        dailyLow.setTextColor(Color.parseColor(green));
+                    } else if ((min < 100.4 && min >= 99) || (min < 38 && min > 37.2)) {
+                        dailyLow.setTextColor(Color.parseColor(yellow));
+                    } else if ((min <= 103 && min >= 100.4) || (min <= 39.4 && min >= 38)) {
+                        dailyLow.setTextColor(Color.parseColor(red));
+                    } else {
+                        dailyLow.setTextColor(Color.parseColor(blue));
+                    }
                     float total = 0;
                     for (int l = 0; l < temp.size(); l++) {
                         total = total + temp.get(l);
                     }
                     float avgTemp = total / temp.size();
-                    TextView dailyAvg = layoutScreen.findViewById(R.id.average);
+
+                    if (avgTemp <= 98.99 || avgTemp <= 37.2) {
+                        dailyAvg.setTextColor(Color.parseColor(green));
+                    } else if ((avgTemp < 100.4 && avgTemp >= 99) || (avgTemp < 38 && avgTemp > 37.2)) {
+                        dailyAvg.setTextColor(Color.parseColor(yellow));
+                    } else if ((avgTemp <= 103 && avgTemp >= 100.4) || (avgTemp <= 39.4 && avgTemp >= 38)) {
+                        dailyAvg.setTextColor(Color.parseColor(red));
+                    } else {
+                        dailyAvg.setTextColor(Color.parseColor(blue));
+                    }
                     dailyAvg.setText(avgTemp + " " + unit);
-                    TextView dailyHigh = layoutScreen.findViewById(R.id.high);
                     dailyHigh.setText(max + " " + unit);
-                    TextView dailyLow = layoutScreen.findViewById(R.id.low);
                     dailyLow.setText(min + " " + unit);
                     mChart = layoutScreen.findViewById(R.id.lineChart);
                     mChart.setVisibility(View.VISIBLE);

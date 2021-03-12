@@ -50,6 +50,57 @@
             app:layout_constraintTop_toTopOf="parent"/>
 
         <androidx.constraintlayout.widget.Guideline
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.85"
+            android:id="@+id/vGuide"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/temp"
+            app:layout_constraintBottom_toBottomOf="@id/complex"
+            app:layout_constraintEnd_toEndOf="@id/complex"
+            app:layout_constraintStart_toStartOf="@id/complex"
+            app:layout_constraintTop_toTopOf="@id/complex"
+            android:text="Hello"
+            android:elevation="2dp"
+            android:textAlignment="center"/>
+
+        <com.blure.complexview.ComplexView
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            app:layout_constraintBottom_toTopOf="@id/guide3"
+            app:layout_constraintEnd_toStartOf="@id/vGuide"
+            app:layout_constraintStart_toEndOf="@id/verticalGuide"
+            app:layout_constraintTop_toBottomOf="@id/guide1"
+            app:radius="250dp"
+            app:shadow="true"
+            android:layout_marginTop="20dp"
+            android:id="@+id/complex"
+            app:shadowSpread="4"
+            app:shadowAlpha="200"
+            app:shadowColor="#00B050">
+            
+            <com.blure.complexview.ComplexView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                app:radius="250dp"
+                android:id="@+id/ring"
+                app:color="#00B050"/>
+
+            <com.blure.complexview.ComplexView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                app:radius="248dp"
+                android:id="@+id/white"
+                app:color="#ffffff"/>
+        </com.blure.complexview.ComplexView>
+
+        <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guide1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -103,14 +154,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.42" />
+            app:layout_constraintGuide_percent="0.48" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/verticalGuide"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.25" />
+            app:layout_constraintGuide_percent="0.15" />
 
 <!--        <ImageView-->
 <!--            android:layout_width="wrap_content"-->

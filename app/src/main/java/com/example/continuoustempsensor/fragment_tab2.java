@@ -2,7 +2,9 @@ package com.example.continuoustempsensor;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,6 +49,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+
 public class fragment_tab2 extends Fragment  {
 
     File file;
@@ -65,10 +69,12 @@ public class fragment_tab2 extends Fragment  {
     CurrentDayDecorator currentDayDecorator;
     ViewPager report;
     ReportViewPageAdapter reportAdapter;
+    todayPageAdapter todayAdapter;
     String current;
     Toast toast;
     String response;
     int index;
+    int itab = 0;
 
     @Nullable
     @Override
@@ -79,9 +85,16 @@ public class fragment_tab2 extends Fragment  {
         file = new File(requireContext().getFilesDir(), FILE_NAME);
         tabLayout = view.findViewById(R.id.daytime);
         report = view.findViewById(R.id.graph_viewpager);
+        Display display = requireActivity().getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        ViewGroup.LayoutParams params = report.getLayoutParams();
+        params.height = (int) (size.y*0.95);
+        report.setLayoutParams(params);
         materialCalendarView.setDateSelected(myDate, true);
+        materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
         materialCalendarView.addDecorator(new CurrentDayDecorator(myDate, true));
-        selectTab = tabLayout.getTabAt(2);
+        selectTab = tabLayout.getTabAt(itab);
         selectTab.select();
         materialCalendarView.setOnDateChangedListener((widget, date, selected) -> {
             current = convertCalendar(date);
@@ -114,8 +127,12 @@ public class fragment_tab2 extends Fragment  {
                     setToast();
                     report.setVisibility(View.GONE);
                 } else {
-                    selectTab = tabLayout.getTabAt(0);
-                    selectTab.select();
+                    if (itab != 0) {
+                        selectTab = tabLayout.getTabAt(0);
+                        selectTab.select();
+                    } else {
+                        tabSelect();
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -125,40 +142,58 @@ public class fragment_tab2 extends Fragment  {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                itab = tab.getPosition();
                 materialCalendarView.removeDecorators();
                 materialCalendarView.invalidateDecorators();
-                if (tab.getPosition() == 1) {
-                    CalendarDay date = materialCalendarView.getSelectedDate();
-                    boolean verify = check(date);
-                    if (verify) {
-                        toast = Toast.makeText(getContext(), "No data found for this day", Toast.LENGTH_SHORT);
-                        setToast();
-                        report.setVisibility(View.GONE);
-                    } else {
-                        addDays(date);
-                        current = convertCalendar(date);
-                        reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
-                        report.setVisibility(View.VISIBLE);
-                        materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
-                        report.setAdapter(reportAdapter);
-                    }
-                } else if (tab.getPosition() == 2) {
-                    if (upToDay == null || upToDay.equals(myDate)) {
-                        currentDayDecorator = new CurrentDayDecorator(myDate, true);
-                        materialCalendarView.addDecorator(currentDayDecorator);
-                    } else {
-                        currentDayDecorator = new CurrentDayDecorator(myDate, false);
-                        materialCalendarView.addDecorator(currentDayDecorator);
-                    }
+                CalendarDay date = materialCalendarView.getSelectedDate();
+                boolean verify = check(date);
+                if (verify) {
+                    toast = Toast.makeText(getContext(), "No data found for this week", Toast.LENGTH_SHORT);
+                    setToast();
                     report.setVisibility(View.GONE);
-                    materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.MONTHS).commit();
-                } else {
-                    report.setVisibility(View.VISIBLE);
-                    String object = response.substring(index - 2);
-                    materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
-                    reportAdapter = new ReportViewPageAdapter(requireContext(), current, object, true);
-                    report.setAdapter(reportAdapter);
                 }
+//                } else if (tab.getPosition() == 0) {
+//                    if (date == myDate) {
+//                        todayAdapter = new todayPageAdapter(requireContext(), MainActivity.mChart);
+//                        report.setAdapter(todayAdapter);
+//                    } else {
+//                        report.setVisibility(View.VISIBLE);
+//                        String object = response.substring(index - 2);
+//                        reportAdapter = new ReportViewPageAdapter(requireContext(), current, object, true);
+//                        report.setAdapter(reportAdapter);
+//                    }
+//                }
+                else if (itab == 1) {
+                    current = convertCalendar(date);
+                    reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
+                    report.setVisibility(View.VISIBLE);
+                    report.setAdapter(reportAdapter);
+                } else {
+                    tabSelect();
+                }
+//                if (tab.getPosition() == 1) {
+//                    if (verify) {
+//                        toast = Toast.makeText(getContext(), "No data found for this day", Toast.LENGTH_SHORT);
+//                        setToast();
+//                        report.setVisibility(View.GONE);
+//                    } else {
+//                        addDays(date);
+//                        current = convertCalendar(date);
+//                        reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
+//                        report.setVisibility(View.VISIBLE);
+//                        materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
+//                        report.setAdapter(reportAdapter);
+//                    }
+//                } else if (tab.getPosition() == 2) {
+//                    if (upToDay == null || upToDay.equals(myDate)) {
+//                        currentDayDecorator = new CurrentDayDecorator(myDate, true);
+//                        materialCalendarView.addDecorator(currentDayDecorator);
+//                    } else {
+//                        currentDayDecorator = new CurrentDayDecorator(myDate, false);
+//                        materialCalendarView.addDecorator(currentDayDecorator);
+//                    }
+//                    report.setVisibility(View.GONE);
+//                    materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.MONTHS).commit();
             }
 
             @Override
@@ -172,6 +207,28 @@ public class fragment_tab2 extends Fragment  {
             }
         });
         return view;
+    }
+
+    private void tabSelect() {
+        materialCalendarView.removeDecorators();
+        materialCalendarView.invalidateDecorators();
+        CalendarDay date = materialCalendarView.getSelectedDate();
+        boolean verify = check(date);
+        if (verify) {
+            toast = Toast.makeText(getContext(), "No data found for this day", Toast.LENGTH_SHORT);
+            setToast();
+            report.setVisibility(View.GONE);
+        } else {
+            if (date == myDate) {
+                todayAdapter = new todayPageAdapter(requireContext(), MainActivity.mChart);
+                report.setAdapter(todayAdapter);
+            } else {
+                report.setVisibility(View.VISIBLE);
+                String object = response.substring(index - 2);
+                reportAdapter = new ReportViewPageAdapter(requireContext(), current, object, true);
+                report.setAdapter(reportAdapter);
+            }
+        }
     }
 
     private boolean check(CalendarDay date) {
@@ -201,7 +258,7 @@ public class fragment_tab2 extends Fragment  {
     }
 
 
-        private String convertCalendar(CalendarDay date) {
+    private String convertCalendar(CalendarDay date) {
         Calendar calendar = Calendar.getInstance();
         String bruh = String.valueOf(date);
         String bruhpt2 = bruh.substring(12, bruh.length()-1);

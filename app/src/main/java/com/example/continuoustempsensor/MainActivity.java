@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
     TextView temp;
-    LineChart mChart;
+    public static LineChart mChart;
     public static String address;
     @SuppressLint("SimpleDateFormat")
     SimpleDateFormat format = new SimpleDateFormat("h:mm a");
@@ -123,13 +123,11 @@ public class MainActivity extends AppCompatActivity {
     Fragment active;
     private ArrayAdapter<String> arrayAdapter;
     boolean plotData = false;
-    int number;
     ImageView btSym;
     TextView btStat;
     ImageView notif;
-    ComplexView shadow, white;
+    ComplexView shadow, ring, white;
     ViewGroup vg;
-    Point size;
 
     @SuppressLint("ShowToast")
     @Override
@@ -139,10 +137,10 @@ public class MainActivity extends AppCompatActivity {
         file = new File(this.getFilesDir(), FILE_NAME);
         vg = (ViewGroup) getLayoutInflater().inflate(R.layout.activity_main, null);
         setContentView(vg);
-        Display display = getWindowManager().getDefaultDisplay();
-        size = new Point();
-        display.getSize(size);
-        tempDisplay(vg, size, 0);
+        shadow = findViewById(R.id.complex);
+        ring = findViewById(R.id.ring);
+        white = findViewById(R.id.white);
+        temp = findViewById(R.id.temp);
         btSym = findViewById(R.id.btSym);
         btStat = findViewById(R.id.btStat);
         notif = findViewById(R.id.notif);
@@ -186,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         mChart.setDrawBorders(false);
         mChart.invalidate();
 
-        temperature = "99.6";
+        temperature = "100.6";
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         if (bundle != null) {
             address = bundle.getString("address");
@@ -226,25 +224,25 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject today = new JSONObject();
                 switch(r) {
                     case(0):
-                        today.put("Sun.2021.02.07", obj);
+                        today.put("Sun.2021.03.07", obj);
                         break;
                     case(1):
-                        today.put("Mon.2021.02.08", obj);
+                        today.put("Mon.2021.03.08", obj);
                          break;
                     case(2):
-                        today.put("Tue.2021.02.09", obj);
+                        today.put("Tue.2021.03.09", obj);
                         break;
                     case(3):
-                        today.put("Wed.2021.02.10", obj);
+                        today.put("Wed.2021.03.10", obj);
                         break;
                     case(4):
-                        today.put("Thu.2021.02.11", obj);
+                        today.put("Thu.2021.03.11", obj);
                         break;
                     case(5):
-                        today.put("Fri.2021.02.12", obj);
+                        today.put("Fri.2021.03.12", obj);
                         break;
                     case(6):
-                        today.put("Sat.2021.02.13", obj);
+                        today.put("Sat.2021.03.13", obj);
                         break;
                 }
 //                today.put("Sun.2021.02.07", obj);
@@ -280,51 +278,35 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setSelectedItemId(R.id.home);
     }
 
-    private void tempDisplay(ViewGroup vg, Point size, int num) {
-        float width = size.x;
-        float height = size.y;
-        int h = (int) Math.round(height*0.1);
-        int w = (int) Math.round(width/2);
-        shadow = new ComplexView(this);
-        ComplexView.LayoutParams params = new ComplexView.LayoutParams((int) (width/2), (int) (width/2));
-        float[] radii = {200, 200, 200, 200, 200, 200, 200, 200};
-        temp = new TextView(this);
+    private void tempDisplay(int num) {
+        float[] radii = {250, 250, 250, 250, 250, 250, 250, 250};
         if (num == 0) {
-            shadow.setShadow(new Shadow(2, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#00B0F0"));
             temperature = "--";
             temp.setText(temperature);
-            temp.setTextSize((float) (height*0.04));
+//            temp.setTextSize((float) (height*0.04));
         } else if (num == 1) {
-            shadow.setShadow(new Shadow(2, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#00B050"));
             temp.setText(temperature + " " + unit);
-            temp.setTextSize((float) (height * 0.04));
+//            temp.setTextSize((float) (height * 0.04));
         } else if (num == 2) {
-            shadow.setShadow(new Shadow(2, 100, "#00FFCC", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#FB710B"));
             temp.setText(temperature + " " + unit);
-            temp.setTextSize((float) (height*0.04));
+//            temp.setTextSize((float) (height*0.04));
         } else if (num == 3) {
-            shadow.setShadow(new Shadow(2, 100, "#FFFF00", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#FF0000"));
             temp.setText(temperature + " " + unit);
-            temp.setTextSize((float) (height*0.04));
+//            temp.setTextSize((float) (height*0.04));
         } else {
-            shadow.setShadow(new Shadow(2, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#00B0F0"));
             temp.setText(temperature + " " + unit);
-            temp.setTextSize((float) (height*0.04));
+//            temp.setTextSize((float) (height*0.04));
         }
-        params.setMargins((int) (width*0.25), h, 0, 0);
-        shadow.setLayoutParams(params);
-        white = new ComplexView(this);
-        ComplexView.LayoutParams whiteParam = new ComplexView.LayoutParams(ComplexView.LayoutParams.MATCH_PARENT, ComplexView.LayoutParams.MATCH_PARENT);
-        white.setRadius(200);
-        white.setColor(Color.parseColor("#FFFFFF"));
-        white.setLayoutParams(whiteParam);
-        ComplexView.LayoutParams tempParam = new ComplexView.LayoutParams(ComplexView.LayoutParams.WRAP_CONTENT, ComplexView.LayoutParams.WRAP_CONTENT);
-        tempParam.addRule(CENTER_IN_PARENT);
-        tempParam.setMargins(5,5,5,5);
-        temp.setLayoutParams(tempParam);
-        white.addView(temp);
-        shadow.addView(white);
-        vg.addView(shadow);
     }
 
     private final BottomNavigationView.OnNavigationItemSelectedListener bottomNavMethod = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -339,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
                     shadow.setVisibility(View.VISIBLE);
+                    ring.setVisibility(View.VISIBLE);
                     white.setVisibility(View.VISIBLE);
                     btStat.setVisibility(View.VISIBLE);
                     btSym.setVisibility(View.VISIBLE);
@@ -355,6 +338,7 @@ public class MainActivity extends AppCompatActivity {
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
                     shadow.setVisibility(View.INVISIBLE);
+                    ring.setVisibility(View.INVISIBLE);
                     white.setVisibility(View.INVISIBLE);
                     btStat.setVisibility(View.INVISIBLE);
                     btSym.setVisibility(View.INVISIBLE);
@@ -371,6 +355,7 @@ public class MainActivity extends AppCompatActivity {
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
                     shadow.setVisibility(View.INVISIBLE);
+                    ring.setVisibility(View.INVISIBLE);
                     white.setVisibility(View.INVISIBLE);
                     btStat.setVisibility(View.INVISIBLE);
                     btSym.setVisibility(View.INVISIBLE);
@@ -642,6 +627,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             num = 0;
         }
-        tempDisplay(vg, size, num);
+        tempDisplay(num);
     }
 }
