@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                     } else if (p == 2) {
                         reading.put("temperature", "99.0");
                     } else {
-                        reading.put("temperature", "97.8");
+                        reading.put("temperature", "100.5");
                     }
                     reading.put("hour", "1:30");
                     reading.put("unit", "°F");
@@ -522,7 +522,7 @@ public class MainActivity extends AppCompatActivity {
     private LineDataSet createSet() {
         LineDataSet set = new LineDataSet(null, null);
         set.setDrawCircles(true);
-        set.setFillAlpha(65);
+        set.setFillAlpha(100);
         set.setFillColor(ColorTemplate.getHoloBlue());
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
         set.setLineWidth(3f);
@@ -615,14 +615,12 @@ public class MainActivity extends AppCompatActivity {
         int num;
         if (temperature.length() != 0) {
             float y = Float.parseFloat(temperature);
-            if (y <= 98.99 || y <= 37.2) {
+            if (y <= 100.3 || y <= 37.9) {
                 num = 1;
-            } else if ((y < 100.4 && y >= 99) || (y < 38 && y > 37.2)) {
-                num = 2;
             } else if ((y <= 103 && y >= 100.4) || (y <= 39.4 && y >= 38)) {
-                num = 3;
+                num = 2;
             } else {
-                num = 4;
+                num = 3;
             }
         } else {
             num = 0;

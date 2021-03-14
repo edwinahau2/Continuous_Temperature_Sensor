@@ -96,7 +96,7 @@
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/graph_viewpager"
                 android:layout_width="match_parent"
-                android:layout_height="1000dp" />
+                android:layout_height="0dp" />
         </RelativeLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -2,6 +2,7 @@ package com.example.continuoustempsensor;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,8 +11,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.viewpager.widget.PagerAdapter;
 
+import com.blure.complexview.ComplexView;
+import com.blure.complexview.Shadow;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -63,9 +67,10 @@ public class ReportViewPageAdapter extends PagerAdapter {
     Toast toast;
     String response;
     String red = "#FF0000";
-    String yellow = "#00B0F0";
+    String yellow = "#FB710B";
     String green = "#00B050";
     String blue = "#00B0F0";
+    ComplexView avgCard, highCard, lowCard;
 
     public ReportViewPageAdapter(Context mContext, String date, String response, Boolean daily) {
         this.context = mContext;
@@ -142,7 +147,7 @@ public class ReportViewPageAdapter extends PagerAdapter {
                     } else {
                         unit = "°C";
                     }
-                    for (String[] row : array) {
+                    for (String[] ignored : array) {
                         if (MainActivity.f) {
                             if (array.get(k)[2].equals("°C")) {
                                 x = ((Float.parseFloat(array.get(k)[0])) * 9) / 5 + 32;
@@ -169,26 +174,41 @@ public class ReportViewPageAdapter extends PagerAdapter {
                         }
                     }
                     TextView dailyAvg = layoutScreen.findViewById(R.id.average);
+//                    dailyAvg.setTextSize(10);
                     TextView dailyHigh = layoutScreen.findViewById(R.id.high);
+//                    dailyHigh.setTextSize(10);
                     TextView dailyLow = layoutScreen.findViewById(R.id.low);
-                    if (max <= 98.99 || max <= 37.2) {
+//                    dailyLow.setTextSize(10);
+                    avgCard = layoutScreen.findViewById(R.id.averageCard);
+                    highCard = layoutScreen.findViewById(R.id.highCard);
+                    lowCard = layoutScreen.findViewById(R.id.lowCard);
+                    float[] radii = {0, 0, 0, 0, 0, 0, 0, 0};
+                    if (max <= 100.3 || max <= 37.9) {
                         dailyHigh.setTextColor(Color.parseColor(green));
-                    } else if ((max < 100.4 && max >= 99) || (max < 38 && max > 37.2)) {
+                        highCard.setShadow(new Shadow(2, 100, green, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+                    } else if ((max >= 100.4 && max < 103) || (max < 38 && max > 39.4)) {
                         dailyHigh.setTextColor(Color.parseColor(yellow));
-                    } else if ((max <= 103 && max >= 100.4) || (max <= 39.4 && max >= 38)) {
+                        highCard.setShadow(new Shadow(2, 100, yellow, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+                    } else if ((max >= 103) || (max >= 39.4)) {
                         dailyHigh.setTextColor(Color.parseColor(red));
+                        highCard.setShadow(new Shadow(2, 100, red, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     } else {
                         dailyHigh.setTextColor(Color.parseColor(blue));
+                        highCard.setShadow(new Shadow(2, 100, blue, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     }
 
-                    if (min <= 98.99 || min <= 37.2) {
+                    if (min <= 100.3 || min <= 37.9) {
                         dailyLow.setTextColor(Color.parseColor(green));
-                    } else if ((min < 100.4 && min >= 99) || (min < 38 && min > 37.2)) {
+                        lowCard.setShadow(new Shadow(2, 100, green, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+                    } else if ((min >= 100.4 && min < 103) || (min < 38 && min > 39.4)) {
                         dailyLow.setTextColor(Color.parseColor(yellow));
-                    } else if ((min <= 103 && min >= 100.4) || (min <= 39.4 && min >= 38)) {
+                        lowCard.setShadow(new Shadow(2, 100, yellow, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+                    } else if ((min >= 103) || (min >= 39.4)) {
                         dailyLow.setTextColor(Color.parseColor(red));
+                        lowCard.setShadow(new Shadow(2, 100, red, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     } else {
                         dailyLow.setTextColor(Color.parseColor(blue));
+                        lowCard.setShadow(new Shadow(2, 100, blue, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     }
                     float total = 0;
                     for (int l = 0; l < temp.size(); l++) {
@@ -196,14 +216,18 @@ public class ReportViewPageAdapter extends PagerAdapter {
                     }
                     float avgTemp = total / temp.size();
 
-                    if (avgTemp <= 98.99 || avgTemp <= 37.2) {
+                    if (avgTemp <= 100.3 || avgTemp <= 37.9) {
                         dailyAvg.setTextColor(Color.parseColor(green));
-                    } else if ((avgTemp < 100.4 && avgTemp >= 99) || (avgTemp < 38 && avgTemp > 37.2)) {
+                        avgCard.setShadow(new Shadow(2, 100, green, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+                    } else if ((avgTemp >= 100.4 && avgTemp < 103) || (avgTemp < 38 && avgTemp > 39.4)) {
                         dailyAvg.setTextColor(Color.parseColor(yellow));
-                    } else if ((avgTemp <= 103 && avgTemp >= 100.4) || (avgTemp <= 39.4 && avgTemp >= 38)) {
+                        avgCard.setShadow(new Shadow(2, 100, yellow, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+                    } else if ((avgTemp >= 103) || (avgTemp >= 39.4)) {
                         dailyAvg.setTextColor(Color.parseColor(red));
+                        avgCard.setShadow(new Shadow(2, 100, red, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     } else {
                         dailyAvg.setTextColor(Color.parseColor(blue));
+                        avgCard.setShadow(new Shadow(2, 100, blue, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     }
                     dailyAvg.setText(avgTemp + " " + unit);
                     dailyHigh.setText(max + " " + unit);
@@ -235,8 +259,8 @@ public class ReportViewPageAdapter extends PagerAdapter {
                     YAxis leftAxis = mChart.getAxisLeft();
                     leftAxis.setTextColor(Color.BLACK);
                     leftAxis.setDrawGridLines(false);
-                    leftAxis.setAxisMaximum(100f);
-                    leftAxis.setAxisMinimum(0f);
+                    leftAxis.setAxisMaximum(110f);
+                    leftAxis.setAxisMinimum(80f);
                     leftAxis.setDrawGridLines(false);
                     leftAxis.setEnabled(true);
 
@@ -246,20 +270,28 @@ public class ReportViewPageAdapter extends PagerAdapter {
                     mChart.getLegend().setEnabled(false);
                     mChart.setDrawBorders(false);
                     mChart.invalidate();
+
+                    ArrayList<Entry> yVals = new ArrayList<>();
+                    for (int o = 0; o < array.size(); o++) {
+                        yVals.add(new Entry(o, Float.parseFloat(array.get(o)[0])));
+                    }
+
+                    MyLineDataSet mySet = new MyLineDataSet(yVals, null);
+                    mySet.setColors(ContextCompat.getColor(context, R.color.green), ContextCompat.getColor(context, R.color.yellow), ContextCompat.getColor(context, R.color.red));
                     LineData lineData = mChart.getData();
                     if (lineData != null) {
                         LineDataSet set = (LineDataSet) data.getDataSetByIndex(0);
                         if (set == null) {
                             set = new LineDataSet(null, null);
                             set.setDrawCircles(true);
-                            set.setFillAlpha(65);
+                            set.setFillAlpha(100);
                             set.setFillColor(ColorTemplate.getHoloBlue());
                             set.setAxisDependency(YAxis.AxisDependency.LEFT);
                             set.setLineWidth(3f);
-                            set.setColor(Color.MAGENTA);
                             set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                             set.setCubicIntensity(0.2f);
                             data.addDataSet(set);
+                            data.addDataSet(mySet);
                         }
                         for (int r = 0; r < array.size(); r++) {
                             float y = Float.parseFloat(array.get(r)[0]);
