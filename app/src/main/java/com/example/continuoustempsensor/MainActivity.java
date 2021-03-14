@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
     static boolean firstTime = false;
     int minBetweenNotif = 3;
+    int hourBetweenNotif = 5;
 //    Calendar cal = Calendar.getInstance();
     int initHour = 0;
     int initMin = 0;
@@ -403,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
                                             //receiver feverTempNotify = new NotificationReceiver();
                                             NotificationReceiver.sendNotification(getApplicationContext(), 0);
                                             firstTime = true;
- //                                           initHour = cal.get(cal.HOUR_OF_DAY);
+                                            initHour = cal.get(cal.HOUR_OF_DAY);
                                             initMin = cal.get(cal.MINUTE);
                                           /*  if((initMin + minBetweenNotif) >= 60){
                                                 initMin = minBetweenNotif - (60 - initMin);
@@ -411,10 +412,12 @@ public class MainActivity extends AppCompatActivity {
                                             Toast.makeText(getApplicationContext(), "first time", Toast.LENGTH_SHORT).show();
                                         }
                                         // add code so that if initMin + minBetween > 60 maybe evaluate hour as well
-                                        /*if((initMin + minBetweenNotif) >= 60){
-                                            initMin = minBetweenNotif - (60 - initMin);
-                                        }*/
-                                        else if ((cal.get(cal.MINUTE) - initMin) >= minBetweenNotif){
+
+                                        else if ( (cal.get(cal.MINUTE) - initMin) >= minBetweenNotif || (cal.get(cal.HOUR_OF_DAY) - initHour) >= hourBetweenNotif ){
+                                            if((initMin + minBetweenNotif) >= 60){
+                                                initMin = minBetweenNotif - (60 - initMin);
+
+                                            }
                                             NotificationReceiver.sendNotification(getApplicationContext(),0);
                                             firstTime = false;
                                             Toast.makeText(getApplicationContext(), "again", Toast.LENGTH_SHORT).show();
