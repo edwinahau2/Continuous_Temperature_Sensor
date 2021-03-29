@@ -82,7 +82,7 @@
             app:shadowSpread="4"
             app:shadowAlpha="200"
             app:shadowColor="#00B050">
-            
+
             <com.blure.complexview.ComplexView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -117,30 +117,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/guide" />
-
-<!--        <androidx.cardview.widget.CardView-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="0dp"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintTop_toTopOf="@id/guide1"-->
-<!--            app:layout_constraintBottom_toBottomOf="@id/guide"-->
-<!--            android:layout_gravity="center"> -->
-<!--        </androidx.cardview.widget.CardView>-->
-
-<!--        <TextView-->
-<!--            android:id="@+id/temp"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_marginTop="20dp"-->
-<!--            android:text="98.6  F"-->
-<!--            android:textAlignment="center"-->
-<!--            android:textSize="50sp"-->
-<!--            app:autoSizeTextType="uniform"-->
-<!--            app:layout_constraintBottom_toBottomOf="@+id/seekbar"-->
-<!--            app:layout_constraintEnd_toEndOf="@+id/seekbar"-->
-<!--            app:layout_constraintStart_toStartOf="@id/seekbar"-->
-<!--            app:layout_constraintTop_toTopOf="@id/seekbar" />-->
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guide"

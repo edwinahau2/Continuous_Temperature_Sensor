@@ -20,7 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".notifActivity"></activity>
+        <activity android:name=".notifActivity" />
         <activity android:name=".DataLog" />
         <activity android:name=".IntroActivity" />
         <activity android:name=".ConnectionActivity" />
@@ -42,6 +42,7 @@
             android:stopWithTask="false"/>
         <service android:name=".TestJobService"
             android:enabled="true"
+            android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
     </application>
 

@@ -66,6 +66,7 @@
         app:shadow="true"
         app:shadowSpread="2"
         app:shadowAlpha="100"
+        app:radius="20dp"
         android:id="@+id/averageCard"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/verGuide"
@@ -76,6 +77,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
+            app:radius="20dp"
             app:color="#FFFFFF">
 
             <TextView

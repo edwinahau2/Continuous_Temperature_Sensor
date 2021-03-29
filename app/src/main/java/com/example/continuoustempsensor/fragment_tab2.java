@@ -49,8 +49,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-
 public class fragment_tab2 extends Fragment  {
 
     File file;
@@ -59,9 +57,6 @@ public class fragment_tab2 extends Fragment  {
     MaterialCalendarView materialCalendarView;
     TabLayout tabLayout;
     TabLayout.Tab selectTab;
-    List<CalendarDay> datesLeft = new ArrayList<>();
-    List<CalendarDay> datesCenter = new ArrayList<>();
-    List<CalendarDay> datesRight = new ArrayList<>();
     CalendarDay myDate = CalendarDay.today();
     LocalDate localDate;
     CalendarDay upToDay;

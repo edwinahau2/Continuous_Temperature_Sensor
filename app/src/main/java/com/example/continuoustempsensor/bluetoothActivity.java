@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class bluetoothActivity extends AppCompatActivity implements BtAdapter.OnDeviceListener {
 
@@ -65,7 +66,7 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
         btRecycle = findViewById(R.id.bt_list);
         find = findViewById(R.id.find);
         mData = new ArrayList<>();
-//        mData.add(new BtDevice("HC-06:1234"));
+        mData.add(new BtDevice("HC-06:1234"));
         btAdapter = new BtAdapter(this, mData, this);
         btRecycle.setAdapter(btAdapter);
         btRecycle.setLayoutManager(new LinearLayoutManager(this));
@@ -156,15 +157,7 @@ public class bluetoothActivity extends AppCompatActivity implements BtAdapter.On
                 btAdapter = new BtAdapter(context, mData, (BtAdapter.OnDeviceListener) context);
                 btRecycle.setAdapter(btAdapter);
                 btRecycle.setLayoutManager(new LinearLayoutManager(context));
-            }
-            else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(intent.getAction())) {
-//                toast = Toast.makeText(getActivity(), "Finding Devices...", Toast.LENGTH_SHORT);
-//                setToast();
-//                spinner.setVisibility(View.VISIBLE);
-//                mLevel = 0;
-//                changeImageView(getView());
-            }
-            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
                 find.setText("Find Devices");
             }
         }
