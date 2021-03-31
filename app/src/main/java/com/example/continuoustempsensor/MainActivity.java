@@ -12,12 +12,24 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.blure.complexview.ComplexView;
 import com.blure.complexview.Shadow;
@@ -29,8 +41,6 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
@@ -92,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> al = new ArrayList<>();
     File file;
+    FileReader fileReader = null;
     FileWriter fileWriter = null;
     BufferedWriter bufferedWriter = null;;
     private static final String TAG = "MainActivityCounter";
@@ -133,6 +144,16 @@ public class MainActivity extends AppCompatActivity {
     ImageView notif;
     ComplexView shadow, ring, white;
     ViewGroup vg;
+    public static boolean spark = true;
+    String num;
+    int number;
+
+    static boolean firstTime = false;
+    int minBetweenNotif = 3;
+    int hourBetweenNotif = 5;
+//    Calendar cal = Calendar.getInstance();
+    int initHour = 0;
+    int initMin = 0;
 
     @SuppressLint("ShowToast")
     @Override
@@ -587,6 +608,44 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                         }
                                     }).start();
+
+// ADD A background THREAD HERE AND TEST THE CODE
+                                    if (medianTemp >= 50) {
+                                        Calendar cal = Calendar.getInstance();
+                                        boolean arbitrary = (cal.get(cal.MINUTE) - initMin) > minBetweenNotif;
+                                        if (arbitrary == false) {
+     //                                       Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show();
+                                        }
+
+
+
+                                        if (firstTime == false) {
+                                            //receiver feverTempNotify = new NotificationReceiver();
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 0);
+                                            firstTime = true;
+                                            initHour = cal.get(cal.HOUR_OF_DAY);
+                                            initMin = cal.get(cal.MINUTE);
+                                          /*  if((initMin + minBetweenNotif) >= 60){
+                                                initMin = minBetweenNotif - (60 - initMin);
+                                            }*/
+                                            Toast.makeText(getApplicationContext(), "first time", Toast.LENGTH_SHORT).show();
+                                        }
+                                        // add code so that if initMin + minBetween > 60 maybe evaluate hour as well
+
+                                        else if ( (cal.get(cal.MINUTE) - initMin) >= minBetweenNotif || (cal.get(cal.HOUR_OF_DAY) - initHour) >= hourBetweenNotif ){
+                                            if((initMin + minBetweenNotif) >= 60){
+                                                initMin = minBetweenNotif - (60 - initMin);
+
+                                            }
+                                            NotificationReceiver.sendNotification(getApplicationContext(),0);
+                                            firstTime = false;
+                                            Toast.makeText(getApplicationContext(), "again", Toast.LENGTH_SHORT).show();
+                                        }
+                                        else{
+                                            Toast.makeText(getApplicationContext(), "not yet", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
                                 }
                             }
                             recDataString.delete(0, recDataString.length());
@@ -704,6 +763,21 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    //MORE ARRAY CODE
+/*
+    private void saveArrayData() {
+        Set<String> set = new HashSet<>(al);
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putStringSet("array", set);
+        editor.putString("number", num);
+        editor.apply();
+    }*/
+// add to this function!
+    private void addArrayData() {
+
+    }
+
     private String restoreNameData() {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
         return pref.getString("device", null);
@@ -718,6 +792,28 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
         return Integer.parseInt(pref.getString("number", String.valueOf(-1)));
     }
+//NOTIF ARRAY HERE
+/*    private ArrayList<String> restoreArrayData() {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
+        Set<String> set = pref.getStringSet("array", null);
+        if (set == null) {
+            Set<String> newSet = new HashSet<>();
+            newSet.add("Notifications");
+            newSet.add("my");
+            newSet.add("name");
+            newSet.add("is");
+            newSet.add("Aryan");
+            newSet.add("Agarwal");
+            return new ArrayList<>(newSet);
+        } else {
+            return new ArrayList<>(set);
+        }
+    }
+
+    private Boolean restoreHide() {
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences("hidePref", MODE_PRIVATE);
+        return prefs.getBoolean("hide", false);
+    }*/
 
     @Override
     protected void onDestroy() {
