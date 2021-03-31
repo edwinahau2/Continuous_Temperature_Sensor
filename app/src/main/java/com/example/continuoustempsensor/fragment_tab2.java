@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,6 +31,7 @@ import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.CalendarMode;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
+import com.prolificinteractive.materialcalendarview.OnMonthChangedListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -134,19 +136,31 @@ public class fragment_tab2 extends Fragment  {
             }
         });
 
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                itab = tab.getPosition();
-                materialCalendarView.removeDecorators();
-                materialCalendarView.invalidateDecorators();
-                CalendarDay date = materialCalendarView.getSelectedDate();
+        materialCalendarView.setOnMonthChangedListener((widget, date) -> {
+            if (itab == 1) {
                 boolean verify = check(date);
                 if (verify) {
                     toast = Toast.makeText(getContext(), "No data found for this week", Toast.LENGTH_SHORT);
                     setToast();
                     report.setVisibility(View.GONE);
+                } else {
+                    current = convertCalendar(date);
+                    materialCalendarView.removeDecorators();
+                    reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
+                    report.setVisibility(View.VISIBLE);
+                    report.setAdapter(reportAdapter);
                 }
+            }
+        });
+
+                tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                    @Override
+                    public void onTabSelected(TabLayout.Tab tab) {
+                        itab = tab.getPosition();
+                        materialCalendarView.removeDecorators();
+                        materialCalendarView.invalidateDecorators();
+                        CalendarDay date = materialCalendarView.getSelectedDate();
+                        boolean verify = check(date);
 //                } else if (tab.getPosition() == 0) {
 //                    if (date == myDate) {
 //                        todayAdapter = new todayPageAdapter(requireContext(), MainActivity.mChart);
@@ -158,14 +172,21 @@ public class fragment_tab2 extends Fragment  {
 //                        report.setAdapter(reportAdapter);
 //                    }
 //                }
-                else if (itab == 1) {
-                    current = convertCalendar(date);
-                    reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
-                    report.setVisibility(View.VISIBLE);
-                    report.setAdapter(reportAdapter);
-                } else {
-                    tabSelect();
-                }
+                        if (itab == 1) {
+                            if (verify) {
+                                toast = Toast.makeText(getContext(), "No data found for this week", Toast.LENGTH_SHORT);
+                                setToast();
+                                report.setVisibility(View.GONE);
+                            } else {
+                                current = convertCalendar(date);
+                                materialCalendarView.removeDecorators();
+                                reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
+                                report.setVisibility(View.VISIBLE);
+                                report.setAdapter(reportAdapter);
+                            }
+                        } else {
+                            tabSelect();
+                        }
 //                if (tab.getPosition() == 1) {
 //                    if (verify) {
 //                        toast = Toast.makeText(getContext(), "No data found for this day", Toast.LENGTH_SHORT);
@@ -189,18 +210,18 @@ public class fragment_tab2 extends Fragment  {
 //                    }
 //                    report.setVisibility(View.GONE);
 //                    materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.MONTHS).commit();
-            }
+                    }
 
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
+                    @Override
+                    public void onTabUnselected(TabLayout.Tab tab) {
 
-            }
+                    }
 
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
+                    @Override
+                    public void onTabReselected(TabLayout.Tab tab) {
 
-            }
-        });
+                    }
+                });
         return view;
     }
 
@@ -241,11 +262,7 @@ public class fragment_tab2 extends Fragment  {
             bufferedReader.close();
             response = stringBuilder.toString();
             index = response.indexOf(words);
-            if (index < 0) {
-                verify = true;
-            } else {
-                verify = false;
-            }
+            verify = index < 0;
         } catch (IOException e) {
             e.printStackTrace();
         }
