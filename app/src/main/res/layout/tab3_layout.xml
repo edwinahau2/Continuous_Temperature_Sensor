@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:scrollbarAlwaysDrawVerticalTrack="false"
+    android:fillViewport="true"
     tools:context=".fragment_tab3"
     android:paddingEnd="15dp"
     android:paddingStart="15dp"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
     android:id="@+id/fragment3" >
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -19,9 +22,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="4dp"
             android:text="Your Settings"
             android:textAlignment="center"
             android:textColor="#000"
@@ -34,7 +37,7 @@
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:text="Temperature Display"
             android:textAlignment="center"
@@ -46,14 +49,15 @@
         <LinearLayout
             android:id="@+id/linear"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_width="match_parent"
-            tools:ignore="MissingConstraints">
+            android:layout_width="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/Bluetooth"
+            app:layout_constraintTop_toBottomOf="@id/textView">
             <Button
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="75dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
                 android:id="@+id/fahrenheit"
                 android:text="°F"
                 android:textSize="20sp"
@@ -64,9 +68,8 @@
             <Button
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="75dp"
                 android:layout_marginStart="-8.2dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="4dp"
                 android:id="@+id/celsius"
                 android:text="°C"
                 android:textSize="20sp"
@@ -80,7 +83,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:text="Bluetooth"
             android:textSize="18sp"
@@ -92,58 +95,32 @@
             android:id="@+id/connect"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="4dp"
             android:text="Not Connected"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/Bluetooth" />
 
         <TextView
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="14dp"
-            android:text="Dark Mode"
-            android:textSize="18sp"
-            android:textColor="@color/textColor"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/connect" />
-
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/powerSwitch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:thumb="@drawable/sw_thumb1"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/textView2"
-            app:layout_constraintTop_toBottomOf="@+id/connect"
-            app:track="@drawable/sw_track1" />
-
-        <TextView
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:text="Notification Preferences"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView2" />
+            app:layout_constraintTop_toBottomOf="@+id/connect" />
 
         <CheckBox
             android:id="@+id/enable"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:checked="true"
             android:text="Enable Notifications"
@@ -155,7 +132,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
-            android:layout_marginStart="15dp"
+            android:layout_marginStart="11dp"
             android:layout_marginTop="8dp"
             android:text="Notify Every"
             android:textColor="#000000"
@@ -165,26 +142,97 @@
         <Spinner
             android:id="@+id/spinner"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginStart="5dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="1dp"
             android:layout_marginTop="6dp"
             android:spinnerMode="dropdown"
             app:layout_constraintStart_toEndOf="@+id/notify"
             app:layout_constraintTop_toBottomOf="@+id/enable" />
 
-        <CheckBox
-            android:id="@+id/hide"
+<!--        <CheckBox-->
+<!--            android:id="@+id/hide"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:layout_marginStart="4dp"-->
+<!--            android:layout_marginTop="8dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="Hide In-App Notifications"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/notify" />-->
+
+        <Button
+            android:id="@+id/bugs"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
-            android:layout_weight="1"
-            android:text="Hide In-App Notifications"
+            android:layout_marginEnd="4dp"
+            android:text="Report A Bug"
+            android:textAlignment="textStart"
+            android:background="@android:color/transparent"
+            android:drawableRight="@drawable/next_arrow"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/notify" />
+            app:layout_constraintTop_toBottomOf="@+id/tippers"
+            app:layout_constraintBottom_toTopOf="@+id/tutorial"/>
 
-<!--            <TextView-->
+        <Button
+            android:id="@+id/consent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:text="View My Consent Forms"
+            android:textAlignment="textStart"
+            android:background="@android:color/transparent"
+            android:drawableRight="@drawable/next_arrow"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tutorial"
+            app:layout_constraintBottom_toTopOf="@+id/view"/>
+
+        <Button
+            android:id="@+id/tutorial"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:background="@android:color/transparent"
+            android:drawableRight="@drawable/next_arrow"
+            android:text="How to Use Sensor and App"
+            android:textAlignment="textStart"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bugs"
+            app:layout_constraintBottom_toTopOf="@+id/consent"/>
+
+        <Button
+            android:id="@+id/tippers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:text="TIPPERS"
+            android:textAlignment="textStart"
+            android:background="@android:color/transparent"
+            android:drawableRight="@drawable/next_arrow"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/spinner"
+            app:layout_constraintBottom_toTopOf="@+id/bugs"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="75dp"
+            android:id="@+id/view"
+            app:layout_constraintTop_toBottomOf="@+id/consent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+        <!--            <TextView-->
 <!--                android:layout_width="0dp"-->
 <!--                android:layout_height="wrap_content"-->
 <!--                android:textDirection="rtl"-->
@@ -214,4 +262,4 @@
 <!--            android:src="@drawable/anteater_clip"/>-->
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

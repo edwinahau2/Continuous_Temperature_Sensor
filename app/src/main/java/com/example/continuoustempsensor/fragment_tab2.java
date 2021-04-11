@@ -86,7 +86,6 @@ public class fragment_tab2 extends Fragment  {
         Point size = new Point();
         display.getSize(size);
         ViewGroup.LayoutParams params = report.getLayoutParams();
-        params.height = (int) (size.y*0.95);
         report.setLayoutParams(params);
         materialCalendarView.setDateSelected(myDate, true);
         materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
@@ -94,6 +93,7 @@ public class fragment_tab2 extends Fragment  {
         selectTab = tabLayout.getTabAt(itab);
         selectTab.select();
         materialCalendarView.setOnDateChangedListener((widget, date, selected) -> {
+            params.height = (int) (size.y*0.95);
             current = convertCalendar(date);
             materialCalendarView.removeDecorators();
             materialCalendarView.invalidateDecorators();
@@ -137,6 +137,7 @@ public class fragment_tab2 extends Fragment  {
         });
 
         materialCalendarView.setOnMonthChangedListener((widget, date) -> {
+            params.height = (int) (size.y*0.95);
             if (itab == 1) {
                 boolean verify = check(date);
                 if (verify) {

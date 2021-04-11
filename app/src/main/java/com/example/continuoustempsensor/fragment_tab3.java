@@ -16,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ClipDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -80,12 +81,12 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private static final int REQUEST_CODE = 1;
     public static final int RESPONSE_MESSAGE = 10;
     private ToggleButton button;
-    private CheckBox enable, hide;
+    private CheckBox enable;
     Toast toast;
     private Spinner dropdown;
     private static final int RESULT_OK = -1;
     private int mLevel;
-    private Button f, c, connect;
+    private Button f, c, connect, tippers;
     private TextView response, notify;
     ImageView spinner;
     private static final int REQUEST_ENABLE_BT = 0;
@@ -104,7 +105,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-        darkMode = view.findViewById(R.id.powerSwitch);
+
 //        button = view.findViewById(R.id.mBlueIv);
 //        spinner = view.findViewById(R.id.progressBar);
 //        spinner.setVisibility(View.GONE);
@@ -117,8 +118,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         c = view.findViewById(R.id.celsius);
         dropdown = view.findViewById(R.id.spinner);
         enable = view.findViewById(R.id.enable);
-        hide = view.findViewById(R.id.hide);
-        hide.setChecked(restoreHide());
+        tippers = view.findViewById(R.id.tippers);
+//        hide = view.findViewById(R.id.hide);
+//        hide.setChecked(restoreHide());
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.getContext(), R.array.dropdown_times, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dropdown.setAdapter(adapter);
@@ -157,31 +159,35 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             }
         });
 
-        enable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    notify.setTextColor(Color.parseColor("#000000"));
-                } else {
-                    notify.setTextColor(Color.parseColor("#ccc8c8"));
-                }
+        enable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                notify.setTextColor(Color.parseColor("#000000"));
+            } else {
+                notify.setTextColor(Color.parseColor("#ccc8c8"));
             }
         });
 
-        hide.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                check = hide.isChecked();
-                //                    mCallback.messageFromBt(tf, true, symbol, key);
-                //                    mCallback.messageFromBt(tf, false, symbol, key);
-                saveHideData();
-            }
-        });
+//        hide.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                check = hide.isChecked();
+//                //                    mCallback.messageFromBt(tf, true, symbol, key);
+//                //                    mCallback.messageFromBt(tf, false, symbol, key);
+//                saveHideData();
+//            }
+//        });
 
         connect.setOnClickListener(v -> {
             Intent connectActivity = new Intent(requireContext().getApplicationContext(), ConnectionActivity.class);
             startActivity(connectActivity);
         });
+
+        tippers.setOnClickListener(v -> {
+            Uri uriURL = Uri.parse("https://hub-tippers.ics.uci.edu/");
+            Intent launch = new Intent(Intent.ACTION_VIEW, uriURL);
+            startActivity(launch);
+        });
+
         return view;
 
     }

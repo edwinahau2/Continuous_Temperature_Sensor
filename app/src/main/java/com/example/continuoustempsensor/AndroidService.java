@@ -123,24 +123,22 @@ public class AndroidService extends Service {
         }
     }
 
-    @SuppressLint("ShortAlarm")
     @Override
     public void onTaskRemoved(Intent rootIntent) {
 
-        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-        if (jobScheduler != null) {
-            jobScheduler.cancelAll();
-        }
         ComponentName componentName = new ComponentName(getApplicationContext(), TestJobService.class);
         PersistableBundle bundle = new PersistableBundle();
         bundle.putString("address", address);
-        JobInfo jobInfo;
-        jobInfo = new JobInfo.Builder(101, componentName)
+        JobInfo jobInfo = new JobInfo.Builder(101, componentName)
                 .setExtras(bundle)
                 .setPersisted(false)
-                .setPeriodic(TimeUnit.MINUTES.toMillis(15))
-                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(20), JobInfo.BACKOFF_POLICY_LINEAR)
+                .setRequiresCharging(false)
+                .setPeriodic(TimeUnit.MINUTES.toMillis(20))
+                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
                 .build();
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        jobScheduler.schedule(jobInfo);
+
         if (jobScheduler.schedule(jobInfo)==JobScheduler.RESULT_SUCCESS) {
             Toast.makeText(this, "success", Toast.LENGTH_SHORT).show();
         } else {
