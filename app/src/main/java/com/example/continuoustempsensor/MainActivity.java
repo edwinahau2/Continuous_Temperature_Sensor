@@ -5,63 +5,66 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.blure.complexview.ComplexView;
+import com.blure.complexview.Shadow;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> al = new ArrayList<>();
     File file;
-    FileReader fileReader = null;
     FileWriter fileWriter = null;
-    BufferedReader bufferedReader = null;
-    BufferedWriter bufferedWriter = null;
-    private JSONObject reading = new JSONObject();
-    private JSONObject today = new JSONObject();
-    private JSONObject obj = new JSONObject();
+    BufferedWriter bufferedWriter = null;;
+    private static final String TAG = "MainActivityCounter";
+//    private JSONObject reading = new JSONObject();
+//    private JSONObject today = new JSONObject();
+//    private JSONObject obj = new JSONObject();
     public static String name;
     int i = 0;
     public static boolean f = true;
+    String unit;
 //    static BluetoothSocket mmSocket;
 //    BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
@@ -71,10 +74,10 @@ public class MainActivity extends AppCompatActivity {
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
     TextView temp;
-    LineChart mChart;
+    public static LineChart mChart;
     public static String address;
     @SuppressLint("SimpleDateFormat")
-    SimpleDateFormat format = new SimpleDateFormat("h:mm:ss a");
+    SimpleDateFormat format = new SimpleDateFormat("h:mm a");
     @SuppressLint("SimpleDateFormat")
     public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
@@ -82,15 +85,17 @@ public class MainActivity extends AppCompatActivity {
     String temperature;
 //    static InputStream mmInStream;
 //    static Handler mHandler;
-    private Fragment fragment1 = new fragment_tab1();
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
-    Fragment active = new fragment_tab1();
-    SwipeFlingAdapterView flingContainer;
-    private TextView counter;
+    Fragment active;
     private ArrayAdapter<String> arrayAdapter;
     boolean plotData = false;
+    ImageView btSym;
+    TextView btStat;
+    ImageView notif;
+    ComplexView shadow, ring, white;
+    ViewGroup vg;
     public static boolean spark = true;
     String num;
     int number;
@@ -106,12 +111,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
         String FILE_NAME = "temp.json";
         file = new File(this.getFilesDir(), FILE_NAME);
+        vg = (ViewGroup) getLayoutInflater().inflate(R.layout.activity_main, null);
+        setContentView(vg);
+        shadow = findViewById(R.id.complex);
+        ring = findViewById(R.id.ring);
+        white = findViewById(R.id.white);
+        temp = findViewById(R.id.temp);
+        btSym = findViewById(R.id.btSym);
+        btStat = findViewById(R.id.btStat);
+        notif = findViewById(R.id.notif);
         Bundle bundle = getIntent().getExtras();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-        temp = findViewById(R.id.temp);
+//        temp = findViewById(R.id.temp);
         mChart = findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
         mChart.setDescription(null);
@@ -136,12 +149,16 @@ public class MainActivity extends AppCompatActivity {
         xl.setPosition(XAxis.XAxisPosition.BOTTOM);
         xl.setLabelCount(4, true);
 
+        LimitLine limitLine = new LimitLine(100.4f, null);
+        limitLine.setLineColor(Color.RED);
+
         YAxis leftAxis = mChart.getAxisLeft();
+        leftAxis.setDrawLimitLinesBehindData(true);
+        leftAxis.removeAllLimitLines();
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(false);
         leftAxis.setAxisMaximum(100f);
         leftAxis.setAxisMinimum(0f);
-        leftAxis.setDrawGridLines(false);
         leftAxis.setEnabled(true);
 
         YAxis rightAxis = mChart.getAxisRight();
@@ -151,53 +168,10 @@ public class MainActivity extends AppCompatActivity {
         mChart.setDrawBorders(false);
         mChart.invalidate();
 
-        temp.setVisibility(View.VISIBLE);
-        flingContainer = findViewById(R.id.frame);
-        counter = findViewById(R.id.counter);
-        al = restoreArrayData();
-        if (restoreNumData() == -1) {
-            number = al.size();
-        } else {
-            number = restoreNumData();
-        }
-        counter.setText(String.valueOf(number));
+        temperature = "98.6";
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
-        flingContainer.setAdapter(arrayAdapter);
-        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
-            @Override
-            public void removeFirstObjectInAdapter() {
-                al.remove(0);
-                arrayAdapter.notifyDataSetChanged();
-                saveArrayData();
-            }
-
-            @Override
-            public void onLeftCardExit(Object o) {
-                number--;
-                num = String.valueOf(number);
-                counter.setText(num);
-                saveArrayData();
-            }
-
-            @Override
-            public void onRightCardExit(Object o) {
-                number--;
-                num = String.valueOf(number);
-                counter.setText(num);
-                saveArrayData();
-            }
-
-            @Override
-            public void onAdapterAboutToEmpty(int i) {
-            }
-
-            @Override
-            public void onScroll(float v) {
-            }
-        });
         if (bundle != null) {
             address = bundle.getString("address");
-//            mDevice = mBlueAdapter.getRemoteDevice(address);
             name = bundle.getString("name");
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
@@ -205,40 +179,228 @@ public class MainActivity extends AppCompatActivity {
             startConnection();
             savePrefsData();
         } else if (mBlueAdapter.isEnabled()) {
-            if (restoreAddressData() == null) {
-                address = ConnectionActivity.restoreTheAddy();
-            } else {
-                address = restoreAddressData();
-            }
-//            mDevice = mBlueAdapter.getRemoteDevice(address);
+            address = restoreAddressData();
             name = restoreNameData();
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
             startService(intent);
             startConnection();
         }
-
+        String[] hours = {"1:30", "1:35", "1:40", "1:45"};
         try {
-            String key = "time0";
-            reading.put("temperature", "98.6");
-            reading.put("hour", "1:30");
-            obj.put(key, reading);
-            today.put(jsonDate, obj);
-            String userString = today.toString();
-            fileWriter = new FileWriter(file);
-            bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.write(userString);
-            bufferedWriter.close();
+            for (int r = 0; r < 7; r++) {
+                JSONObject obj = new JSONObject();
+                JSONObject today = new JSONObject();
+                switch(r) {
+                    case(0):
+                        for (int p = 0; p < 4; p++) {
+                            String key = "time" + p;
+                            JSONObject reading = new JSONObject();
+                            if (p == 0) {
+                                reading.put("temperature", "98.6");
+                            } else if (p == 1) {
+                                reading.put("temperature", "96.7");
+                            } else if (p == 2) {
+                                reading.put("temperature", "99.0");
+                            } else {
+                                reading.put("temperature", "103.5");
+                            } // avg: 99.4
+                            reading.put("hour", hours[p]);
+                            reading.put("unit", "°F");
+                            obj.put(key, reading);
+                        }
+                        today.put("Sun.2021.03.21", obj);
+                        break;
+                    case(1):
+                        for (int p = 0; p < 4; p++) {
+                            String key = "time" + p;
+                            JSONObject reading = new JSONObject();
+                            if (p == 0) {
+                                reading.put("temperature", "99.6");
+                            } else if (p == 1) {
+                                reading.put("temperature", "96.7");
+                            } else if (p == 2) {
+                                reading.put("temperature", "102.0");
+                            } else {
+                                reading.put("temperature", "103.5");
+                            } // avg: 100.5
+                            reading.put("hour", hours[p]);
+                            reading.put("unit", "°F");
+                            obj.put(key, reading);
+                        }
+                        today.put("Mon.2021.03.22", obj);
+                         break;
+                    case(2):
+                        for (int p = 0; p < 4; p++) {
+                            String key = "time" + p;
+                            JSONObject reading = new JSONObject();
+                            if (p == 0) {
+                                reading.put("temperature", "108.6");
+                            } else if (p == 1) {
+                                reading.put("temperature", "103.7");
+                            } else if (p == 2) {
+                                reading.put("temperature", "102.0");
+                            } else {
+                                reading.put("temperature", "99.5");
+                            } // 103.5
+                            reading.put("hour", hours[p]);
+                            reading.put("unit", "°F");
+                            obj.put(key, reading);
+                        }
+                        today.put("Tue.2021.03.23", obj);
+                        break;
+                    case(3):
+                        for (int p = 0; p < 4; p++) {
+                            String key = "time" + p;
+                            JSONObject reading = new JSONObject();
+                            if (p == 0) {
+                                reading.put("temperature", "100.6");
+                            } else if (p == 1) {
+                                reading.put("temperature", "98.7");
+                            } else if (p == 2) {
+                                reading.put("temperature", "95.0");
+                            } else {
+                                reading.put("temperature", "97.5");
+                            }
+                            reading.put("hour", hours[p]);
+                            reading.put("unit", "°F");
+                            obj.put(key, reading);
+                        } // 97.9
+                        today.put("Wed.2021.03.24", obj);
+                        break;
+                    case(4):
+                        for (int p = 0; p < 4; p++) {
+                            String key = "time" + p;
+                            JSONObject reading = new JSONObject();
+                            if (p == 0) {
+                                reading.put("temperature", "100.6");
+                            } else if (p == 1) {
+                                reading.put("temperature", "101.7");
+                            } else if (p == 2) {
+                                reading.put("temperature", "100.0");
+                            } else {
+                                reading.put("temperature", "102.5");
+                            }
+                            reading.put("hour", hours[p]);
+                            reading.put("unit", "°F");
+                            obj.put(key, reading);
+                        } // 101.2
+                        today.put("Thu.2021.03.25", obj);
+                        break;
+                    case(5):
+                        for (int p = 0; p < 4; p++) {
+                            String key = "time" + p;
+                            JSONObject reading = new JSONObject();
+                            if (p == 0) {
+                                reading.put("temperature", "98.6");
+                            } else if (p == 1) {
+                                reading.put("temperature", "96.7");
+                            } else if (p == 2) {
+                                reading.put("temperature", "99.0");
+                            } else {
+                                reading.put("temperature", "98.5");
+                            }
+                            reading.put("hour", hours[p]);
+                            reading.put("unit", "°F");
+                            obj.put(key, reading);
+                        } // 98.2
+                        today.put("Fri.2021.03.26", obj);
+                        break;
+                    case(6):
+                        for (int p = 0; p < 4; p++) {
+                            String key = "time" + p;
+                            JSONObject reading = new JSONObject();
+                            if (p == 0) {
+                                reading.put("temperature", "98.6");
+                            } else if (p == 1) {
+                                reading.put("temperature", "105.7");
+                            } else if (p == 2) {
+                                reading.put("temperature", "99.0");
+                            } else {
+                                reading.put("temperature", "103.5");
+                            }
+                            reading.put("hour", hours[p]);
+                            reading.put("unit", "°F");
+                            obj.put(key, reading);
+                        } // 101.7
+                        today.put("Sat.2021.03.27", obj);
+                        break;
+                }
+//                today.put("Sun.2021.02.07", obj);
+                String userString = today.toString();
+                fileWriter = new FileWriter(file, true);
+                bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write(userString);
+                bufferedWriter.close();
+            }
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
+
+        notif.setOnClickListener(v -> {
+            Intent intent = new Intent(getApplicationContext(), notifActivity.class);
+            startActivity(intent);
+        });
+
+        btSym.setOnClickListener(v -> {
+            Intent connectActivity = new Intent(getApplicationContext(), ConnectionActivity.class);
+            startActivity(connectActivity);
+        });
+
+        btStat.setOnClickListener(v -> {
+            Intent connectActivity = new Intent(getApplicationContext(), ConnectionActivity.class);
+            startActivity(connectActivity);
+        });
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
         bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
         fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
         fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
-        fm.beginTransaction().add(R.id.container, fragment1, "1").addToBackStack(null).commit();
         bottomNavigationView.setSelectedItemId(R.id.home);
+
+        new CountDownTimer(5000, 1000) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                Log.d(TAG, "time remaining: " + millisUntilFinished);
+            }
+
+            @Override
+            public void onFinish() {
+                Log.d(TAG, "on finish");
+            }
+        }.start();
+    }
+
+    private void tempDisplay(int num) {
+        float[] radii = {250, 250, 250, 250, 250, 250, 250, 250};
+        if (num == 0) {
+            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#00B0F0"));
+            temperature = "--";
+            temp.setText(temperature);
+//            temp.setTextSize((float) (height*0.04));
+        } else if (num == 1) {
+            shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#00B050"));
+            temp.setText(temperature + " " + unit);
+//            temp.setTextSize((float) (height * 0.04));
+        } else if (num == 2) {
+            shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#FB710B"));
+            temp.setText(temperature + " " + unit);
+//            temp.setTextSize((float) (height*0.04));
+        } else if (num == 3) {
+            shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#FF0000"));
+            temp.setText(temperature + " " + unit);
+//            temp.setTextSize((float) (height*0.04));
+        } else {
+            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            ring.setColor(Color.parseColor("#00B0F0"));
+            temp.setText(temperature + " " + unit);
+//            temp.setTextSize((float) (height*0.04));
+        }
     }
 
     private final BottomNavigationView.OnNavigationItemSelectedListener bottomNavMethod = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -247,37 +409,51 @@ public class MainActivity extends AppCompatActivity {
 
             switch (item.getItemId()) {
                 case R.id.home:
-                    fm.beginTransaction().hide(active).show(fragment1).commit();
+                    if (active != null) {
+                        fm.beginTransaction().hide(active).commit();
+                    }
                     temp.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
+                    shadow.setVisibility(View.VISIBLE);
+                    ring.setVisibility(View.VISIBLE);
+                    white.setVisibility(View.VISIBLE);
+                    btStat.setVisibility(View.VISIBLE);
+                    btSym.setVisibility(View.VISIBLE);
+                    notif.setVisibility(View.VISIBLE);
 //                    temp.setText(temperature);
-                    if (restoreHide()) {
-                        flingContainer.setVisibility(View.GONE);
-                        counter.setVisibility(View.GONE);
-                    } else {
-                        flingContainer.setVisibility(View.VISIBLE);
-                        counter.setVisibility(View.VISIBLE);
-                    }
-                    active = fragment1;
                     return true;
 
                 case R.id.Bt:
-                    fm.beginTransaction().hide(active).show(fragment3).commit();
+                    if (active != null) {
+                        fm.beginTransaction().hide(active).show(fragment3).commit();
+                    } else {
+                        fm.beginTransaction().show(fragment3).commit();
+                    }
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
-                    flingContainer.setVisibility(View.INVISIBLE);
-                    counter.setVisibility(View.INVISIBLE);
-                    temp.setText(temperature);
+                    shadow.setVisibility(View.INVISIBLE);
+                    ring.setVisibility(View.INVISIBLE);
+                    white.setVisibility(View.INVISIBLE);
+                    btStat.setVisibility(View.INVISIBLE);
+                    btSym.setVisibility(View.INVISIBLE);
+                    notif.setVisibility(View.INVISIBLE);
                     active = fragment3;
                     return true;
 
                 case R.id.profile:
-                    fm.beginTransaction().hide(active).show(fragment2).commit();
+                    if (active != null) {
+                        fm.beginTransaction().hide(active).show(fragment2).commit();
+                    } else {
+                        fm.beginTransaction().show(fragment2).commit();
+                    }
                     temp.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
-                    flingContainer.setVisibility(View.INVISIBLE);
-                    counter.setVisibility(View.INVISIBLE);
-                    temp.setText(temperature);
+                    shadow.setVisibility(View.INVISIBLE);
+                    ring.setVisibility(View.INVISIBLE);
+                    white.setVisibility(View.INVISIBLE);
+                    btStat.setVisibility(View.INVISIBLE);
+                    btSym.setVisibility(View.INVISIBLE);
+                    notif.setVisibility(View.INVISIBLE);
                     active = fragment2;
                     return true;
             }
@@ -361,30 +537,27 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     temperature = Double.toString(medianTemp);
 //                                    temp.setText(temperature);
+                                    onResume();
                                     plotData = true;
-
-////HERE
-
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            while (plotData) {
-                                                runOnUiThread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        String clock = format.format(Calendar.getInstance().getTime());
-                                                        time.add(clock);
-                                                        addEntry(temperature);
-                                                        plotData = false;
-                                                        writeJSON(temperature, clock, i);
-                                                        i++;
-                                                    }
-                                                });
-                                                try {
-                                                    Thread.sleep(5000);
-                                                } catch (InterruptedException e){
-                                                    e.printStackTrace();
+                                    new Thread(() -> {
+                                        while (plotData) {
+                                            runOnUiThread(() -> {
+                                                String clock = format.format(Calendar.getInstance().getTime());
+                                                time.add(clock);
+                                                addEntry(temperature);
+                                                plotData = false;
+                                                if (f) {
+                                                    unit = "°F";
+                                                } else {
+                                                    unit = "°C";
                                                 }
+                                                writeJSON(temperature, clock, i, unit);
+                                                i++;
+                                            });
+                                            try {
+                                                Thread.sleep(5000);
+                                            } catch (InterruptedException e){
+                                                e.printStackTrace();
                                             }
                                         }
                                     }).start();
@@ -437,13 +610,17 @@ public class MainActivity extends AppCompatActivity {
         }
 //    }
 
-    private void writeJSON(String temperature, String clock, int i) {
+    private void writeJSON(String temperature, String clock, int i, String unit) {
         try {
             String index = String.valueOf(i);
             String key = "time" + index;
+            JSONObject reading = new JSONObject();
             reading.put("temperature", temperature);
             reading.put("hour", clock);
+            reading.put("unit", unit);
+            JSONObject obj = new JSONObject();
             obj.put(key, reading);
+            JSONObject today = new JSONObject();
             today.put(jsonDate, obj);
             String userString = today.toString();
             fileWriter = new FileWriter(file);
@@ -458,13 +635,13 @@ public class MainActivity extends AppCompatActivity {
     private void addEntry(String temperature) {
         LineData data = mChart.getData();
         if (data != null) {
-            LineDataSet set = (LineDataSet) data.getDataSetByIndex(0);
-            if (set == null) {
-                set = createSet();
-                data.addDataSet(set);
+            MyLineDataSet mySet = (MyLineDataSet) data.getDataSetByIndex(0);
+            if (mySet == null) {
+                mySet = createSet();
+                data.addDataSet(mySet);
             }
             float y = Float.parseFloat(temperature);
-            data.addEntry(new Entry(set.getEntryCount(), y), 0);
+            data.addEntry(new Entry(mySet.getEntryCount(), y), 0);
             XAxis xl = mChart.getXAxis();
             xl.setValueFormatter(new IndexAxisValueFormatter(time));
             data.notifyDataChanged();
@@ -474,17 +651,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private LineDataSet createSet() {
-        LineDataSet set = new LineDataSet(null, null);
-        set.setDrawCircles(true);
-        set.setFillAlpha(65);
-        set.setFillColor(ColorTemplate.getHoloBlue());
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        set.setLineWidth(3f);
-        set.setColor(Color.MAGENTA);
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        set.setCubicIntensity(0.2f);
-        return set;
+    private MyLineDataSet createSet() {
+        MyLineDataSet mySet = new MyLineDataSet(null, null);
+        mySet.setDrawCircles(false);
+        mySet.setDrawValues(false);
+        mySet.setAxisDependency(YAxis.AxisDependency.LEFT);
+        mySet.setLineWidth(3f);
+        mySet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        mySet.setCubicIntensity(0.2f);
+        mySet.setColors(ContextCompat.getColor(this, R.color.green), ContextCompat.getColor(this, R.color.yellow), ContextCompat.getColor(this, R.color.red));
+//        LineDataSet set = new LineDataSet(null, null);
+//        set.setDrawCircles(true);
+//        set.setFillAlpha(100);
+//        set.setFillColor(ColorTemplate.getHoloBlue());
+//        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+//        set.setLineWidth(3f);
+//        set.setColor(Color.MAGENTA);
+//        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+//        set.setCubicIntensity(0.2f);
+        return mySet;
     }
 
 //    protected static class ConnectedThread extends Thread {
@@ -531,18 +716,9 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void saveArrayData() {
-        Set<String> set = new HashSet<>(al);
-        SharedPreferences preferences = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putStringSet("array", set);
-        editor.putString("number", num);
-        editor.apply();
-    }
-
-    private void addArrayData() {
-
-    }
+//    private void addArrayData() {
+//
+//    }
 
     private String restoreNameData() {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
@@ -559,28 +735,6 @@ public class MainActivity extends AppCompatActivity {
         return Integer.parseInt(pref.getString("number", String.valueOf(-1)));
     }
 
-    private ArrayList<String> restoreArrayData() {
-        SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
-        Set<String> set = pref.getStringSet("array", null);
-        if (set == null) {
-            Set<String> newSet = new HashSet<>();
-            newSet.add("Notifications");
-            newSet.add("my");
-            newSet.add("name");
-            newSet.add("is");
-            newSet.add("Aryan");
-            newSet.add("Agarwal");
-            return new ArrayList<>(newSet);
-        } else {
-            return new ArrayList<>(set);
-        }
-    }
-
-    private Boolean restoreHide() {
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences("hidePref", MODE_PRIVATE);
-        return prefs.getBoolean("hide", false);
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -593,7 +747,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
+        if (AndroidService.spark) {
+            btStat.setText("Connected");
+            btSym.setBackgroundResource(R.drawable.ic_b1);
+        } else {
+            btStat.setText("Not Connected");
+            btSym.setBackgroundResource(R.drawable.ic_b2);
+        }
+        int num;
+        if (temperature.length() != 0) {
+            float y = Float.parseFloat(temperature);
+            if (y <= 100.3 || y <= 37.9) {
+                num = 1;
+            } else if ((y <= 103 && y >= 100.4) || (y <= 39.4 && y >= 38)) {
+                num = 2;
+            } else {
+                num = 3;
+            }
+        } else {
+            num = 0;
+        }
+        tempDisplay(num);
     }
 }

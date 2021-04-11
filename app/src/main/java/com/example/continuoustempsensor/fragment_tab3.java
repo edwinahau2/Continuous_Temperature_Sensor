@@ -3,8 +3,10 @@ package com.example.continuoustempsensor;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
@@ -145,12 +147,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             }
         });
 
-        connect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent connectActivity = new Intent(requireContext().getApplicationContext(), ConnectionActivity.class);
-                startActivity(connectActivity);
-            }
+        connect.setOnClickListener(v -> {
+            Intent connectActivity = new Intent(requireContext().getApplicationContext(), ConnectionActivity.class);
+            startActivity(connectActivity);
         });
         return view;
 
@@ -303,13 +302,26 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 //        mCallback = null;
 //    }
 
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                if (state == BluetoothAdapter.STATE_OFF) {
+                    connect.setText("Not Connected");
+                }
+            }
+        }
+    };
+
     @Override
     public void onResume() {
         super.onResume();
         uhh = restoreBool();
         sensor = restoreNameData();
         if (uhh) {
-            if (MainActivity.spark) {
+            if (AndroidService.spark) {
                 connect.setText("Connected to " + MainActivity.name);
             } else {
                 connect.setText("Not Connected");
@@ -317,20 +329,25 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             uhh = false;
             saveNameData();
         } else {
-            if (ConnectionActivity.sensor != null) {
-                sensor = ConnectionActivity.sensor;
-                connect.setText("Connected to " + sensor);
-                saveNameData();
-            } else if (sensor != null) {
-                connect.setText("Connected to " + sensor);
+            if (ConnectionActivity.daStatus != null) {
+                connect.setText(ConnectionActivity.daStatus);
             } else {
-                connect.setText("Connected to " + MainActivity.name);
+                if (!AndroidService.spark) {
+                    connect.setText("Not Connected");
+                } else if (ConnectionActivity.sensor != null) {
+                    sensor = ConnectionActivity.sensor;
+                    connect.setText("Connected to " + sensor);
+                    saveNameData();
+                } else if (sensor != null) {
+                    connect.setText("Connected to " + sensor);
+                } else {
+                    connect.setText("Connected to " + MainActivity.name);
+                }
             }
         }
 
-        if (!mBlueAdapter.isEnabled()) {
-            connect.setText("Not Connected");
-        }
+        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        requireActivity().registerReceiver(mReceiver, intentFilter);
 
 //        if (MainActivity.address == null) {
 //            MainActivity.address = restoreTheAddy();
@@ -341,9 +358,12 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     @Override
     public void onStop() {
         super.onStop();
-        if (!mBlueAdapter.isEnabled()) {
-            connect.setText("Not Connected");
-        }
+//        if (!mBlueAdapter.isEnabled()) {
+//            connect.setText("Not Connected");
+//        }
+
+        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        requireActivity().registerReceiver(mReceiver, intentFilter);
     }
 
     @Override

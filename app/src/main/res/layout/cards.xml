@@ -8,6 +8,7 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
+        android:id="@+id/cardNum"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_editor_absoluteX="1dp">
@@ -23,15 +24,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="12sp"
-                android:text="Item Title"
+                android:text="Week"
                 android:textSize="18sp"
                 android:background="@color/gradient_end_color"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/rv_sub_item"
-                android:layout_marginTop="8dp"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

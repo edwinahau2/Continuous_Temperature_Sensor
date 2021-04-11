@@ -1,58 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_gravity="center"
-    android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="top"
+    android:layout_height="wrap_content"
+    android:paddingTop="10dp"
+    android:paddingEnd="10dp"
+    android:paddingStart="10dp"
+    android:fillViewport="true">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:id="@+id/constrain">
 
-        <androidx.viewpager.widget.ViewPager
-            android:id="@+id/viewpager2"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="0dp"
+            android:id="@+id/dataLog"
+            android:text="Temperature Data Log"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            android:textColor="#000"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/daytime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/choice"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-        </androidx.viewpager.widget.ViewPager>
-
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/choice"
-            android:layout_width="122dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/viewpager2"
-            app:tabBackground="@drawable/indicator_selector" />
+            app:layout_constraintTop_toBottomOf="@id/dataLog"
+            app:layout_constraintBottom_toTopOf="@id/firstRelative"
+            app:tabBackground="@color/card_bg_color"
+            app:tabIndicatorColor="#498bc5"
+            app:tabIndicator="@drawable/tab_day_outline"
+            app:tabIndicatorGravity="stretch">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/alphaRV"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/choice" />
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="24 HOURS" />
 
-        <Button
-            android:id="@+id/button2"
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="7 DAYS" />
+
+<!--            <com.google.android.material.tabs.TabItem-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="M" />-->
+        </com.google.android.material.tabs.TabLayout>
+
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="add"
-            tools:layout_editor_absoluteX="309dp"
-            tools:layout_editor_absoluteY="211dp"
-            tools:ignore="MissingConstraints" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/daytime"
+            app:layout_constraintBottom_toTopOf="@id/secondRelative"
+            android:id="@+id/firstRelative">
+
+            <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+                android:id="@+id/calendarView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:mcv_selectionColor="#00F"
+                app:mcv_showOtherDates="all" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/secondRelative"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/firstRelative">
+
+            <androidx.viewpager.widget.ViewPager
+                android:id="@+id/graph_viewpager"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
+        </RelativeLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 </ScrollView>

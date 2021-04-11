@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragment_tab3"
+    android:paddingEnd="15dp"
+    android:paddingStart="15dp"
     android:id="@+id/fragment3" >
 
     <androidx.constraintlayout.widget.ConstraintLayout
