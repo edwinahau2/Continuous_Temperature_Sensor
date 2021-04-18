@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -41,12 +42,12 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
 
     private CustomViewPager screenPager;
     IntroViewPageAdapter introViewPageAdapter;
-    Button btnNext;
+    public static Button btnNext;
     int position;
-    Button btnBack;
+    public static Button btnBack;
     Animation btnAnim;
     public static boolean open;
-    LinearLayout dotIndicators;
+    public static LinearLayout dotIndicators;
     TextView[] mDots;
     int tracker = 5;
     boolean load = false;
@@ -90,7 +91,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
         mList.add(new ScreenItem("Welcome", "", R.drawable.ic_gears, R.drawable.ic_temp, 0));
         mList.add(new ScreenItem("Terms of Service", "", 0, 0, 1));
         mList.add(new ScreenItem("How To Sensor", "", 0, 0, 2));
-        mList.add(new ScreenItem("App Navigation", "", R.drawable.ic_gears, R.drawable.ic_temp, 3));
+        mList.add(new ScreenItem("App Navigation", "", 0, 0, 3));
         mList.add(new ScreenItem("Connect", "", R.drawable.ic_gears, R.drawable.ic_temp, 4));
         mDots = new TextView[tracker];
         for (int i = 0; i < mDots.length; i++) {
@@ -120,23 +121,57 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                     screenPager.setCurrentItem(position);
                     loadLastScreen();
                 }
-            } else {
-                position++;
-                addDotsIndicator(position);
-                screenPager.setCurrentItem(position);
-                btnNext.setVisibility(View.INVISIBLE);
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
-                }
+            } else if (position == 3){
+                    position++;
+                    addDotsIndicator(position);
+                    screenPager.setCurrentItem(position);
+                    btnNext.setVisibility(View.INVISIBLE);
+                    if (ContextCompat.checkSelfPermission(IntroViewPageAdapter.mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions((Activity) IntroViewPageAdapter.mContext, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
+                    }
 
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                    if (ContextCompat.checkSelfPermission(IntroViewPageAdapter.mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions((Activity) IntroViewPageAdapter.mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                    }
+                    if (position == 4) {
+                        IntroViewPageAdapter.button.setOnClickListener(v3 -> {
+                            if (!mBlueAdapter.isEnabled()) {
+                                Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                                startActivityForResult(intent, REQUEST_ENABLE_BT);
+                            } else {
+                                myDialog.setContentView(R.layout.recycler);
+                                find = myDialog.findViewById(R.id.searching);
+                                find.setOnClickListener(v2 -> {
+                                    if (mBlueAdapter.isDiscovering() || find.getText().equals("Cancel")) {
+                                        mBlueAdapter.cancelDiscovery();
+                                        find.setText("Find Your Device");
+                                    } else {
+                                        mBlueAdapter.startDiscovery();
+                                        find.setText("Cancel");
+                                        Toast.makeText(IntroViewPageAdapter.mContext, "Make sure your device is on", Toast.LENGTH_SHORT).show();
+                                        mData.clear();
+                                        findPairedDevices();
+                                    }
+                                });
+                                ImageView ret = myDialog.findViewById(R.id.back_Arrow);
+                                ret.setOnClickListener(v1 -> myDialog.dismiss());
+                                Window window = myDialog.getWindow();
+                                window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+                                btRecycle = myDialog.findViewById(R.id.listOfBt);
+                                mData = new ArrayList<>();
+                                mData.add(new BtDevice("HC-06:1234"));
+                                btRecycle.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+                                btAdapter = new BtAdapter(IntroViewPageAdapter.mContext, mData, (BtAdapter.OnDeviceListener) IntroViewPageAdapter.mContext);
+                                btRecycle.setAdapter(btAdapter);
+                                myDialog.show();
+                            }
+                        });
+                    }
                 }
 //                Intent mainActivity = new Intent(getApplicationContext(), bluetoothActivity.class);
 //                startActivity(mainActivity);
 //                savePrefsData();
 //                finish();
-            }
 
             if (position == 1) {
                 IntroViewPageAdapter.terms.setChecked(restoreCheckData());
@@ -201,14 +236,14 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
             position = screenPager.getCurrentItem();
             btnNext.setVisibility(View.VISIBLE);
             if (position > 0 || position == tracker-1) {
-                if (position < 3) {
-                    load = false;
-                }
+                load = false;
                 position--;
                 if (position == 0) {
                     btnBack.setVisibility(View.INVISIBLE);
                 } else if (position == 3) {
-                    btnNext.setText("Start");
+                    IntroViewPageAdapter.start.setVisibility(View.INVISIBLE);
+                    IntroViewPageAdapter.learnApp.setVisibility(View.VISIBLE);
+                    btnNext.setText("Skip");
                 } else {
                     btnNext.setText("Next");
                 }
@@ -273,31 +308,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
             }
         }
     }
-
-//    ViewPager.OnPageChangeListener viewListener = new ViewPager.OnPageChangeListener() {
-//        @Override
-//        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-//
-//        }
-//
-//        @Override
-//        public void onPageSelected(int position) {
-//            addDotsIndicator(position);
-//            if (position == tracker-2) {
-//                btnNext.setText("Start");
-//            } else if (position < tracker-2) {
-//                btnNext.setText("Next");
-//                btnNext.setVisibility(View.VISIBLE);
-//            } else if (position >= tracker-2) {
-//                btnNext.setVisibility(View.INVISIBLE);
-//            }
-//        }
-//
-//        @Override
-//        public void onPageScrollStateChanged(int state) {
-//
-//        }
-//    };
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -390,7 +400,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
 
     private void loadLastScreen() {
         load = true;
-        btnNext.setText("Start");
+        btnNext.setText("Skip");
         btnBack.setVisibility(View.VISIBLE);
 //        btnGetStarted.setAnimation(btnAnim);
     }

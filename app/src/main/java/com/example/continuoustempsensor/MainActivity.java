@@ -1,7 +1,10 @@
 package com.example.continuoustempsensor;
 
 import android.annotation.SuppressLint;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -10,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PersistableBundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +51,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -56,19 +61,12 @@ public class MainActivity extends AppCompatActivity {
     FileWriter fileWriter = null;
     BufferedWriter bufferedWriter = null;;
     private static final String TAG = "MainActivityCounter";
-//    private JSONObject reading = new JSONObject();
-//    private JSONObject today = new JSONObject();
-//    private JSONObject obj = new JSONObject();
     public static String name;
     int i = 0;
     public static boolean f = true;
     String unit;
-//    static BluetoothSocket mmSocket;
-//    BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
-//    UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-//    ConnectedThread btt = null;
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
     TextView temp;
@@ -81,8 +79,6 @@ public class MainActivity extends AppCompatActivity {
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
     public static final int RESPONSE_MESSAGE = 10;
     String temperature;
-//    static InputStream mmInStream;
-//    static Handler mHandler;
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
@@ -181,8 +177,8 @@ public class MainActivity extends AppCompatActivity {
 //                .setExtras(bun)
 //                .setPersisted(false)
 //                .setRequiresCharging(false)
-//                .setPeriodic(TimeUnit.MINUTES.toMillis(20))
-//                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
+//                .setPeriodic(TimeUnit.MINUTES.toMillis(15))
+//                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(1), JobInfo.BACKOFF_POLICY_LINEAR)
 //                .build();
 //        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
 //        jobScheduler.schedule(jobInfo);
@@ -450,115 +446,98 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void startConnection() {
-//        if (mmSocket == null || !mmSocket.isConnected()) {
-//            BluetoothSocket tmp;
-//            try {
-//                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-//                mmSocket = tmp;
-//                mmSocket.connect();
-//            } catch (IOException e) {
-//                try {
-//                    mmSocket.close();
-//                } catch (IOException c) {
-//                    e.printStackTrace();
-//                }
-//            }
 
-//            btt = new ConnectedThread(mmSocket);
-//            btt.start();
+        AndroidService.mHandler  = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                super.handleMessage(msg);
+                if (msg.what == RESPONSE_MESSAGE) {
+                    String readMessage = (String) msg.obj;
+                    recDataString.append(readMessage);
+                    int endOfLineIndex = recDataString.indexOf("~");
+                    if (endOfLineIndex > 0) {
+                        String dataInPrint = recDataString.substring(0, endOfLineIndex);
 
-            AndroidService.mHandler  = new Handler(Looper.getMainLooper()) {
-                @Override
-                public void handleMessage(@NonNull Message msg) {
-                    super.handleMessage(msg);
-                    if (msg.what == RESPONSE_MESSAGE) {
-                        String readMessage = (String) msg.obj;
-                        recDataString.append(readMessage);
-                        int endOfLineIndex = recDataString.indexOf("~");
-                        if (endOfLineIndex > 0) {
-                            String dataInPrint = recDataString.substring(0, endOfLineIndex);
+                        if (recDataString.charAt(0) == '#') {
+                            String sensor = recDataString.substring(1, endOfLineIndex);
+                            float sensorVal =  Float.parseFloat(sensor);
+                            tempVals.add(sensorVal);
 
-                            if (recDataString.charAt(0) == '#') {
-                                String sensor = recDataString.substring(1, endOfLineIndex);
-                                float sensorVal =  Float.parseFloat(sensor);
-                                tempVals.add(sensorVal);
-
-                                boolean legit = true;
-                                if (tempVals.size()>60){
-                                    double min = Collections.min(tempVals);
-                                    double max = Collections.max(tempVals);
-                                    double total =0;
-                                    for(int i=0;i<tempVals.size();i++)
-                                    {
-                                        total+=tempVals.get(i);
-                                    }
-                                    double mean = total/tempVals.size();
-                                    double total2 =0;
-                                    for (int i=0;i<tempVals.size();i++)
-                                    {
-                                        total2 += Math.pow((i - mean), 2);
-                                    }
-                                    double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
-                                    double gLower = (mean - min)/std;
-                                    double gUpper = (max-mean)/std;
-                                    if(gLower > 3.0269 || gUpper >3.0369){
-                                        // There's an outlier
-                                        legit = false;
-                                    }
-                                    if(std*std > 0.50){
-                                        //Too much variance
-                                        legit =false;
-                                    }
+                            boolean legit = true;
+                            if (tempVals.size()>60){
+                                double min = Collections.min(tempVals);
+                                double max = Collections.max(tempVals);
+                                double total =0;
+                                for(int i=0;i<tempVals.size();i++)
+                                {
+                                    total+=tempVals.get(i);
                                 }
-                                if(legit) {
-                                    Collections.sort(tempVals);
-                                    double medianTemp;
-                                    if (tempVals.size() % 2 == 0)
-                                    {
-                                        medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
-                                    }
-                                    else {
-                                        medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
-                                    }
-                                    if (!f) {
-                                        medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
-                                    }
-                                    temperature = Double.toString(medianTemp);
-//                                    temp.setText(temperature);
-                                    onResume();
-                                    plotData = true;
-                                    new Thread(() -> {
-                                        while (plotData) {
-                                            runOnUiThread(() -> {
-                                                String clock = format.format(Calendar.getInstance().getTime());
-                                                time.add(clock);
-                                                addEntry(temperature);
-                                                plotData = false;
-                                                if (f) {
-                                                    unit = "°F";
-                                                } else {
-                                                    unit = "°C";
-                                                }
-                                                writeJSON(temperature, clock, i, unit);
-                                                i++;
-                                            });
-                                            try {
-                                                Thread.sleep(5000);
-                                            } catch (InterruptedException e){
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    }).start();
+                                double mean = total/tempVals.size();
+                                double total2 =0;
+                                for (int i=0;i<tempVals.size();i++)
+                                {
+                                    total2 += Math.pow((i - mean), 2);
+                                }
+                                double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
+                                double gLower = (mean - min)/std;
+                                double gUpper = (max-mean)/std;
+                                if(gLower > 3.0269 || gUpper >3.0369){
+                                    // There's an outlier
+                                    legit = false;
+                                }
+                                if(std*std > 0.50){
+                                    //Too much variance
+                                    legit =false;
                                 }
                             }
-                            recDataString.delete(0, recDataString.length());
-                            dataInPrint = "";
+                            if(legit) {
+                                Collections.sort(tempVals);
+                                double medianTemp;
+                                if (tempVals.size() % 2 == 0)
+                                {
+                                    medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
+                                }
+                                else {
+                                    medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
+                                }
+                                if (!f) {
+                                    medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
+                                }
+                                temperature = Double.toString(medianTemp);
+//                                    temp.setText(temperature);
+                                onResume();
+                                plotData = true;
+                                new Thread(() -> {
+                                    while (plotData) {
+                                        runOnUiThread(() -> {
+                                            String clock = format.format(Calendar.getInstance().getTime());
+                                            time.add(clock);
+                                            addEntry(temperature);
+                                            plotData = false;
+                                            if (f) {
+                                                unit = "°F";
+                                            } else {
+                                                unit = "°C";
+                                            }
+                                            writeJSON(temperature, clock, i, unit);
+                                            i++;
+                                        });
+                                        try {
+                                            Thread.sleep(5000);
+                                        } catch (InterruptedException e){
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }).start();
+                            }
                         }
+                        recDataString.delete(0, recDataString.length());
+                        dataInPrint = "";
                     }
                 }
-            };
-        }
-//    }
+            }
+        };
+    }
 
     private void writeJSON(String temperature, String clock, int i, String unit) {
         try {
@@ -621,42 +600,6 @@ public class MainActivity extends AppCompatActivity {
 //        set.setCubicIntensity(0.2f);
         return mySet;
     }
-
-//    protected static class ConnectedThread extends Thread {
-//        public ConnectedThread(BluetoothSocket socket) {
-//            InputStream tmpIn = null;
-//            try {
-//                tmpIn = socket.getInputStream();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            mmInStream = tmpIn;
-//        }
-//
-//        public void run() {
-//            BufferedReader br;
-//            br = new BufferedReader(new InputStreamReader(mmInStream));
-//            while (true) {
-//                try {
-//                    String resp = br.readLine();
-//                    Message msg = new Message();
-//                    msg.what = RESPONSE_MESSAGE;
-//                    msg.obj = resp;
-//                    mHandler.sendMessage(msg);
-//                } catch (IOException e) {
-//                    break;
-//                }
-//            }
-//        }
-//
-//        public void cancel() {
-//            try {
-//                mmSocket.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 
     private void savePrefsData() {
         SharedPreferences preferences = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);

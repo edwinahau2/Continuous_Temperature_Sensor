@@ -28,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -54,6 +55,22 @@ public class AndroidService extends Service {
     public void onCreate() {
         super.onCreate();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        //creating a new intent specifying the broadcast receiver
+        Intent i = new Intent(getBaseContext(), MyAlarm.class);
+
+        //creating a pending intent using the intent
+        PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(System.currentTimeMillis());
+        SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+        long time = cal.getTimeInMillis();
+
+        //setting the repeating alarm that will be fired every day
+        am.setRepeating(AlarmManager.RTC_WAKEUP, time,  60*15000, pi);
+        Log.d("ExampleJobService", "Alarm is set at " + sdf.format(cal.getTime()));
     }
 
     @Override
@@ -126,24 +143,41 @@ public class AndroidService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
 
-        ComponentName componentName = new ComponentName(getApplicationContext(), TestJobService.class);
-        PersistableBundle bundle = new PersistableBundle();
-        bundle.putString("address", address);
-        JobInfo jobInfo = new JobInfo.Builder(101, componentName)
-                .setExtras(bundle)
-                .setPersisted(false)
-                .setRequiresCharging(false)
-                .setPeriodic(TimeUnit.MINUTES.toMillis(20))
-                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
-                .build();
-        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-        jobScheduler.schedule(jobInfo);
+//        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//
+//        //creating a new intent specifying the broadcast receiver
+//        Intent i = new Intent(this, MyAlarm.class);
+//
+//        //creating a pending intent using the intent
+//        PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, 0);
+//
+//        Calendar cal = Calendar.getInstance();
+//        cal.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR)-3, cal.get(Calendar.MINUTE));
+//        SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+//        long time = cal.getTimeInMillis();
+//
+//        //setting the repeating alarm that will be fired every day
+//        am.setRepeating(AlarmManager.RTC_WAKEUP, time, 60*1000, pi);
+//        Log.d("ExampleJobService", "Alarm is set at " + sdf.format(cal.getTime()));
 
-        if (jobScheduler.schedule(jobInfo)==JobScheduler.RESULT_SUCCESS) {
-            Toast.makeText(this, "success", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "failure", Toast.LENGTH_SHORT).show();
-        }
+//        ComponentName componentName = new ComponentName(getApplicationContext(), TestJobService.class);
+//        PersistableBundle bundle = new PersistableBundle();
+//        bundle.putString("address", address);
+//        JobInfo jobInfo = new JobInfo.Builder(101, componentName)
+//                .setExtras(bundle)
+//                .setPersisted(false)
+//                .setRequiresCharging(false)
+//                .setPeriodic(TimeUnit.MINUTES.toMillis(20))
+//                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
+//                .build();
+//        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+//        jobScheduler.schedule(jobInfo);
+//
+//        if (jobScheduler.schedule(jobInfo)==JobScheduler.RESULT_SUCCESS) {
+//            Toast.makeText(this, "success", Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(this, "failure", Toast.LENGTH_SHORT).show();
+//        }
 
     }
 
