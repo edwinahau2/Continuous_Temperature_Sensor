@@ -14,6 +14,16 @@ import android.view.View;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class notifActivity extends AppCompatActivity {
@@ -22,6 +32,10 @@ public class notifActivity extends AppCompatActivity {
     NotificationRecyclerViewAdapter mAdapter;
     ArrayList<NotifItem> stringArrayList = new ArrayList<>();
     ConstraintLayout notifConstraintLayout;
+    File file;
+    FileReader fileReader = null;
+    BufferedReader bufferedReader = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,22 +43,58 @@ public class notifActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notif);
         recyclerView = findViewById(R.id.notif_list);
         notifConstraintLayout = findViewById(R.id.notif_constraint);
-        populateRecyclerView();
+        String FILE_NAME = "notif.json";
+        file = new File(this.getFilesDir(), FILE_NAME);
+        try {
+            populateRecyclerView();
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
         enableSwipeToDeleteAndUndo();
     }
 
-    private void populateRecyclerView() {
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 1", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 2", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 3", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 4", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 5", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 6", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 7", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 8", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 9", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 10", "6 minutes ago | Swipe to Dismiss"));
-        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 11", "6 minutes ago | Swipe to Dismiss"));
+    private void populateRecyclerView() throws IOException, JSONException {
+        fileReader = new FileReader(file);
+        bufferedReader = new BufferedReader(fileReader);
+        StringBuilder stringBuilder = new StringBuilder();
+        String line = bufferedReader.readLine();
+        while (line != null) {
+            stringBuilder.append(line).append("\n");
+            line = bufferedReader.readLine();
+        }
+        bufferedReader.close();
+        String response = stringBuilder.toString();
+        JSONObject jsonObject = new JSONObject(response);
+        String idx = "Notif 1";
+        int count = 1;
+        while (jsonObject.has(idx)) {
+            JSONObject notifJSON = (JSONObject) jsonObject.get(idx);
+            String notifText = notifJSON.getString("notifText");
+            String notifTime = notifJSON.getString("notifTime");
+            int notifColor = notifJSON.getInt("notifColor");
+            if (notifColor == 0) {
+                //green
+            } else if (notifColor == 1) {
+                //yellow
+            } else {
+                // red
+            }
+            stringArrayList.add(new NotifItem(R.drawable.play_arrow, notifText, notifTime + " | Swipe to Dismiss"));
+            count = count + 1;
+            String tmp = idx.substring(0, idx.length()-1);
+            idx = tmp + count;
+        }
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 1", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 2", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 3", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 4", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 5", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 6", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 7", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 8", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 9", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 10", "6 minutes ago | Swipe to Dismiss"));
+//        stringArrayList.add(new NotifItem(R.drawable.play_arrow, "Item 11", "6 minutes ago | Swipe to Dismiss"));
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mAdapter = new NotificationRecyclerViewAdapter(stringArrayList);
         recyclerView.setAdapter(mAdapter);

@@ -531,6 +531,7 @@ public class MainActivity extends AppCompatActivity {
                                 }).start();
                             }
                         }
+
                         recDataString.delete(0, recDataString.length());
                         dataInPrint = "";
                     }

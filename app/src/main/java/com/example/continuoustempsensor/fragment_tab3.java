@@ -99,6 +99,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     boolean uhh;
     String sensor;
     private SwitchCompat darkMode;
+    public static String textTimeNotify;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -139,24 +140,16 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
         }
 
-        f.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-            @Override
-            public void onClick(View v) {
-                f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
-                c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
-                MainActivity.f = true;
-            }
+        f.setOnClickListener(v -> {
+            f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
+            c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
+            MainActivity.f = true;
         });
 
-        c.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-            @Override
-            public void onClick(View v) {
-                c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
-                f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
-                MainActivity.f = false;
-            }
+        c.setOnClickListener(v -> {
+            c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
+            f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
+            MainActivity.f = false;
         });
 
         enable.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -261,15 +254,20 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        String text = parent.getItemAtPosition(position).toString();
-//        toast = Toast.makeText(parent.getContext(), text, Toast.LENGTH_SHORT);
-//        setToast();
+        textTimeNotify = parent.getItemAtPosition(position).toString();
+        toast = Toast.makeText(parent.getContext(), textTimeNotify, Toast.LENGTH_SHORT);
+        setToast();
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
     }
+
+    public static String getTimeNotify(){
+        return textTimeNotify;
+    }
+
 
     private void saveNameData() {
         SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
