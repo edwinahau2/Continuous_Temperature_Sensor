@@ -9,11 +9,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.graphics.Color;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.view.View;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class notifActivity extends AppCompatActivity {
@@ -35,6 +38,7 @@ public class notifActivity extends AppCompatActivity {
     File file;
     FileReader fileReader = null;
     BufferedReader bufferedReader = null;
+    String delete;
 
 
     @Override
@@ -68,10 +72,13 @@ public class notifActivity extends AppCompatActivity {
         String idx = "Notif 1";
         int count = 1;
         while (jsonObject.has(idx)) {
-            JSONObject notifJSON = (JSONObject) jsonObject.get(idx);
-            String notifText = notifJSON.getString("notifText");
-            String notifTime = notifJSON.getString("notifTime");
-            int notifColor = notifJSON.getInt("notifColor");
+            JSONArray notifJSON = (JSONArray) jsonObject.get(idx);
+            JSONObject nText = notifJSON.getJSONObject(0);
+            JSONObject nTime = notifJSON.getJSONObject(1);
+            JSONObject nColor = notifJSON.getJSONObject(2);
+            String notifText = nText.getString("notifText");
+            String notifTime = nTime.getString("notifTime");
+            int notifColor = nColor.getInt("notifColor");
             if (notifColor == 0) {
                 //green
             } else if (notifColor == 1) {
@@ -108,11 +115,40 @@ public class notifActivity extends AppCompatActivity {
                 final String item = stringArrayList.get(position).getTitle();
                 final String subtitle = stringArrayList.get(position).getDescription();
                 final int img = stringArrayList.get(position).getImg();
+                try {
+                    fileReader = new FileReader(file);
+                    bufferedReader = new BufferedReader(fileReader);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line = bufferedReader.readLine();
+                    while (line != null) {
+                        stringBuilder.append(line).append("\n");
+                        line = bufferedReader.readLine();
+                    }
+                    bufferedReader.close();
+                    String response = stringBuilder.toString();
+                    JSONObject jsonObject = new JSONObject(response);
+                    String idx = "Notif 1";
+                    int count = 1;
+                    while (jsonObject.has(idx)) {
+                        JSONArray notifJSON = (JSONArray) jsonObject.get(idx);
+                        JSONObject nTime = notifJSON.getJSONObject(1);
+                        if (nTime.getString("notifTime").equals(subtitle)) {
+                            // remove array and write back to file
+                            delete = idx;
+                        }
+                        count = count + 1;
+                        String tmp = idx.substring(0, idx.length()-1);
+                        idx = tmp + count;
+                    }
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
                 mAdapter.removeItem(position);
                 Snackbar snackbar = Snackbar.make(notifConstraintLayout, "Notification Removed", Snackbar.LENGTH_LONG);
                 snackbar.setAction("UNDO", v -> {
                     mAdapter.restoreItem(item, subtitle, img, position);
                     recyclerView.scrollToPosition(position);
+                    // add "delete" array with item, subtitle, img back to file
                 });
                 snackbar.setActionTextColor(Color.YELLOW);
                 snackbar.show();

@@ -2,13 +2,9 @@ package com.example.continuoustempsensor;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -17,13 +13,11 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ClipDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.JsonWriter;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,47 +26,16 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 
 public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelectedListener {
     //    private Callback mCallback;
@@ -88,7 +51,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private int mLevel;
     private Button f, c, connect, tippers;
     private TextView response, notify;
-    ImageView spinner;
     private static final int REQUEST_ENABLE_BT = 0;
 //    TextView paired;
     public Handler imHandler;
@@ -100,16 +62,15 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     String sensor;
     private SwitchCompat darkMode;
     public static String textTimeNotify;
+    public static Context context;
 
     @SuppressLint("SetTextI18n")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-
+        context = requireContext();
 //        button = view.findViewById(R.id.mBlueIv);
-//        spinner = view.findViewById(R.id.progressBar);
-//        spinner.setVisibility(View.GONE);
 //        mClipDrawable = (ClipDrawable) spinner.getDrawable();
 //        mClipDrawable.setLevel(0);
 //        imHandler.post(animateImage);
@@ -125,6 +86,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.getContext(), R.array.dropdown_times, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dropdown.setAdapter(adapter);
+        if (restoreNotifFreq() != null) {
+            dropdown.setSelection(restoreNotifIndex());
+        }
         dropdown.setOnItemSelectedListener(this);
         connect = view.findViewById(R.id.connect);
         if (!mBlueAdapter.isEnabled()) {
@@ -255,19 +219,13 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         textTimeNotify = parent.getItemAtPosition(position).toString();
-        toast = Toast.makeText(parent.getContext(), textTimeNotify, Toast.LENGTH_SHORT);
-        setToast();
+        saveNotifData(textTimeNotify, position);
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
     }
-
-    public static String getTimeNotify(){
-        return textTimeNotify;
-    }
-
 
     private void saveNameData() {
         SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
@@ -278,10 +236,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         editor.apply();
     }
 
-    private void saveHideData() {
-        SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("hidePref", Context.MODE_PRIVATE);
+    private void saveNotifData(String notifFreq, int indexSelected) {
+        SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("notifPref", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("hide", check);
+        editor.putString("notifFreq", notifFreq);
+        editor.putInt("indexSelected", indexSelected);
         editor.apply();
     }
 
@@ -300,9 +259,14 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         return pref.getBoolean("uhh", true);
     }
 
-    private Boolean restoreHide() {
-        SharedPreferences prefs = requireContext().getApplicationContext().getSharedPreferences("hidePref", Context.MODE_PRIVATE);
-        return prefs.getBoolean("hide", false);
+    public static String restoreNotifFreq() {
+        SharedPreferences prefs = context.getSharedPreferences("notifPref", Context.MODE_PRIVATE);
+        return prefs.getString("notifFreq", null);
+    }
+
+    private int restoreNotifIndex() {
+        SharedPreferences prefs = requireContext().getApplicationContext().getSharedPreferences("notifPref", Context.MODE_PRIVATE);
+        return prefs.getInt("indexSelected", -1);
     }
 
     public void setToast() {

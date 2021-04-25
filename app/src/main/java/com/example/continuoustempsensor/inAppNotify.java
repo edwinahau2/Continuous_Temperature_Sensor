@@ -6,7 +6,7 @@ import android.content.Intent;
 public class inAppNotify {
     private int color;
     private String timeNotification;
-    private String interval = fragment_tab3.getTimeNotify();   //the interval of time for which each notification is sent in app (selected by the user)
+    private String interval = fragment_tab3.restoreNotifFreq();   //the interval of time for which each notification is sent in app (selected by the user)
     private String text;
     private String generalText;
 
