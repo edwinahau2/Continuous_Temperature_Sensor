@@ -1,10 +1,7 @@
 package com.example.continuoustempsensor;
 
 import android.annotation.SuppressLint;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -13,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.PersistableBundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,7 +47,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -90,6 +85,10 @@ public class MainActivity extends AppCompatActivity {
     ImageView notif;
     ComplexView shadow, ring, white;
     ViewGroup vg;
+    int initMin, initHour = 0;
+    Boolean arbitrary = false;
+
+
 
     @SuppressLint("ShowToast")
     @Override
@@ -529,9 +528,31 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }).start();
+                                //only applies when user has not force closed the app
+                                if (medianTemp >=  100.3) { //urgent
+                                    if (medianTemp >= 103) {
+                                            // more urgent
+                                            // write to json file w/ red
+                                            // set urgent notif "red" text + color
+                                        } else {
+                                            // less, but still urgent
+                                            // write to json file w/ yellow
+                                            // set urgent notif "yellow" text + color
+                                        }
+                                    if (!arbitrary) {
+                                        // send notif w/ urgency text + color bc buffer has been met/hasnt been initiated
+                                    } else {
+                                        // buffer for next urgent notification -- Job Scheduler
+                                        Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+                                    }
+                                } else { //not urgent
+                                    // json write to notif file w/ nonurgent level
+                                    //textTimeNotify time
+                                    // normal notifictation interval check
+
+                            }
                             }
                         }
-
                         recDataString.delete(0, recDataString.length());
                         dataInPrint = "";
                     }
