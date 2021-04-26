@@ -38,12 +38,11 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelectedListener {
-    //    private Callback mCallback;
+
     private boolean clicked = false;
     BluetoothAdapter mBlueAdapter;
     private static final int REQUEST_CODE = 1;
     public static final int RESPONSE_MESSAGE = 10;
-    private ToggleButton button;
     private CheckBox enable;
     Toast toast;
     private Spinner dropdown;
@@ -58,10 +57,10 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private boolean check;
     private boolean isImage = false;
     private ClipDrawable mClipDrawable;
+    private int key;
     boolean uhh;
     String sensor;
-    private SwitchCompat darkMode;
-    public static String textTimeNotify;
+    private static String textTimeNotify;
     public static Context context;
 
     @SuppressLint("SetTextI18n")
@@ -70,7 +69,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         context = requireContext();
-//        button = view.findViewById(R.id.mBlueIv);
 //        mClipDrawable = (ClipDrawable) spinner.getDrawable();
 //        mClipDrawable.setLevel(0);
 //        imHandler.post(animateImage);
@@ -168,11 +166,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             if (resultCode == RESULT_OK) {
                 toast = Toast.makeText(getActivity(), "Bluetooth is on", Toast.LENGTH_SHORT);
                 setToast();
-                button.setChecked(true);
             } else {
                 toast = Toast.makeText(getActivity(), "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
                 setToast();
-                button.setChecked(false);
             }
         }
     }
