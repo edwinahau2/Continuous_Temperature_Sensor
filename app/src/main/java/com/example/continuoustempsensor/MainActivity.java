@@ -529,6 +529,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }).start();
                                 //only applies when user has not force closed the app
+                                int reqCode;
                                 if (medianTemp >=  100.3) { //urgent
                                     if (medianTemp >= 103) {
                                             // more urgent
@@ -541,6 +542,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     if (!arbitrary) {
                                         // send notif w/ urgency text + color bc buffer has been met/hasnt been initiated
+                                        NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
                                     } else {
                                         // buffer for next urgent notification -- Job Scheduler
                                         Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
@@ -549,7 +551,7 @@ public class MainActivity extends AppCompatActivity {
                                     // json write to notif file w/ nonurgent level
                                     //textTimeNotify time
                                     // normal notifictation interval check
-
+                                    NotificationReceiver.sendNotification(getApplicationContext(), 1);
                             }
                             }
                         }
