@@ -529,19 +529,20 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }).start();
                                 //only applies when user has not force closed the app
-                                int reqCode;
                                 if (medianTemp >=  100.3) { //urgent
                                     if (medianTemp >= 103) {
                                             // more urgent
                                             // write to json file w/ red
                                             // set urgent notif "red" text + color
-                                        } else {
+                                        NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                    } else {
                                             // less, but still urgent
                                             // write to json file w/ yellow
                                             // set urgent notif "yellow" text + color
-                                        }
+                                        NotificationReceiver.sendNotification(getApplicationContext(), 1);
+                                    }
                                     if (!arbitrary) {
-                                        // send notif w/ urgency text + color bc buffer has been met/hasnt been initiated
+                                        // send notif w/ urgency text + color bc buffer has been met/hasn't been initiated
                                         NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
                                     } else {
                                         // buffer for next urgent notification -- Job Scheduler
