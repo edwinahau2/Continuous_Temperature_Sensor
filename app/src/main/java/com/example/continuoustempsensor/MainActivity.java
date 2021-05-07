@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     public static boolean spark = true;
     String num;
     int number;
+    Boolean arbitrary = false;
 
     static boolean firstTime = false;
     int minBetweenNotif = 3;
@@ -316,45 +317,41 @@ public class MainActivity extends AppCompatActivity {
 
                             if (recDataString.charAt(0) == '#') {
                                 String sensor = recDataString.substring(1, endOfLineIndex);
-                                float sensorVal =  Float.parseFloat(sensor);
+                                float sensorVal = Float.parseFloat(sensor);
                                 tempVals.add(sensorVal);
 
                                 boolean legit = true;
-                                if (tempVals.size()>60){
+                                if (tempVals.size() > 60) {
                                     double min = Collections.min(tempVals);
                                     double max = Collections.max(tempVals);
-                                    double total =0;
-                                    for(int i=0;i<tempVals.size();i++)
-                                    {
-                                        total+=tempVals.get(i);
+                                    double total = 0;
+                                    for (int i = 0; i < tempVals.size(); i++) {
+                                        total += tempVals.get(i);
                                     }
-                                    double mean = total/tempVals.size();
-                                    double total2 =0;
-                                    for (int i=0;i<tempVals.size();i++)
-                                    {
+                                    double mean = total / tempVals.size();
+                                    double total2 = 0;
+                                    for (int i = 0; i < tempVals.size(); i++) {
                                         total2 += Math.pow((i - mean), 2);
                                     }
-                                    double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
-                                    double gLower = (mean - min)/std;
-                                    double gUpper = (max-mean)/std;
-                                    if(gLower > 3.0269 || gUpper >3.0369){
+                                    double std = Math.sqrt(total2 / (tempVals.size() - 1));
+                                    double gLower = (mean - min) / std;
+                                    double gUpper = (max - mean) / std;
+                                    if (gLower > 3.0269 || gUpper > 3.0369) {
                                         // There's an outlier
                                         legit = false;
                                     }
-                                    if(std*std > 0.50){
+                                    if (std * std > 0.50) {
                                         //Too much variance
-                                        legit =false;
+                                        legit = false;
                                     }
                                 }
-                                if(legit) {
+                                if (legit) {
                                     Collections.sort(tempVals);
                                     double medianTemp;
-                                    if (tempVals.size() % 2 == 0)
-                                    {
-                                        medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
-                                    }
-                                    else {
-                                        medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
+                                    if (tempVals.size() % 2 == 0) {
+                                        medianTemp = ((double) Math.round(((tempVals.get(tempVals.size() / 2) + (double) tempVals.get(tempVals.size() / 2 - 1)) / 2) * 10) / 10.0);
+                                    } else {
+                                        medianTemp = (double) Math.round((tempVals.get(tempVals.size() / 2) * 10) / 10.0);
                                     }
                                     if (!f) {
                                         medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
@@ -382,7 +379,7 @@ public class MainActivity extends AppCompatActivity {
                                                 });
                                                 try {
                                                     Thread.sleep(5000);
-                                                } catch (InterruptedException e){
+                                                } catch (InterruptedException e) {
                                                     e.printStackTrace();
                                                 }
                                             }
@@ -391,6 +388,30 @@ public class MainActivity extends AppCompatActivity {
 
 // ADD A background THREAD HERE AND TEST THE CODE
                                     if (medianTemp >= 50) {
+                                        if (medianTemp >= 60) {// more urgent
+                                            // write to json file w/ red
+                                            // set urgent notif "red" text + color
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                        } else {// less, but still urgent
+                                            // write to json file w/ yellow
+                                            // set urgent notif "yellow" text + color
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 1); //middle urgent notif
+                                        }
+                                        if (!arbitrary) {
+                                            // send notif w/ urgency text + color bc buffer has been met/hasn't been initiated
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                        } else {
+                                            // buffer for next urgent notification -- Job Scheduler
+                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+                                        }
+                                    } else { //not urgent
+                                        // json write to notif file w/ nonurgent level
+                                        //textTimeNotify time
+                                        // normal notifictation interval check
+                                        NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+                                    }
+                                }
+/*                                    if (medianTemp >= 50) {
                                         Calendar cal = Calendar.getInstance();
                                         boolean arbitrary = (cal.get(cal.MINUTE) - initMin) > minBetweenNotif;
                                         if (arbitrary == false) {
@@ -406,9 +427,9 @@ public class MainActivity extends AppCompatActivity {
                                             firstTime = true;
                                             initHour = cal.get(cal.HOUR_OF_DAY);
                                             initMin = cal.get(cal.MINUTE);
-                                          /*  if((initMin + minBetweenNotif) >= 60){
+                                          *//*  if((initMin + minBetweenNotif) >= 60){
                                                 initMin = minBetweenNotif - (60 - initMin);
-                                            }*/
+                                            }*//*
                                             Toast.makeText(getApplicationContext(), "first time", Toast.LENGTH_SHORT).show();
                                         }
                                         // add code so that if initMin + minBetween > 60 maybe evaluate hour as well
@@ -425,9 +446,9 @@ public class MainActivity extends AppCompatActivity {
                                         else{
                                             Toast.makeText(getApplicationContext(), "not yet", Toast.LENGTH_SHORT).show();
                                         }
-                                    }
-                                }
-                            }
+                                    }*/
+                            //}
+                        }
                             recDataString.delete(0, recDataString.length());
                             dataInPrint = "";
                         }
