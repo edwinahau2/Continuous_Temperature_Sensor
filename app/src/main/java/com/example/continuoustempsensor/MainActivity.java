@@ -388,7 +388,7 @@ public class MainActivity extends AppCompatActivity {
 
 // ADD A background THREAD HERE AND TEST THE CODE
                                     if (medianTemp >= 50) {
-                                        if (medianTemp >= 60) {// more urgent
+                                        if (medianTemp >= 90) {// more urgent
                                             // write to json file w/ red
                                             // set urgent notif "red" text + color
                                             NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
@@ -397,13 +397,13 @@ public class MainActivity extends AppCompatActivity {
                                             // set urgent notif "yellow" text + color
                                             NotificationReceiver.sendNotification(getApplicationContext(), 1); //middle urgent notif
                                         }
-                                        if (!arbitrary) {
+                                        /*if (!arbitrary) {
                                             // send notif w/ urgency text + color bc buffer has been met/hasn't been initiated
                                             NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
                                         } else {
                                             // buffer for next urgent notification -- Job Scheduler
                                             Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
-                                        }
+                                        }*/
                                     } else { //not urgent
                                         // json write to notif file w/ nonurgent level
                                         //textTimeNotify time
