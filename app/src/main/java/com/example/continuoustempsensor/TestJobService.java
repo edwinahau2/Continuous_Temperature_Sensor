@@ -2,17 +2,17 @@ package com.example.continuoustempsensor;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import android.content.SharedPreferences;
-import android.os.PersistableBundle;
 import android.util.Log;
 
 
 public class TestJobService extends JobService {
 
     private static final String TAG = "ExampleJobService";
+    private boolean jobCancelled = false;
     JobParameters param;
     String address;
-
+//Aryan's code that I commented out
+/*
     @Override
     public boolean onStartJob(JobParameters params) {
         this.param = params;
@@ -46,8 +46,62 @@ public class TestJobService extends JobService {
         SharedPreferences shp = this.getSharedPreferences("getCounter", MODE_PRIVATE);
         return shp.getInt("counter", 0);
     }
+*/
 
+// my code
+    @Override
+    public boolean onStartJob(JobParameters params) {
+        Log.d(TAG, "Job started");
+        doBackgroundWork(params);
 
+        return true; // do you want to reschedule
+    }
+
+    private void doBackgroundWork(JobParameters params){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for(int i = 0; i < 10; i++){ // fake background work
+                    Log.d(TAG,"run:" + i);
+                    if(jobCancelled){
+                        return; // if we cancelled job then will exit and stop doing background work
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                Log.d(TAG, "Job finished");
+                jobFinished(params, false);
+            }
+        }).start();
+    }
+
+    @Override
+    public boolean onStopJob(JobParameters params) {
+        Log.d(TAG, "Job cancelled before completion");
+        jobCancelled = true;
+        return true; // do you want to reschedule
+    }
+    //Aryan's code I commented out
+/*
+
+    private void setCounter(int counter) {
+        SharedPreferences sp = this.getSharedPreferences("getCounter", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt("counter", counter);
+        editor.apply();
+    }
+
+    private int getCounter() {
+        SharedPreferences shp = this.getSharedPreferences("getCounter", MODE_PRIVATE);
+        return shp.getInt("counter", 0);
+    }
+*/
+
+//Aryan's code that was already commented out
 //    private static class MyWorker extends AsyncTask<Void, Void, Boolean> {
 //
 //        private final Context mContext;
