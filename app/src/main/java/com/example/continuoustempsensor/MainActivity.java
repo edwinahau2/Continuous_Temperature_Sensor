@@ -529,17 +529,38 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }).start();
                                 //only applies when user has not force closed the app
-                                if (medianTemp >=  100.3) { //urgent
-                                    if (medianTemp >= 103) {
-                                            // more urgent
-                                            // write to json file w/ red
-                                            // set urgent notif "red" text + color
+//                                if (medianTemp >=  100.3) {
+//                                    if (medianTemp >= 103) {// more urgent
+//                                            // write to json file w/ red
+//                                            // set urgent notif "red" text + color
+//                                        NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+//                                    } else {// less, but still urgent
+//                                            // write to json file w/ yellow
+//                                            // set urgent notif "yellow" text + color
+//                                        NotificationReceiver.sendNotification(getApplicationContext(), 1); //middle urgent notif
+//                                    }
+//                                    if (!arbitrary) {
+//                                        // send notif w/ urgency text + color bc buffer has been met/hasn't been initiated
+//                                        NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+//                                    } else {
+//                                        // buffer for next urgent notification -- Job Scheduler
+//                                        Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+//                                    }
+//                                } else { //not urgent
+//                                    // json write to notif file w/ nonurgent level
+//                                    //textTimeNotify time
+//                                    // normal notifictation interval check
+//                                    NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+//                            }
+                                if (medianTemp >=  50) {
+                                    if (medianTemp >= 60) {// more urgent
+                                        // write to json file w/ red
+                                        // set urgent notif "red" text + color
                                         NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
-                                    } else {
-                                            // less, but still urgent
-                                            // write to json file w/ yellow
-                                            // set urgent notif "yellow" text + color
-                                        NotificationReceiver.sendNotification(getApplicationContext(), 1);
+                                    } else {// less, but still urgent
+                                        // write to json file w/ yellow
+                                        // set urgent notif "yellow" text + color
+                                        NotificationReceiver.sendNotification(getApplicationContext(), 1); //middle urgent notif
                                     }
                                     if (!arbitrary) {
                                         // send notif w/ urgency text + color bc buffer has been met/hasn't been initiated
@@ -552,8 +573,8 @@ public class MainActivity extends AppCompatActivity {
                                     // json write to notif file w/ nonurgent level
                                     //textTimeNotify time
                                     // normal notifictation interval check
-                                    NotificationReceiver.sendNotification(getApplicationContext(), 1);
-                            }
+                                    NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+                                }
                             }
                         }
                         recDataString.delete(0, recDataString.length());

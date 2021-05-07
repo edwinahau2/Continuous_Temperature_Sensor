@@ -3,7 +3,9 @@
     <string name="tab_text_1">Temperature</string>
     <string name="tab_text_2">Data Log</string>
     <string name="tab_text_3">Settings</string>
-    <string name="temp_spike_message">Your temperature is critically high indicating a fever. You may not be at risk for Coronavirus.
+    <string name="red_spike_message">RED. Your temperature is critically high indicating a fever. You may not be at risk for Coronavirus.
+         Please contact your supervisor and notify the people around you immediately.</string>
+    <string name="yellow_spike_message">YELLOW. Your temperature is critically high indicating a fever. You may not be at risk for Coronavirus.
          Please contact your supervisor and notify the people around you immediately.</string>
     <string-array name="dropdown_times">
         <item>30 mins</item>

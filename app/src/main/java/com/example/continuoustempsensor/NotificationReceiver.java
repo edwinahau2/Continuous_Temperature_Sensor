@@ -35,14 +35,14 @@ public class NotificationReceiver extends BroadcastReceiver {
 
         Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_spike);
 
-        if (RequestCode == 0) {
+        if (RequestCode == 0) {//red
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
                     //.setContentTitle(title)
                     //.setContentText(message)
                     .setLargeIcon(largeIcon)
                     .setStyle(new NotificationCompat.BigTextStyle()
-                            .bigText(context.getString(R.string.temp_spike_message))
+                            .bigText(context.getString(R.string.red_spike_message))
                             .setBigContentTitle("Fever Temperatures Detected")
                             .setSummaryText("Summary Text"))
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -56,7 +56,28 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .build();
             notificationManager.notify(1, notification);
         }
-        if (RequestCode == 1) {
+        if (RequestCode == 1) {//yellow
+            android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
+                    .setSmallIcon(R.drawable.warning)
+                    //.setContentTitle(title)
+                    //.setContentText(message)
+                    .setLargeIcon(largeIcon)
+                    .setStyle(new NotificationCompat.BigTextStyle()
+                            .bigText(context.getString(R.string.yellow_spike_message))
+                            .setBigContentTitle("Fever Temperatures Detected")
+                            .setSummaryText("Summary Text"))
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setColor(Color.argb(255, 48, 154, 230))
+                    .setContentIntent(contentIntent)
+                    .setAutoCancel(true) //when tapped the notification will go away
+                    //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
+                    .addAction(R.mipmap.ic_launcher, "Notify Others", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
+                    //can add up to 3 action buttons
+                    .build();
+            notificationManager.notify(1, notification);
+        }
+        if (RequestCode == 2) {//green
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_2_ID)
                     .setSmallIcon(R.drawable.announcement)
 //                    .setContentTitle(title)
