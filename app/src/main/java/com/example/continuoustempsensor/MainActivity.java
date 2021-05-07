@@ -565,7 +565,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
-    public void scheduleJob(View v){
+    public void scheduleJob(){
         ComponentName componentName = new ComponentName(this, TestJobService.class);
         JobInfo info = new JobInfo.Builder(123, componentName)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED) //when there is wifi
