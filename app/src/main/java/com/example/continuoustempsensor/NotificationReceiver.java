@@ -54,6 +54,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .addAction(R.mipmap.ic_launcher, "Notify Others", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     .build();
+            //Aryan's code for taking time
             notificationManager.notify(1, notification);
         }
         if (RequestCode == 1) {//yellow

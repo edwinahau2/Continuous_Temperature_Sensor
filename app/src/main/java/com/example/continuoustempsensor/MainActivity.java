@@ -51,6 +51,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -532,6 +533,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }).start();
+                                medianTemp = 102;
                                 //only applies when user has not force closed the app
                                 if (medianTemp >=  100.3) {
                                     if (medianTemp >= 103) {// more urgent -- 103+
@@ -543,12 +545,13 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     if (firstNotif) {
                                         // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
-                                        NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                        //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
                                         firstNotif = false;
                                         scheduleJob();
                                     } else {
                                         // buffer for next urgent notification -- Job Scheduler
                                         Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+
                                     }
                                 } else { //not urgent
                                     // json write to notif file w/ nonurgent level
@@ -566,11 +569,12 @@ public class MainActivity extends AppCompatActivity {
         };
     }
     public void scheduleJob(){
-        ComponentName componentName = new ComponentName(this, TestJobService.class);
+        ComponentName componentName = new ComponentName(this, urgentNotifJob.class);
         JobInfo info = new JobInfo.Builder(123, componentName)
-                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED) //when there is wifi
                 .setPersisted(true) // will continue job id device reboots
                 .setPeriodic(15*60*1000) //15 min minimum
+                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(10), JobInfo.BACKOFF_POLICY_LINEAR)
+                .setRequiresCharging(false)
                 .build();
 
         JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
