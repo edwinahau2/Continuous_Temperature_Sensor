@@ -26,6 +26,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         notificationManager = NotificationManagerCompat.from(context);
 
         Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at fragment 2 when notification clicked
+        activityIntent.putExtra("message", "message");
         PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
 
         Intent broadcastIntent = new Intent(context, NotificationReceiver.class);

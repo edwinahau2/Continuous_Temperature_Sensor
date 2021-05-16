@@ -1,17 +1,13 @@
 package com.example.continuoustempsensor;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -19,8 +15,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.UUID;
 
 public class AndroidService extends Service {
@@ -41,22 +35,6 @@ public class AndroidService extends Service {
     public void onCreate() {
         super.onCreate();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-        //creating a new intent specifying the broadcast receiver
-        Intent i = new Intent(getBaseContext(), MyAlarm.class);
-
-        //creating a pending intent using the intent
-        PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(System.currentTimeMillis());
-        SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
-        long time = cal.getTimeInMillis();
-
-        //setting the repeating alarm that will be fired every day
-        am.setRepeating(AlarmManager.RTC_WAKEUP, time,  60*15000, pi);
-        Log.d("ExampleJobService", "Alarm is set at " + sdf.format(cal.getTime()));
     }
 
     @Override

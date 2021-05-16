@@ -174,6 +174,13 @@ public class MainActivity extends AppCompatActivity {
             startConnection();
         }
 
+        Intent intent = getIntent();
+        if (intent.hasExtra("message")) {
+            firstNotif = true;
+            JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
+            scheduler.cancel(123); //job
+            Log.d(TAG, "Job Cancelled");
+        }
 //        ComponentName componentName = new ComponentName(getApplicationContext(), TestJobService.class);
 //        PersistableBundle bun = new PersistableBundle();
 //        bun.putString("address", address);
@@ -339,8 +346,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         notif.setOnClickListener(v -> {
-            Intent intent = new Intent(getApplicationContext(), notifActivity.class);
-            startActivity(intent);
+            Intent intend = new Intent(getApplicationContext(), notifActivity.class);
+            startActivity(intend);
         });
 
         btSym.setOnClickListener(v -> {
@@ -533,8 +540,8 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }).start();
-                                medianTemp = 102;
                                 //only applies when user has not force closed the app
+                                medianTemp = 35;
                                 if (medianTemp >=  30) {
                                     if (medianTemp >= 35) {// more urgent -- 103+
                                 /*if (medianTemp >=  100.3) {
@@ -543,19 +550,23 @@ public class MainActivity extends AppCompatActivity {
                                         //no notif code needed here
                                     //} else {// less, but still urgent 100.3-103
                                         // write to json file w/ yellow
-                                        NotificationReceiver.sendNotification(getApplicationContext(), 1); //middle urgent notif
-                                    }
-                                    if (firstNotif) {
-                                        // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
-                                        //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
-                                        firstNotif = false;
-                                        //scheduleJob();
-                                    } else {
-                                        // buffer for next urgent notification -- Job Scheduler
-                                        Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+                                        if (firstNotif) {
+                                            // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
+                                            //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                            firstNotif = false;
+                                            scheduleJob();
+                                        } else {
+                                            // buffer for next urgent notification -- Job Scheduler
+                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+                                            //check if notif clicked
+                                        }
+                                    } else{
 
                                     }
-                                } else { //not urgent
+
+                                }
+
+                                else { //not urgent
                                     // json write to notif file w/ nonurgent level
                                     //textTimeNotify time
                                     // normal notifictation interval check
@@ -577,7 +588,7 @@ public class MainActivity extends AppCompatActivity {
         JobInfo info = new JobInfo.Builder(123, componentName)
                 .setPersisted(true) // will continue job id device reboots
                 .setPeriodic(15*60*1000) //15 min minimum
-                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(10), JobInfo.BACKOFF_POLICY_LINEAR)
+                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
                 .setRequiresCharging(false)
                 .build();
 

@@ -48,11 +48,11 @@
             android:exported="true"
             android:stopWithTask="false"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
-
-        <receiver
-            android:name=".MyAlarm"
+        <service android:name=".urgentNotifJob"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:stopWithTask="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
 
     </application>
 
