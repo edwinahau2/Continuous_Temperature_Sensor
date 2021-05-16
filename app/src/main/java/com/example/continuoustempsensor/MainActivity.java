@@ -531,6 +531,34 @@ public class MainActivity extends AppCompatActivity {
                                         } catch (InterruptedException e){
                                             e.printStackTrace();
                                         }
+<<<<<<< Updated upstream
+=======
+                                    }).start();
+
+// ADD A background THREAD HERE AND TEST THE CODE
+                                    if (medianTemp >= 50) {
+                                        if (medianTemp >= 90) {// more urgent
+                                            // write to json file w/ red
+                                            // set urgent notif "red" text + color
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 2); //urgent notif
+                                        } else {// less, but still urgent
+                                            // write to json file w/ yellow
+                                            // set urgent notif "yellow" text + color
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 2); //middle urgent notif
+                                        }
+                                        /*if (!arbitrary) {
+                                            // send notif w/ urgency text + color bc buffer has been met/hasn't been initiated
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                        } else {
+                                            // buffer for next urgent notification -- Job Scheduler
+                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+                                        }*/
+                                    } else { //not urgent
+                                        // json write to notif file w/ nonurgent level
+                                        //textTimeNotify time
+                                        // normal notifictation interval check
+                                        NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+>>>>>>> Stashed changes
                                     }
                                 }).start();
                                 medianTemp = 102;
@@ -554,6 +582,7 @@ public class MainActivity extends AppCompatActivity {
                                         // buffer for next urgent notification -- Job Scheduler
                                         Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
 
+<<<<<<< Updated upstream
                                     }
                                 } else { //not urgent
                                     // json write to notif file w/ nonurgent level
@@ -564,6 +593,23 @@ public class MainActivity extends AppCompatActivity {
                             }
                         } else {
                             Toast.makeText(getApplicationContext(), "nan", Toast.LENGTH_SHORT).show();
+=======
+                                            }
+                                            NotificationReceiver.sendNotification(getApplicationContext(),0);
+                                            firstTime = false;
+                                            Toast.makeText(getApplicationContext(), "again", Toast.LENGTH_SHORT).show();
+                                        }
+                                        else{
+                                            Toast.makeText(getApplicationContext(), "not yet", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }*/
+                            //}
+                        } else{
+                                Toast.makeText(getApplicationContext(), "nan", Toast.LENGTH_SHORT).show();
+                            }
+                            recDataString.delete(0, recDataString.length());
+                            dataInPrint = "";
+>>>>>>> Stashed changes
                         }
                         recDataString.delete(0, recDataString.length());
                         dataInPrint = "";
