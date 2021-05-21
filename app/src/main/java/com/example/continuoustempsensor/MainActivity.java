@@ -174,13 +174,14 @@ public class MainActivity extends AppCompatActivity {
             startConnection();
         }
 
-        Intent intent = getIntent();
+        /*Intent intent = getIntent();
+        /*Intent intent = getIntent();
         if (intent.hasExtra("message")) {
             firstNotif = true;
             JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
             scheduler.cancel(123); //job
             Log.d(TAG, "Job Cancelled");
-        }
+        }*/
 //        ComponentName componentName = new ComponentName(getApplicationContext(), TestJobService.class);
 //        PersistableBundle bun = new PersistableBundle();
 //        bun.putString("address", address);
@@ -346,8 +347,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         notif.setOnClickListener(v -> {
-            Intent intend = new Intent(getApplicationContext(), notifActivity.class);
-            startActivity(intend);
+            Intent intent = new Intent(getApplicationContext(), notifActivity.class);
+            startActivity(intent);
         });
 
         btSym.setOnClickListener(v -> {
@@ -541,9 +542,9 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }).start();
                                 //only applies when user has not force closed the app
-                                medianTemp = 35;
-                                if (medianTemp >=  30) {
-                                    if (medianTemp >= 35) {// more urgent -- 103+
+                                medianTemp = 101;
+                                if (medianTemp >= 0) {
+                                    if (medianTemp >= 100.4) {// more urgent -- red
                                 /*if (medianTemp >=  100.3) {
                                     if (medianTemp >= 103) {// more urgent -- 103+*/
                                         // write to json file w/ red
@@ -552,9 +553,9 @@ public class MainActivity extends AppCompatActivity {
                                         // write to json file w/ yellow
                                         if (firstNotif) {
                                             // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
-                                            //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 2); //urgent notif
                                             firstNotif = false;
-                                            scheduleJob();
+                                            //scheduleJob();
                                         } else {
                                             // buffer for next urgent notification -- Job Scheduler
                                             Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works

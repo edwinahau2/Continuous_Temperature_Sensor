@@ -25,8 +25,8 @@ public class NotificationReceiver extends BroadcastReceiver {
         NotificationManagerCompat notificationManager;
         notificationManager = NotificationManagerCompat.from(context);
 
-        Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at fragment 2 when notification clicked
-        activityIntent.putExtra("message", "message");
+        Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
+        //activityIntent.putExtra("message", "message");
         PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
 
         Intent broadcastIntent = new Intent(context, NotificationReceiver.class);
@@ -34,18 +34,20 @@ public class NotificationReceiver extends BroadcastReceiver {
         PendingIntent actionIntent = PendingIntent.getBroadcast(context, RequestCode, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         //update current means that when we create a new pendingintent, it will update putextra
 
-        Bitmap largeIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_spike);
+        Bitmap redIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_red);
+        Bitmap orangeIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_orange);
+        Bitmap greenIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_green);
 
         if (RequestCode == 0) {//red
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
                     //.setContentTitle(title)
                     //.setContentText(message)
-                    .setLargeIcon(largeIcon)
+                    .setLargeIcon(redIcon)
                     .setStyle(new NotificationCompat.BigTextStyle()
                             .bigText(context.getString(R.string.red_spike_message))
                             .setBigContentTitle("Fever Temperatures Detected")
-                            .setSummaryText("Summary Text"))
+                            .setSummaryText("Fever Temperature"))
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setCategory(NotificationCompat.CATEGORY_ALARM)
                     .setColor(Color.argb(255, 48, 154, 230))
@@ -58,16 +60,16 @@ public class NotificationReceiver extends BroadcastReceiver {
             //Aryan's code for taking time
             notificationManager.notify(1, notification);
         }
-        if (RequestCode == 1) {//yellow
+        if (RequestCode == 1) {//orange
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
                     //.setContentTitle(title)
                     //.setContentText(message)
-                    .setLargeIcon(largeIcon)
+                    .setLargeIcon(orangeIcon)
                     .setStyle(new NotificationCompat.BigTextStyle()
-                            .bigText(context.getString(R.string.yellow_spike_message))
+                            .bigText(context.getString(R.string.orange_spike_message))
                             .setBigContentTitle("Fever Temperatures Detected")
-                            .setSummaryText("Summary Text"))
+                            .setSummaryText("Increasing Temperature"))
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setCategory(NotificationCompat.CATEGORY_ALARM)
                     .setColor(Color.argb(255, 48, 154, 230))
@@ -77,15 +79,16 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .addAction(R.mipmap.ic_launcher, "Notify Others", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     .build();
-            notificationManager.notify(1, notification);
+            notificationManager.notify(2, notification);
         }
         if (RequestCode == 2) {//green
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_2_ID)
                     .setSmallIcon(R.drawable.announcement)
 //                    .setContentTitle(title)
 //                    .setContentText(message)
+                    .setLargeIcon(greenIcon)
                     .setStyle(new NotificationCompat.InboxStyle()
-                            .addLine("Notification message 1") // can add up to 7 lines
+                            .addLine("Your temperatures are normal") // can add up to 7 lines
                     )
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setCategory(NotificationCompat.CATEGORY_EVENT)
@@ -93,7 +96,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true)
                     .build();
-            notificationManager.notify(2, notification);
+            notificationManager.notify(3, notification);
         }
     }
 }
