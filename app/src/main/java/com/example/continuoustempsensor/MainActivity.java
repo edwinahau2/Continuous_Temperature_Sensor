@@ -553,7 +553,7 @@ public class MainActivity extends AppCompatActivity {
                                         // write to json file w/ yellow
                                         if (firstNotif) {
                                             // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
-                                            NotificationReceiver.sendNotification(getApplicationContext(), 2); //urgent notif
+                                            //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
                                             firstNotif = false;
                                             //scheduleJob();
                                         } else {
