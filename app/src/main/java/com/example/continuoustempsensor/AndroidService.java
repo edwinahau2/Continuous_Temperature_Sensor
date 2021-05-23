@@ -55,22 +55,6 @@ public class AndroidService extends Service {
     public void onCreate() {
         super.onCreate();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-        //creating a new intent specifying the broadcast receiver
-        Intent i = new Intent(getBaseContext(), MyAlarm.class);
-
-        //creating a pending intent using the intent
-        PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(System.currentTimeMillis());
-        SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
-        long time = cal.getTimeInMillis();
-
-        //setting the repeating alarm that will be fired every day
-        am.setRepeating(AlarmManager.RTC_WAKEUP, time,  60*15000, pi);
-        Log.d("ExampleJobService", "Alarm is set at " + sdf.format(cal.getTime()));
     }
 
     @Override
@@ -78,7 +62,7 @@ public class AndroidService extends Service {
         if (intent != null) {
             address = intent.getStringExtra("address");
 //            mDevice = mBlueAdapter.getRemoteDevice(address);
- //           startConnection();
+//            startConnection();
         }
         return START_STICKY;
     }

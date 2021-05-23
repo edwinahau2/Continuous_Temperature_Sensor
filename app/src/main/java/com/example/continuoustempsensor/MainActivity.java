@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     public static String name;
     int i = 0;
     public static boolean f = true;
-    String unit;
+    String unit = "°F";
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
     StringBuilder recDataString = new StringBuilder();
@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         ring = findViewById(R.id.ring);
         white = findViewById(R.id.white);
         temp = findViewById(R.id.temp);
+        JSONObject json = notifActivity.mainObj;
         btSym = findViewById(R.id.btSym);
         btStat = findViewById(R.id.btStat);
         notif = findViewById(R.id.notif);
@@ -140,8 +141,8 @@ public class MainActivity extends AppCompatActivity {
         leftAxis.removeAllLimitLines();
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(false);
-        leftAxis.setAxisMaximum(100f);
-        leftAxis.setAxisMinimum(0f);
+        leftAxis.setAxisMaximum(104f);
+        leftAxis.setAxisMinimum(98f);
         leftAxis.setEnabled(true);
 
         YAxis rightAxis = mChart.getAxisRight();
@@ -151,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
         mChart.setDrawBorders(false);
         mChart.invalidate();
 
-        temperature = "98.6";
+        temperature = "101.3";
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         if (bundle != null) {
             address = bundle.getString("address");
@@ -183,6 +184,15 @@ public class MainActivity extends AppCompatActivity {
 //        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
 //        jobScheduler.schedule(jobInfo);
 
+        addEntry("102");
+        addEntry("101.5");
+        addEntry("101");
+        addEntry("102.4");
+        addEntry("100.7");
+        addEntry("100.3");
+        addEntry("101.2");
+        addEntry("100.8");
+
         String[] hours = {"1:30", "1:35", "1:40", "1:45"};
         try {
             for (int r = 0; r < 7; r++) {
@@ -206,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
                             reading.put("unit", "°F");
                             obj.put(key, reading);
                         }
-                        today.put("Sun.2021.03.21", obj);
+                        today.put("Sun.2021.05.16", obj);
                         break;
                     case(1):
                         for (int p = 0; p < 4; p++) {
@@ -225,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
                             reading.put("unit", "°F");
                             obj.put(key, reading);
                         }
-                        today.put("Mon.2021.03.22", obj);
+                        today.put("Mon.2021.05.17", obj);
                          break;
                     case(2):
                         for (int p = 0; p < 4; p++) {
@@ -244,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
                             reading.put("unit", "°F");
                             obj.put(key, reading);
                         }
-                        today.put("Tue.2021.03.23", obj);
+                        today.put("Tue.2021.05.18", obj);
                         break;
                     case(3):
                         for (int p = 0; p < 4; p++) {
@@ -263,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
                             reading.put("unit", "°F");
                             obj.put(key, reading);
                         } // 97.9
-                        today.put("Wed.2021.03.24", obj);
+                        today.put("Wed.2021.05.19", obj);
                         break;
                     case(4):
                         for (int p = 0; p < 4; p++) {
@@ -282,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
                             reading.put("unit", "°F");
                             obj.put(key, reading);
                         } // 101.2
-                        today.put("Thu.2021.03.25", obj);
+                        today.put("Thu.2021.05.20", obj);
                         break;
                     case(5):
                         for (int p = 0; p < 4; p++) {
@@ -301,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
                             reading.put("unit", "°F");
                             obj.put(key, reading);
                         } // 98.2
-                        today.put("Fri.2021.03.26", obj);
+                        today.put("Fri.2021.05.21", obj);
                         break;
                     case(6):
                         for (int p = 0; p < 4; p++) {
@@ -320,10 +330,9 @@ public class MainActivity extends AppCompatActivity {
                             reading.put("unit", "°F");
                             obj.put(key, reading);
                         } // 101.7
-                        today.put("Sat.2021.03.27", obj);
+                        today.put("Sat.2021.05.22", obj);
                         break;
                 }
-//                today.put("Sun.2021.02.07", obj);
                 String userString = today.toString();
                 fileWriter = new FileWriter(file, true);
                 bufferedWriter = new BufferedWriter(fileWriter);
@@ -363,27 +372,31 @@ public class MainActivity extends AppCompatActivity {
             ring.setColor(Color.parseColor("#00B0F0"));
             temperature = "--";
             temp.setText(temperature);
-//            temp.setTextSize((float) (height*0.04));
+            temp.setTextSize(44);
         } else if (num == 1) {
             shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
             ring.setColor(Color.parseColor("#00B050"));
             temp.setText(temperature + " " + unit);
-//            temp.setTextSize((float) (height * 0.04));
+            temp.setTextSize(44);
+            temp.setTextColor(Color.parseColor("#000000"));
         } else if (num == 2) {
             shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
             ring.setColor(Color.parseColor("#FB710B"));
             temp.setText(temperature + " " + unit);
-//            temp.setTextSize((float) (height*0.04));
+            temp.setTextSize(44);
+            temp.setTextColor(Color.parseColor("#000000"));
         } else if (num == 3) {
             shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
             ring.setColor(Color.parseColor("#FF0000"));
             temp.setText(temperature + " " + unit);
-//            temp.setTextSize((float) (height*0.04));
+            temp.setTextSize(40);
+            temp.setTextColor(Color.parseColor("#000000"));
         } else {
             shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
             ring.setColor(Color.parseColor("#00B0F0"));
             temp.setText(temperature + " " + unit);
-//            temp.setTextSize((float) (height*0.04));
+            temp.setTextSize(44);
+            temp.setTextColor(Color.parseColor("#000000"));
         }
     }
 
@@ -589,7 +602,7 @@ public class MainActivity extends AppCompatActivity {
         mySet.setLineWidth(3f);
         mySet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         mySet.setCubicIntensity(0.2f);
-        mySet.setColors(ContextCompat.getColor(this, R.color.green), ContextCompat.getColor(this, R.color.yellow), ContextCompat.getColor(this, R.color.red));
+        mySet.setColors(ContextCompat.getColor(this, R.color.red), ContextCompat.getColor(this, R.color.green), ContextCompat.getColor(this, R.color.yellow));
 //        LineDataSet set = new LineDataSet(null, null);
 //        set.setDrawCircles(true);
 //        set.setFillAlpha(100);
@@ -649,12 +662,14 @@ public class MainActivity extends AppCompatActivity {
         int num;
         if (temperature.length() != 0) {
             float y = Float.parseFloat(temperature);
-            if (y <= 100.3 || y <= 37.9) {
+            if (y <= 99.9 || y <= 37.7) {
                 num = 1;
-            } else if ((y <= 103 && y >= 100.4) || (y <= 39.4 && y >= 38)) {
+            } else if ((y <= 100.4 && y >= 100) || (y <= 38 && y >= 37.8)) {
                 num = 2;
-            } else {
+            } else if ((y > 100.4 && y <= 102.9) || (y > 38 && y <= 39.4)) {
                 num = 3;
+            } else {
+                num = 4;
             }
         } else {
             num = 0;

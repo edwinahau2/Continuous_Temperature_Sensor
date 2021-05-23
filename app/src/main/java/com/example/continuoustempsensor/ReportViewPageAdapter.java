@@ -343,6 +343,7 @@ public class ReportViewPageAdapter extends PagerAdapter {
                 }
                 BarDataSet set = new BarDataSet(barValues, null);
                 set.setColors(colorSet);
+                set.setDrawValues(false);
 //                ArrayList<BarDataSet> dataSets = new ArrayList<>();
 //                dataSets.add(set);
                 BarData barData = new BarData(set);
