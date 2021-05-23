@@ -1,41 +1,21 @@
 package com.example.continuoustempsensor;
 
-import android.annotation.SuppressLint;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.PersistableBundle;
-import android.os.SystemClock;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import static com.example.continuoustempsensor.MainActivity.*;
 
 public class AndroidService extends Service {
 
@@ -63,6 +43,9 @@ public class AndroidService extends Service {
             address = intent.getStringExtra("address");
 //            mDevice = mBlueAdapter.getRemoteDevice(address);
 //            startConnection();
+
+            mDevice = mBlueAdapter.getRemoteDevice(address);
+            startConnection();
         }
         return START_STICKY;
     }

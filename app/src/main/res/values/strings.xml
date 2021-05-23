@@ -3,6 +3,9 @@
     <string name="tab_text_1">Temperature</string>
     <string name="tab_text_2">Data Log</string>
     <string name="tab_text_3">Settings</string>
+    <string name="red_spike_message">RED. Your temperature is critically high indicating a fever. You may be at risk for Coronavirus.
+         Please contact your supervisor and notify the people around you immediately.</string>
+    <string name="orange_spike_message">ORANGE. Your temperature is increased and close to a fever.</string>
     <string-array name="dropdown_times">
         <item>30 mins</item>
         <item>1 hour</item>

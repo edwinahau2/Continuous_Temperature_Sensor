@@ -13,7 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.PersistableBundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,6 +90,10 @@ public class MainActivity extends AppCompatActivity {
     ImageView notif;
     ComplexView shadow, ring, white;
     ViewGroup vg;
+    int initMin, initHour = 0;
+    Boolean firstNotif = true;
+
+
 
     @SuppressLint("ShowToast")
     @Override
@@ -171,6 +175,14 @@ public class MainActivity extends AppCompatActivity {
             startConnection();
         }
 
+        /*Intent intent = getIntent();
+        /*Intent intent = getIntent();
+        if (intent.hasExtra("message")) {
+            firstNotif = true;
+            JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
+            scheduler.cancel(123); //job
+            Log.d(TAG, "Job Cancelled");
+        }*/
 //        ComponentName componentName = new ComponentName(getApplicationContext(), TestJobService.class);
 //        PersistableBundle bun = new PersistableBundle();
 //        bun.putString("address", address);
@@ -542,15 +554,71 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }).start();
-                            }
-                        }
+                                //only applies when user has not force closed the app
+                                medianTemp = 101;
+                                if (medianTemp >= 0) {
+                                    if (medianTemp >= 100.4) {// more urgent -- red
+                                /*if (medianTemp >=  100.3) {
+                                    if (medianTemp >= 103) {// more urgent -- 103+*/
+                                        // write to json file w/ red
+                                        //no notif code needed here
+                                    //} else {// less, but still urgent 100.3-103
+                                        // write to json file w/ yellow
+                                        if (firstNotif) {
+                                            // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
+                                            //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                            firstNotif = false;
+                                            //scheduleJob();
+                                        } else {
+                                            // buffer for next urgent notification -- Job Scheduler
+                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+                                            //check if notif clicked
+                                        }
+                                    } else{
 
+                                    }
+
+                                }
+
+                                else { //not urgent
+                                    // json write to notif file w/ nonurgent level
+                                    //textTimeNotify time
+                                    // normal notifictation interval check
+                                    NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+                            }
+                            }
+                        } else {
+                            Toast.makeText(getApplicationContext(), "nan", Toast.LENGTH_SHORT).show();
+                        }
                         recDataString.delete(0, recDataString.length());
                         dataInPrint = "";
                     }
                 }
             }
         };
+    }
+    public void scheduleJob(){
+        ComponentName componentName = new ComponentName(this, urgentNotifJob.class);
+        JobInfo info = new JobInfo.Builder(123, componentName)
+                .setPersisted(true) // will continue job id device reboots
+                .setPeriodic(15*60*1000) //15 min minimum
+                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
+                .setRequiresCharging(false)
+                .build();
+
+        JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
+        int resultCode = scheduler.schedule(info);
+        if (resultCode == JobScheduler.RESULT_SUCCESS){
+            Log.d(TAG, "Job scheduled");
+        } else{
+            Log.d(TAG, "Job scheduling failed");
+        }
+    }
+
+    public void cancelJob(View v){
+        JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
+        scheduler.cancel(123); //jobID is to identify the job you are passing through
+        Log.d(TAG, "Job cancelled");
     }
 
     private void writeJSON(String temperature, String clock, int i, String unit) {

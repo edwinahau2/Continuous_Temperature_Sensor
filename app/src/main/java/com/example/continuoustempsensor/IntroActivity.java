@@ -1,12 +1,5 @@
 package com.example.continuoustempsensor;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
@@ -32,6 +25,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -160,6 +159,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                                 btRecycle = myDialog.findViewById(R.id.listOfBt);
                                 mData = new ArrayList<>();
 //                                mData.add(new BtDevice("HC-06:1234"));
+                                //mData.add(new BtDevice("HC-06:1234"));
                                 btRecycle.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                                 btAdapter = new BtAdapter(IntroViewPageAdapter.mContext, mData, (BtAdapter.OnDeviceListener) IntroViewPageAdapter.mContext);
                                 btRecycle.setAdapter(btAdapter);
