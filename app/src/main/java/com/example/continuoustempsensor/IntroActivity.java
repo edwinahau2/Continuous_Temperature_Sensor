@@ -159,7 +159,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                                 window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
                                 btRecycle = myDialog.findViewById(R.id.listOfBt);
                                 mData = new ArrayList<>();
-                                mData.add(new BtDevice("HC-06:1234"));
+//                                mData.add(new BtDevice("HC-06:1234"));
                                 btRecycle.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                                 btAdapter = new BtAdapter(IntroViewPageAdapter.mContext, mData, (BtAdapter.OnDeviceListener) IntroViewPageAdapter.mContext);
                                 btRecycle.setAdapter(btAdapter);
