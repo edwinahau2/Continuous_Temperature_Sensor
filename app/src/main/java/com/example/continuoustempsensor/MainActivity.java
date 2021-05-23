@@ -176,7 +176,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         /*Intent intent = getIntent();
-        /*Intent intent = getIntent();
         if (intent.hasExtra("message")) {
             firstNotif = true;
             JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
@@ -557,18 +556,12 @@ public class MainActivity extends AppCompatActivity {
                                 //only applies when user has not force closed the app
                                 medianTemp = 101;
                                 if (medianTemp >= 0) {
-                                    if (medianTemp >= 100.4) {// more urgent -- red
-                                /*if (medianTemp >=  100.3) {
-                                    if (medianTemp >= 103) {// more urgent -- 103+*/
-                                        // write to json file w/ red
-                                        //no notif code needed here
-                                    //} else {// less, but still urgent 100.3-103
-                                        // write to json file w/ yellow
+                                    if (medianTemp >= 100.3) {// more urgent -- red
                                         if (firstNotif) {
                                             // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
                                             //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
                                             firstNotif = false;
-                                            //scheduleJob();
+                                            scheduleJob();
                                         } else {
                                             // buffer for next urgent notification -- Job Scheduler
                                             Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works

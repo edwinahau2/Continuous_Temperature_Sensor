@@ -32,6 +32,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         //activityIntent.putExtra("message", "message");
         PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
 
+
         Intent broadcastIntent = new Intent(context, NotificationReceiver.class);
         broadcastIntent.putExtra("ButtonUnderneath", "open app");
         PendingIntent actionIntent = PendingIntent.getBroadcast(context, RequestCode, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -57,7 +58,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true) //when tapped the notification will go away
                     //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
-                    .addAction(R.mipmap.ic_launcher, "Notify Others", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
+                    .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     .build();
             //Aryan's code for taking time
@@ -79,7 +80,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true) //when tapped the notification will go away
                     //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
-                    .addAction(R.mipmap.ic_launcher, "Notify Others", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
+                    .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     .build();
             notificationManager.notify(2, notification);
