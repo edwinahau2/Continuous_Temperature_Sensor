@@ -5,6 +5,7 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -556,6 +557,7 @@ public class MainActivity extends AppCompatActivity {
                                 //only applies when user has not force closed the app
                                 medianTemp = 101;
                                 if (medianTemp >= 0) {
+                                    // normal notification
                                     if (medianTemp >= 100.3) {// more urgent -- red
                                         if (firstNotif) {
                                             // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
@@ -697,6 +699,19 @@ public class MainActivity extends AppCompatActivity {
     private int restoreNumData() {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
         return Integer.parseInt(pref.getString("number", String.valueOf(-1)));
+    }
+
+    public static void saveIdx(int idx, Context context) {
+        SharedPreferences preferences = context.getSharedPreferences("jsonIdx", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("idx", idx);
+        editor.apply();
+    }
+
+    public static String restoreIdx(Context context) {
+        SharedPreferences preferences = context.getSharedPreferences("jsonIdx", MODE_PRIVATE);
+        int idx = preferences.getInt("idx", 0);
+        return "Notif " + idx;
     }
 
     @Override

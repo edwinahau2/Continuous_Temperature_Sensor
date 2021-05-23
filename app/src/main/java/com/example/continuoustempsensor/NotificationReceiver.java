@@ -4,17 +4,32 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.widget.Toast;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class NotificationReceiver extends BroadcastReceiver {
 
-
+    public static JSONObject mainObj = new JSONObject();
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -61,7 +76,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     .build();
-            //Aryan's code for taking time
+            writeJSON(context, RequestCode); // ADD STRING AND TIME
             notificationManager.notify(1, notification);
         }
         if (RequestCode == 1) {//orange
@@ -83,6 +98,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     .build();
+            writeJSON(context, RequestCode);
             notificationManager.notify(2, notification);
         }
         if (RequestCode == 2) {//green
@@ -100,7 +116,72 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true)
                     .build();
+            writeJSON(context, RequestCode);
             notificationManager.notify(3, notification);
+        }
+    }
+
+    private static void writeJSON(Context context, int RequestCode) {
+        File file;
+        FileReader fileReader;
+        BufferedReader bufferedReader;
+        FileWriter fileWriter;
+        BufferedWriter bufferedWriter;
+        String FILE_NAME = "notif.json";
+        file = new File(context.getFilesDir(), FILE_NAME);
+        try {
+            String idx;
+            if (mainObj.length() != 0) {
+                fileReader = new FileReader(file);
+                bufferedReader = new BufferedReader(fileReader);
+                StringBuilder stringBuilder = new StringBuilder();
+                String line = bufferedReader.readLine();
+                while (line != null) {
+                    stringBuilder.append(line).append("\n");
+                    line = bufferedReader.readLine();
+                }
+                bufferedReader.close();
+                String response = stringBuilder.toString();
+                JSONObject jsonObject = new JSONObject(response);
+                JSONArray jsonArray = new JSONArray();
+                JSONObject jText = new JSONObject();
+                JSONObject jTime = new JSONObject();
+                JSONObject jColor = new JSONObject();
+                jText.put("notifText", "Testing 4th Text"); //change
+                jTime.put("notifTime", "Testing 4th Time"); //change
+                jColor.put("notifColor", RequestCode); //change
+                idx = MainActivity.restoreIdx(context);
+                jsonArray.put(jText);
+                jsonArray.put(jTime);
+                jsonArray.put(jColor);
+                jsonObject.put(idx, jsonArray);
+                String jsonStr = jsonObject.toString();
+                fileWriter = new FileWriter(file, false);
+                bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write(jsonStr);
+                bufferedWriter.close();
+            } else {
+                JSONArray jsonArray = new JSONArray();
+                JSONObject jText = new JSONObject();
+                JSONObject jTime = new JSONObject();
+                JSONObject jColor = new JSONObject();
+                jText.put("notifText", "Testing 1st Text"); //change
+                jTime.put("notifTime", "Testing 1st Time"); //change
+                jColor.put("notifColor", RequestCode); //change
+                idx = "Notif 1"; // save this value
+                MainActivity.saveIdx(1, context);
+                jsonArray.put(jText);
+                jsonArray.put(jTime);
+                jsonArray.put(jColor);
+                mainObj.put(idx, jsonArray);
+                String jsonStr = mainObj.toString();
+                fileWriter = new FileWriter(file, true);
+                bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write(jsonStr);
+                bufferedWriter.close();
+            }
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
         }
     }
 }
