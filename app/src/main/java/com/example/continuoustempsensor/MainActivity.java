@@ -710,7 +710,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static String restoreIdx(Context context) {
         SharedPreferences preferences = context.getSharedPreferences("jsonIdx", MODE_PRIVATE);
-        int idx = preferences.getInt("idx", 0);
+        int idx = preferences.getInt("idx", 0) + 1;
         return "Notif " + idx;
     }
 
