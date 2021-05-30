@@ -4,16 +4,13 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.widget.Toast;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,7 +22,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class NotificationReceiver extends BroadcastReceiver {
 
@@ -56,7 +55,8 @@ public class NotificationReceiver extends BroadcastReceiver {
         Bitmap redIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_red);
         Bitmap orangeIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_orange);
         Bitmap greenIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_green);
-
+        Date nowTime = Calendar.getInstance().getTime();
+        String currentTime = String.valueOf(nowTime);
         if (RequestCode == 0) {//red
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
@@ -76,7 +76,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     .build();
-            writeJSON(context, RequestCode); // ADD STRING AND TIME
+            writeJSON(context, RequestCode, currentTime); // ADD STRING AND TIME
             notificationManager.notify(1, notification);
         }
         if (RequestCode == 1) {//orange
@@ -98,7 +98,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     .build();
-            writeJSON(context, RequestCode);
+            writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(2, notification);
         }
         if (RequestCode == 2) {//green
@@ -116,12 +116,12 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true)
                     .build();
-            writeJSON(context, RequestCode);
+            writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(3, notification);
         }
     }
 
-    private static void writeJSON(Context context, int RequestCode) {
+    private static void writeJSON(Context context, int RequestCode, String currentTime) {
         File file;
         FileReader fileReader;
         BufferedReader bufferedReader;
@@ -148,7 +148,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                 JSONObject jTime = new JSONObject();
                 JSONObject jColor = new JSONObject();
                 jText.put("notifText", "Testing 4th Text"); //change
-                jTime.put("notifTime", "Testing 4th Time"); //change
+                jTime.put("notifTime", currentTime);
                 jColor.put("notifColor", RequestCode); //change
                 idx = MainActivity.restoreIdx(context);
                 jsonArray.put(jText);

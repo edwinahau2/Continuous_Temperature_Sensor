@@ -27,7 +27,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 
 public class notifActivity extends AppCompatActivity {
@@ -81,6 +85,46 @@ public class notifActivity extends AppCompatActivity {
                 JSONObject nColor = notifJSON.getJSONObject(2);
                 String notifText = nText.getString("notifText");
                 String notifTime = nTime.getString("notifTime");
+                SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
+                SimpleDateFormat sdf1 = new SimpleDateFormat("MMM dd");
+                SimpleDateFormat sdf2 = new SimpleDateFormat("HH:mm a");
+                try {
+                    Date date = sdf.parse(notifTime);
+                    Date nowTime = Calendar.getInstance().getTime();
+                    float diff = nowTime.getTime() - date.getTime();
+                    float t = diff/(1000*60*60);
+                    if (t >= 1) {
+                        if (t < 24 && t >= 2) {
+                            notifTime = String.valueOf((sdf2.parse(notifTime)));
+                        } else if (t < 2) {
+                            notifTime =  "1 hour ago";
+                        } else {
+                            notifTime = String.valueOf(sdf1.parse(notifTime));
+                            float d = t/24;
+                            if (d < 7 && d >= 2) {
+                                notifTime = Math.floor(d) + " days ago";
+                            } else if (d >= 7) {
+                                notifTime = String.valueOf(sdf1.parse(notifTime)); 
+                            } else {
+                                notifTime = "1 day ago";
+                            }
+                        }
+                    } else if (t < 1/60){ // is t less than 1 min (1/60 hours) ?
+                        float s = t*3600;
+                        if (s <= 1) {
+                            notifTime =  "Just now";
+                        }
+                    } else {
+                        float m = t*60;
+                        if (m <= 1) {
+                            notifTime = "1 minute ago";
+                        } else {
+                            notifTime = Math.floor(m) + " minutes ago";
+                        }
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 int notifColor = nColor.getInt("notifColor");
                 if (notifColor == 0) {
                     img = R.drawable.play_arrow; //change
