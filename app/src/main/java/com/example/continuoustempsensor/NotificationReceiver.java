@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -130,24 +129,25 @@ public class NotificationReceiver extends BroadcastReceiver {
         String FILE_NAME = "notif.json";
         file = new File(context.getFilesDir(), FILE_NAME);
         try {
+            fileReader = new FileReader(file);
+            bufferedReader = new BufferedReader(fileReader);
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                stringBuilder.append(line).append("\n");
+                line = bufferedReader.readLine();
+            }
+            bufferedReader.close();
+            String response = stringBuilder.toString();
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray names = jsonObject.names();
             String idx;
-            if (mainObj.length() != 0) {
-                fileReader = new FileReader(file);
-                bufferedReader = new BufferedReader(fileReader);
-                StringBuilder stringBuilder = new StringBuilder();
-                String line = bufferedReader.readLine();
-                while (line != null) {
-                    stringBuilder.append(line).append("\n");
-                    line = bufferedReader.readLine();
-                }
-                bufferedReader.close();
-                String response = stringBuilder.toString();
-                JSONObject jsonObject = new JSONObject(response);
+            if (names != null) {
                 JSONArray jsonArray = new JSONArray();
                 JSONObject jText = new JSONObject();
                 JSONObject jTime = new JSONObject();
                 JSONObject jColor = new JSONObject();
-                jText.put("notifText", "Testing 4th Text"); //change
+                jText.put("notifText", "Testing 2nd Text"); //change
                 jTime.put("notifTime", currentTime);
                 jColor.put("notifColor", RequestCode); //change
                 idx = MainActivity.restoreIdx(context);
@@ -166,7 +166,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                 JSONObject jTime = new JSONObject();
                 JSONObject jColor = new JSONObject();
                 jText.put("notifText", "Testing 1st Text"); //change
-                jTime.put("notifTime", currentTime); //change
+                jTime.put("notifTime", currentTime);
                 jColor.put("notifColor", RequestCode); //change
                 idx = "Notif 1"; // save this value
                 MainActivity.saveIdx(1, context);
@@ -183,5 +183,59 @@ public class NotificationReceiver extends BroadcastReceiver {
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
+//        try {
+//            String idx;
+//            if (mainObj.length() != 0) {
+//                fileReader = new FileReader(file);
+//                bufferedReader = new BufferedReader(fileReader);
+//                StringBuilder stringBuilder = new StringBuilder();
+//                String line = bufferedReader.readLine();
+//                while (line != null) {
+//                    stringBuilder.append(line).append("\n");
+//                    line = bufferedReader.readLine();
+//                }
+//                bufferedReader.close();
+//                String response = stringBuilder.toString();
+//                JSONObject jsonObject = new JSONObject(response);
+//                JSONArray jsonArray = new JSONArray();
+//                JSONObject jText = new JSONObject();
+//                JSONObject jTime = new JSONObject();
+//                JSONObject jColor = new JSONObject();
+//                jText.put("notifText", "Testing 4th Text"); //change
+//                jTime.put("notifTime", currentTime);
+//                jColor.put("notifColor", RequestCode); //change
+//                idx = MainActivity.restoreIdx(context);
+//                jsonArray.put(jText);
+//                jsonArray.put(jTime);
+//                jsonArray.put(jColor);
+//                jsonObject.put(idx, jsonArray);
+//                String jsonStr = jsonObject.toString();
+//                fileWriter = new FileWriter(file, false);
+//                bufferedWriter = new BufferedWriter(fileWriter);
+//                bufferedWriter.write(jsonStr);
+//                bufferedWriter.close();
+//            } else {
+//                JSONArray jsonArray = new JSONArray();
+//                JSONObject jText = new JSONObject();
+//                JSONObject jTime = new JSONObject();
+//                JSONObject jColor = new JSONObject();
+//                jText.put("notifText", "Testing 1st Text"); //change
+//                jTime.put("notifTime", "Testing 1st Time"); //change
+//                jColor.put("notifColor", RequestCode); //change
+//                idx = "Notif 1"; // save this value
+//                MainActivity.saveIdx(1, context);
+//                jsonArray.put(jText);
+//                jsonArray.put(jTime);
+//                jsonArray.put(jColor);
+//                mainObj.put(idx, jsonArray);
+//                String jsonStr = mainObj.toString();
+//                fileWriter = new FileWriter(file, true);
+//                bufferedWriter = new BufferedWriter(fileWriter);
+//                bufferedWriter.write(jsonStr);
+//                bufferedWriter.close();
+//            }
+//        } catch (IOException | JSONException e) {
+//            e.printStackTrace();
+//        }
     }
 }
