@@ -185,7 +185,6 @@ public class notifActivity extends AppCompatActivity {
                         } catch (JSONException | IOException e) {
                             e.printStackTrace();
                         }
-
                     }
                 });
             }

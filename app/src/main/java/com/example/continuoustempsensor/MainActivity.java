@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     ViewGroup vg;
     int initMin, initHour = 0;
     Boolean firstNotif = true;
-
+    ArrayList<Float> G = new ArrayList<>();
 
 
     @SuppressLint("ShowToast")
@@ -481,113 +481,101 @@ public class MainActivity extends AppCompatActivity {
                     recDataString.append(readMessage);
                     int endOfLineIndex = recDataString.indexOf("~");
                     if (endOfLineIndex > 0) {
-                        String dataInPrint = recDataString.substring(0, endOfLineIndex);
-
+                        boolean legit = false;
                         if (recDataString.charAt(0) == '#') {
                             String sensor = recDataString.substring(1, endOfLineIndex);
                             float sensorVal =  Float.parseFloat(sensor);
                             tempVals.add(sensorVal);
-
-                            boolean legit = true;
-                            if (tempVals.size()>60){
-                                double min = Collections.min(tempVals);
-                                double max = Collections.max(tempVals);
+                            int N = tempVals.size();
+                            if (N >= 30){
                                 double total =0;
-                                for(int i=0;i<tempVals.size();i++)
-                                {
-                                    total+=tempVals.get(i);
+                                for(int i=0;i<N;i++) {
+                                    total += tempVals.get(i);
                                 }
-                                double mean = total/tempVals.size();
-                                double total2 =0;
-                                for (int i=0;i<tempVals.size();i++)
-                                {
-                                    total2 += Math.pow((i - mean), 2);
+                                double mean = total/N;
+                                double total2 = 0;
+                                for (int i=0;i<N; i++) {
+                                    total2 += Math.pow((tempVals.get(i) - mean), 2);
                                 }
-                                double std = Math.sqrt( total2 / ( tempVals.size() - 1 ) );
-                                double gLower = (mean - min)/std;
-                                double gUpper = (max-mean)/std;
-                                if(gLower > 3.0269 || gUpper >3.0369){
-                                    // There's an outlier
-                                    legit = false;
+                                double std = Math.sqrt(total2 / (N - 1));
+                                if (std*std < 0.2) {
+                                    for (int i = 0; i < N; i++) {
+                                        double Gstat = Math.abs(tempVals.get(i) - mean) / std;
+                                        if (Gstat < 2.75) {
+                                            G.add(tempVals.get(i));
+                                        }
+                                    }
+                                    legit = G.isEmpty();
                                 }
-                                if(std*std > 0.50){
-                                    //Too much variance
-                                    legit =false;
-                                }
-                            }
-                            if(legit) {
-                                Collections.sort(tempVals);
-                                double medianTemp;
-                                if (tempVals.size() % 2 == 0)
-                                {
-                                    medianTemp = ((double) Math.round(((tempVals.get(tempVals.size()/2) + (double)tempVals.get(tempVals.size()/2 - 1))/2) * 10) / 10.0);
-                                }
-                                else {
-                                    medianTemp = (double) Math.round((tempVals.get(tempVals.size()/2) * 10)/10.0);
-                                }
-                                if (!f) {
-                                    medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
-                                }
-                                temperature = Double.toString(medianTemp);
-//                                    temp.setText(temperature);
-                                onResume();
-                                plotData = true;
-                                new Thread(() -> {
-                                    while (plotData) {
-                                        runOnUiThread(() -> {
-                                            String clock = format.format(Calendar.getInstance().getTime());
-                                            time.add(clock);
-                                            addEntry(temperature);
-                                            plotData = false;
-                                            if (f) {
-                                                unit = "°F";
-                                            } else {
-                                                unit = "°C";
-                                            }
+                                if (legit) {
+                                    Collections.sort(tempVals);
+                                    double medianTemp;
+                                    if (N % 2 == 0) {
+                                        medianTemp = (G.get(G.size()/2) + G.get((G.size()/2) - 1)) / 2;
+                                    } else {
+                                        medianTemp = G.get(G.size()/2);
+                                    }
+                                    if (!f) {
+                                        medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
+                                    }
+                                    temperature = Double.toString(medianTemp);
+                                    onResume();
+                                    plotData = true;
+                                    new Thread(() -> {
+                                        while (plotData) {
+                                            runOnUiThread(() -> {
+                                                String clock = format.format(Calendar.getInstance().getTime());
+                                                time.add(clock);
+                                                addEntry(temperature);
+                                                plotData = false;
+                                                if (f) {
+                                                    unit = "°F";
+                                                } else {
+                                                    unit = "°C";
+                                                }
                                             writeJSON(temperature, clock, i, unit);
                                             i++;
-                                        });
-                                        try {
-                                            Thread.sleep(5000);
-                                        } catch (InterruptedException e){
-                                            e.printStackTrace();
+                                            });
+                                            try {
+                                                Thread.sleep(5000);
+                                            } catch (InterruptedException e){
+                                                e.printStackTrace();
+                                            }
                                         }
-                                    }
-                                }).start();
+                                    }).start();
                                 //only applies when user has not force closed the app
-                                medianTemp = 101;
-                                if (medianTemp >= 0) {
+                                    medianTemp = 101;
+                                    if (medianTemp >= 0) {
                                     // normal notification
-                                    if (medianTemp >= 100.3) {// more urgent -- red
-                                        if (firstNotif) {
+                                        if (medianTemp >= 100.3) {// more urgent -- red
+                                            if (firstNotif) {
                                             // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
                                             //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
-                                            firstNotif = false;
-                                            scheduleJob();
-                                        } else {
+                                                firstNotif = false;
+                                                scheduleJob();
+                                            } else {
                                             // buffer for next urgent notification -- Job Scheduler
-                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+                                                Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
                                             //check if notif clicked
+                                            }
+                                        } else{
+
                                         }
-                                    } else{
-
-                                    }
-
-                                }
-
-                                else { //not urgent
+                                    } else { //not urgent
                                     // json write to notif file w/ nonurgent level
                                     //textTimeNotify time
                                     // normal notifictation interval check
-                                    NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+                                        NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+                                    }
+                                }
                             }
-                            }
-                        } else {
-                            Toast.makeText(getApplicationContext(), "nan", Toast.LENGTH_SHORT).show();
                         }
-                        recDataString.delete(0, recDataString.length());
-                        dataInPrint = "";
+                    } else {
+                        Toast.makeText(getApplicationContext(), "nan", Toast.LENGTH_SHORT).show();
                     }
+                    recDataString.delete(0, recDataString.length());
+                    G.clear();
+                    tempVals.clear();
                 }
             }
         };
@@ -710,7 +698,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static String restoreIdx(Context context) {
         SharedPreferences preferences = context.getSharedPreferences("jsonIdx", MODE_PRIVATE);
-        int idx = preferences.getInt("idx", 0);
+        int idx = preferences.getInt("idx", 0) + 1;
         return "Notif " + idx;
     }
 

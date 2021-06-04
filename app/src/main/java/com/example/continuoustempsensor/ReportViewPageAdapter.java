@@ -422,7 +422,6 @@ public class ReportViewPageAdapter extends PagerAdapter {
         float min = Collections.min(temp);
         float total = 0;
         for (int l = 0; l < temp.size(); l++) {
-            Log.d("averageTemp", "value: " + temp.get(l));
             total = total + temp.get(l);
         }
         float avgTemp = total / temp.size();

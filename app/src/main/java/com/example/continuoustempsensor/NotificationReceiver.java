@@ -166,7 +166,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                 JSONObject jTime = new JSONObject();
                 JSONObject jColor = new JSONObject();
                 jText.put("notifText", "Testing 1st Text"); //change
-                jTime.put("notifTime", "Testing 1st Time"); //change
+                jTime.put("notifTime", currentTime); //change
                 jColor.put("notifColor", RequestCode); //change
                 idx = "Notif 1"; // save this value
                 MainActivity.saveIdx(1, context);
