@@ -48,6 +48,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -149,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
         leftAxis.setAxisMaximum(104f);
         leftAxis.setAxisMinimum(98f);
         leftAxis.setEnabled(true);
-
         YAxis rightAxis = mChart.getAxisRight();
         rightAxis.setEnabled(false);
 
@@ -487,6 +487,7 @@ public class MainActivity extends AppCompatActivity {
                             float sensorVal =  Float.parseFloat(sensor);
                             tempVals.add(sensorVal);
                             int N = tempVals.size();
+                            Log.d(TAG, "tempVal size: " + N);
                             if (N >= 30){
                                 double total =0;
                                 for(int i=0;i<N;i++) {
@@ -505,20 +506,21 @@ public class MainActivity extends AppCompatActivity {
                                             G.add(tempVals.get(i));
                                         }
                                     }
-                                    legit = G.isEmpty();
+                                    legit = !G.isEmpty();
                                 }
                                 if (legit) {
                                     Collections.sort(tempVals);
                                     double medianTemp;
                                     if (N % 2 == 0) {
-                                        medianTemp = (G.get(G.size()/2) + G.get((G.size()/2) - 1)) / 2;
+                                        medianTemp = (G.get(G.size()/2) + G.get((G.size()/2) - 1)) / 2.0;
                                     } else {
-                                        medianTemp = G.get(G.size()/2);
+                                        medianTemp = (G.get(G.size()/2)) / 1.0;
                                     }
                                     if (!f) {
                                         medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
                                     }
-                                    temperature = Double.toString(medianTemp);
+                                    DecimalFormat df = new DecimalFormat("#.#");
+                                    temperature = df.format(medianTemp);
                                     onResume();
                                     plotData = true;
                                     new Thread(() -> {
@@ -568,14 +570,14 @@ public class MainActivity extends AppCompatActivity {
                                         NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
                                     }
                                 }
+                                G.clear();
+                                tempVals.clear();
                             }
                         }
                     } else {
                         Toast.makeText(getApplicationContext(), "nan", Toast.LENGTH_SHORT).show();
                     }
                     recDataString.delete(0, recDataString.length());
-                    G.clear();
-                    tempVals.clear();
                 }
             }
         };
