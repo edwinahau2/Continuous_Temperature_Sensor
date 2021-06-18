@@ -548,26 +548,23 @@ public class MainActivity extends AppCompatActivity {
                                 //only applies when user has not force closed the app
                                     medianTemp = 101;
                                     if (medianTemp >= 0) {
-                                    // normal notification
                                         if (medianTemp >= 100.3) {// more urgent -- red
-                                            if (firstNotif) {
-                                            // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
-                                            //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                            if (firstNotif) {// send first notif
                                                 firstNotif = false;
-                                                scheduleJob();
-                                            } else {
-                                            // buffer for next urgent notification -- Job Scheduler
+                                                scheduleJob(); //notif sent in urgentNotifJob class
+                                            } else {// buffer for next urgent notification -- Job Scheduler
                                                 Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
-                                            //check if notif clicked
-                                            }
-                                        } else{
+                                                //check if notif clicked -> if clicked then will cancel the buffer
 
+                                                //HERE!!!
+
+                                            }
+                                        } else{//not urgent normal notification -- temp greater than 0 but less than 100.3
+                                            // json write to notif file w/ nonurgent level
+                                            // textTimeNotify time
+                                            // normal notifictation interval check
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
                                         }
-                                    } else { //not urgent
-                                    // json write to notif file w/ nonurgent level
-                                    //textTimeNotify time
-                                    // normal notifictation interval check
-                                        NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
                                     }
                                 }
                                 G.clear();
@@ -598,6 +595,7 @@ public class MainActivity extends AppCompatActivity {
         } else{
             Log.d(TAG, "Job scheduling failed");
         }
+
     }
 
     public void cancelJob(View v){
