@@ -3,6 +3,7 @@ package com.example.continuoustempsensor;
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -92,6 +94,20 @@ public class fragment_tab2 extends Fragment  {
         materialCalendarView.addDecorator(new CurrentDayDecorator(myDate, true));
         selectTab = tabLayout.getTabAt(itab);
         selectTab.select();
+        for (int i = 0; i < tabLayout.getTabCount(); i++) {
+            TabLayout.Tab tab = tabLayout.getTabAt(i);
+            if (tab != null) {
+                TextView tabTextView = new TextView(requireContext());
+                tab.setCustomView(tabTextView);
+                tabTextView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                tabTextView.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                tabTextView.setText(tab.getText());
+                if (i == 0) {
+                    tabTextView.setTypeface(Typeface.DEFAULT_BOLD);
+                    tabTextView.setTextColor(Color.parseColor("#FFFFFF"));
+                }
+            }
+        }
         materialCalendarView.setOnDateChangedListener((widget, date, selected) -> {
             params.height = (int) (size.y*0.95);
             current = convertCalendar(date);
@@ -154,10 +170,13 @@ public class fragment_tab2 extends Fragment  {
             }
         });
 
-                tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
                     @Override
                     public void onTabSelected(TabLayout.Tab tab) {
                         itab = tab.getPosition();
+                        TextView text = (TextView) tab.getCustomView();
+                        text.setTypeface(Typeface.DEFAULT_BOLD);
+                        text.setTextColor(Color.parseColor("#FFFFFF"));
                         materialCalendarView.removeDecorators();
                         materialCalendarView.invalidateDecorators();
                         CalendarDay date = materialCalendarView.getSelectedDate();
@@ -215,7 +234,9 @@ public class fragment_tab2 extends Fragment  {
 
                     @Override
                     public void onTabUnselected(TabLayout.Tab tab) {
-
+                        TextView text = (TextView) tab.getCustomView();
+                        text.setTypeface(Typeface.DEFAULT);
+                        text.setTextColor(Color.parseColor("#9e9e9e"));
                     }
 
                     @Override

@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
     public static final int RESPONSE_MESSAGE = 10;
-    String temperature;
+    String temperature = "101.2";
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         mChart.setDrawBorders(false);
         mChart.invalidate();
 
-        temperature = "101.3";
+//        temperature = "101.3";
         arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         if (bundle != null) {
             address = bundle.getString("address");
@@ -195,15 +195,6 @@ public class MainActivity extends AppCompatActivity {
 //                .build();
 //        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
 //        jobScheduler.schedule(jobInfo);
-
-        addEntry("102");
-        addEntry("101.5");
-        addEntry("101");
-        addEntry("102.4");
-        addEntry("100.7");
-        addEntry("100.3");
-        addEntry("101.2");
-        addEntry("100.8");
 
         String[] hours = {"1:30", "1:35", "1:40", "1:45"};
         try {

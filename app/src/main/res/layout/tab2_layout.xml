@@ -40,7 +40,7 @@
             app:layout_constraintTop_toBottomOf="@id/dataLog"
             app:layout_constraintBottom_toTopOf="@id/firstRelative"
             app:tabBackground="@color/card_bg_color"
-            app:tabIndicatorColor="#498bc5"
+            app:tabIndicatorColor="#4e95d4"
             app:tabIndicator="@drawable/tab_day_outline"
             app:tabIndicatorGravity="stretch">
 
