@@ -35,6 +35,11 @@ public class NotificationReceiver extends BroadcastReceiver {
         //sends toast when click button called open app under the notification
         String message = intent.getStringExtra("ButtonUnderneath");
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+
+        String action = intent.getAction();
+        if (action.equals("notification_cancelled")) {
+            Toast.makeText(context, "Notification Removed", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public static void sendNotification(Context context, int RequestCode){
@@ -74,6 +79,8 @@ public class NotificationReceiver extends BroadcastReceiver {
                     //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
                     .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
+                    //******* setDeleteIntent needs to be tested
+                    .setDeleteIntent(getDeleteIntent(context))
                     .build();
             writeJSON(context, RequestCode, currentTime); // ADD STRING AND TIME
             notificationManager.notify(1, notification);
@@ -96,6 +103,8 @@ public class NotificationReceiver extends BroadcastReceiver {
                     //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
                     .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
+                    //******* setDeleteIntent needs to be tested
+                    .setDeleteIntent(getDeleteIntent(context))
                     .build();
             writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(2, notification);
@@ -114,10 +123,18 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setColor(Color.argb(255, 48, 154, 230))
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true)
+                    //******* setDeleteIntent needs to be tested
+                    .setDeleteIntent(getDeleteIntent(context))
                     .build();
             writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(3, notification);
         }
+    }
+
+    protected static PendingIntent getDeleteIntent(Context context){
+        Intent intent = new Intent(context, NotificationReceiver.class);
+        intent.setAction("notification_cancelled");
+        return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
     private static void writeJSON(Context context, int RequestCode, String currentTime) {

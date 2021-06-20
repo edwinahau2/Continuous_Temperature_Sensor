@@ -48,6 +48,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -149,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
         leftAxis.setAxisMaximum(104f);
         leftAxis.setAxisMinimum(98f);
         leftAxis.setEnabled(true);
-
         YAxis rightAxis = mChart.getAxisRight();
         rightAxis.setEnabled(false);
 
@@ -478,6 +478,7 @@ public class MainActivity extends AppCompatActivity {
                             float sensorVal =  Float.parseFloat(sensor);
                             tempVals.add(sensorVal);
                             int N = tempVals.size();
+                            Log.d(TAG, "tempVal size: " + N);
                             if (N >= 30){
                                 double total =0;
                                 for(int i=0;i<N;i++) {
@@ -496,20 +497,21 @@ public class MainActivity extends AppCompatActivity {
                                             G.add(tempVals.get(i));
                                         }
                                     }
-                                    legit = G.isEmpty();
+                                    legit = !G.isEmpty();
                                 }
                                 if (legit) {
                                     Collections.sort(tempVals);
                                     double medianTemp;
                                     if (N % 2 == 0) {
-                                        medianTemp = (G.get(G.size()/2) + G.get((G.size()/2) - 1)) / 2;
+                                        medianTemp = (G.get(G.size()/2) + G.get((G.size()/2) - 1)) / 2.0;
                                     } else {
-                                        medianTemp = G.get(G.size()/2);
+                                        medianTemp = (G.get(G.size()/2)) / 1.0;
                                     }
                                     if (!f) {
                                         medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
                                     }
-                                    temperature = Double.toString(medianTemp);
+                                    DecimalFormat df = new DecimalFormat("#.#");
+                                    temperature = df.format(medianTemp);
                                     onResume();
                                     plotData = true;
                                     new Thread(() -> {
@@ -537,36 +539,33 @@ public class MainActivity extends AppCompatActivity {
                                 //only applies when user has not force closed the app
                                     medianTemp = 101;
                                     if (medianTemp >= 0) {
-                                    // normal notification
                                         if (medianTemp >= 100.3) {// more urgent -- red
-                                            if (firstNotif) {
-                                            // send notif w/ urgent text + color bc buffer has been met/hasn't been initiated
-                                            //NotificationReceiver.sendNotification(getApplicationContext(), 0); //urgent notif
+                                            if (firstNotif) {// send first notif
                                                 firstNotif = false;
-                                                scheduleJob();
-                                            } else {
-                                            // buffer for next urgent notification -- Job Scheduler
+                                                scheduleJob(); //notif sent in urgentNotifJob class
+                                            } else {// buffer for next urgent notification -- Job Scheduler
                                                 Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
-                                            //check if notif clicked
-                                            }
-                                        } else{
+                                                //check if notif clicked -> if clicked then will cancel the buffer
 
+                                                //HERE!!!
+
+                                            }
+                                        } else{//not urgent normal notification -- temp greater than 0 but less than 100.3
+                                            // json write to notif file w/ nonurgent level
+                                            // textTimeNotify time
+                                            // normal notifictation interval check
+                                            NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
                                         }
-                                    } else { //not urgent
-                                    // json write to notif file w/ nonurgent level
-                                    //textTimeNotify time
-                                    // normal notifictation interval check
-                                        NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
                                     }
                                 }
+                                G.clear();
+                                tempVals.clear();
                             }
                         }
                     } else {
                         Toast.makeText(getApplicationContext(), "nan", Toast.LENGTH_SHORT).show();
                     }
                     recDataString.delete(0, recDataString.length());
-                    G.clear();
-                    tempVals.clear();
                 }
             }
         };
@@ -587,6 +586,7 @@ public class MainActivity extends AppCompatActivity {
         } else{
             Log.d(TAG, "Job scheduling failed");
         }
+
     }
 
     public void cancelJob(View v){
