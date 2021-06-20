@@ -537,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }).start();
                                 //only applies when user has not force closed the app
-                                    medianTemp = 101;
+                                    //medianTemp = 101;
                                     if (medianTemp >= 0) {
                                         if (medianTemp >= 100.3) {// more urgent -- red
                                             if (firstNotif) {// send first notif
