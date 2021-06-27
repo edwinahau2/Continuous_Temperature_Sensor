@@ -26,11 +26,11 @@
         app:layout_constraintGuide_percent="0.2625"/>
 
     <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/verGuide"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:id="@+id/verGuide"
-        app:layout_constraintGuide_percent="0.5"/>
+        app:layout_constraintGuide_percent="0.50121653" />
 
     <androidx.constraintlayout.widget.Guideline
         android:layout_width="match_parent"

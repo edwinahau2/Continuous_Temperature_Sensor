@@ -19,6 +19,8 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,22 +45,13 @@ import com.google.android.material.tabs.TabLayout;
 
 public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelectedListener {
 
-    private boolean clicked = false;
     BluetoothAdapter mBlueAdapter;
     private static final int REQUEST_CODE = 1;
-    public static final int RESPONSE_MESSAGE = 10;
     Toast toast;
     private static final int RESULT_OK = -1;
-    private int mLevel;
     private Button connect, tippers;
-    private TextView response, notify;
+    private TextView notify;
     private static final int REQUEST_ENABLE_BT = 0;
-    public Handler imHandler;
-    private String symbol = " °F";
-    private boolean check;
-    private boolean isImage = false;
-    private ClipDrawable mClipDrawable;
-    private int key;
     boolean uhh;
     String sensor;
     private static String textTimeNotify;
@@ -72,7 +65,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         context = requireContext();
-        response = view.findViewById(R.id.response);
         tempTab = view.findViewById(R.id.linear);
         selectTab = tempTab.getTabAt(restoreTempDisplay());
         selectTab.select();
@@ -119,8 +111,14 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 int itab = tab.getPosition();
-                MainActivity.f = itab == 0;
+                String unit;
+                if (itab == 0) {
+                    unit = " °F";
+                } else {
+                    unit = " °C";
+                }
                 saveUnitPref(itab);
+                MainActivity.saveTempUnit(unit, requireContext());
                 TextView text = (TextView) tab.getCustomView();
                 text.setTypeface(Typeface.DEFAULT_BOLD);
                 text.setTextSize(23);
@@ -140,18 +138,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 
             }
         });
-
-//        f.setOnClickListener(v -> {
-//            f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
-//            c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
-//            MainActivity.f = true;
-//        });
-//
-//        c.setOnClickListener(v -> {
-//            c.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#309ae6")));
-//            f.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#e0e0e0")));
-//            MainActivity.f = false;
-//        });
 
         enable.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
@@ -176,19 +162,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
 
     }
 
-    private void saveUnitPref(int itab) {
-        SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("unitPref", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("tempDisplay", itab);
-        editor.apply();
-    }
-
-    private int restoreTempDisplay() {
-        SharedPreferences pref = requireContext().getApplicationContext().getSharedPreferences("unitPref", Context.MODE_PRIVATE);
-        return pref.getInt("tempDisplay", 0);
-    }
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -211,45 +184,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                 toast = Toast.makeText(getActivity(), "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
                 setToast();
             }
-        }
-    }
-
-    public void changeImageView(View view) {
-        if (!isImage) {
-            isImage = true;
-            imHandler = new Handler(Looper.getMainLooper()) {
-                @Override
-                public void handleMessage(@NonNull Message msg) {
-                    super.handleMessage(msg);
-                    if (msg.what == 99) {
-                        mLevel = mClipDrawable.getLevel() + 60;
-                        if (mLevel >= 10000) {
-                            mLevel = 0;
-                        }
-                        mClipDrawable.setLevel(mLevel);
-                    }
-                }
-            };
-
-            final CountDownTimer timer = new CountDownTimer(Integer.MAX_VALUE, 10) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    if (mClipDrawable.getLevel() >= 10000) {
-                        this.onFinish();
-                        mLevel = 0;
-                    } else if (clicked) {
-                        mLevel = 0;
-                    } else {
-                        imHandler.sendEmptyMessage(99);
-                    }
-                }
-
-                @Override
-                public void onFinish() {
-                    isImage = false;
-                }
-            };
-            timer.start();
         }
     }
 
@@ -306,6 +240,18 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         return prefs.getInt("indexSelected", -1);
     }
 
+    private void saveUnitPref(int itab) {
+        SharedPreferences preferences = requireContext().getSharedPreferences("unitPref", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("tempDisplay", itab);
+        editor.apply();
+    }
+
+    private int restoreTempDisplay() {
+        SharedPreferences pref = requireContext().getSharedPreferences("unitPref", Context.MODE_PRIVATE);
+        return pref.getInt("tempDisplay", 0);
+    }
+
     public void setToast() {
         toast.setGravity(Gravity.BOTTOM, 0, 180);
         toast.show();
@@ -318,9 +264,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_OFF) {
-                    connect.setText("Not Connected");
                     connect.setTextColor(Color.parseColor("#656565"));
                     connect.setBackgroundColor(Color.parseColor("#e3e3e3"));
+                    SpannableString spanString = new SpannableString("Not Connected");
+                    spanString.setSpan(new StyleSpan(Typeface.NORMAL), 0, spanString.length(), 0);
+                    connect.setText(spanString);
                 }
             }
         }
@@ -333,11 +281,15 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         sensor = restoreNameData();
         if (uhh) {
             if (AndroidService.spark) {
-                connect.setText("Connected to " + MainActivity.name);
                 connect.setTextColor(Color.parseColor("#FFFFFF"));
                 connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                SpannableString spanString = new SpannableString("Connected to " + MainActivity.name);
+                spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+                connect.setText(spanString);
             } else {
-                connect.setText("Not Connected");
+                SpannableString spanString = new SpannableString("Not Connected");
+                spanString.setSpan(new StyleSpan(Typeface.NORMAL), 0, spanString.length(), 0);
+                connect.setText(spanString);
                 connect.setTextColor(Color.parseColor("#656565"));
                 connect.setBackgroundColor(Color.parseColor("#e3e3e3"));
             }
@@ -345,9 +297,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             saveNameData();
         } else {
             if (ConnectionActivity.daStatus != null) {
-                connect.setText(ConnectionActivity.daStatus);
                 connect.setTextColor(Color.parseColor("#FFFFFF"));
                 connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                SpannableString spanString = new SpannableString(ConnectionActivity.daStatus);
+                spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+                connect.setText(spanString);
             } else {
                 if (!AndroidService.spark) {
                     connect.setText("Not Connected");
@@ -355,18 +309,24 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
                     connect.setBackgroundColor(Color.parseColor("#e3e3e3"));
                 } else if (ConnectionActivity.sensor != null) {
                     sensor = ConnectionActivity.sensor;
-                    connect.setText("Connected to " + sensor);
                     connect.setTextColor(Color.parseColor("#FFFFFF"));
                     connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                    SpannableString spanString = new SpannableString("Connected to " + sensor);
+                    spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+                    connect.setText(spanString);
                     saveNameData();
                 } else if (sensor != null) {
-                    connect.setText("Connected to " + sensor);
                     connect.setTextColor(Color.parseColor("#FFFFFF"));
                     connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                    SpannableString spanString = new SpannableString("Connected to " + sensor);
+                    spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+                    connect.setText(spanString);
                 } else {
-                    connect.setText("Connected to " + MainActivity.name);
                     connect.setTextColor(Color.parseColor("#FFFFFF"));
                     connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                    SpannableString spanString = new SpannableString("Connected to " + MainActivity.name);
+                    spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+                    connect.setText(spanString);
                 }
             }
         }

@@ -87,7 +87,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
         myDialog.setCancelable(true);
         btnAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.button_animation);
         final List<ScreenItem> mList = new ArrayList<>();
-        mList.add(new ScreenItem("Welcome", "", R.drawable.ic_gears, R.drawable.ic_temp, 0));
+        mList.add(new ScreenItem("Welcome", "", R.drawable.uci, R.drawable.ic_temp, 0));
         mList.add(new ScreenItem("Terms of Service", "", 0, 0, 1));
         mList.add(new ScreenItem("How To Sensor", "", 0, 0, 2));
         mList.add(new ScreenItem("App Navigation", "", 0, 0, 3));

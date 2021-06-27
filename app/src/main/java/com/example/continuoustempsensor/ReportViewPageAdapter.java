@@ -60,7 +60,6 @@ public class ReportViewPageAdapter extends PagerAdapter {
     String time;
     LineChart mChart;
     BarChart barChart;
-    Toast toast;
     String response;
     String red = "#FF0000";
     String yellow = "#FB710B";
@@ -92,9 +91,9 @@ public class ReportViewPageAdapter extends PagerAdapter {
                         JSONObject obj = values.getJSONObject(time);
                         array.add(new String[]{obj.getString("temperature"), obj.getString("hour"), obj.getString("unit")});
                     }
-                    ArrayList<Float> threeParams = threeParams(array, MainActivity.f);
+                    ArrayList<Float> threeParams = threeParams(array, MainActivity.restoreTempUnit(context).equals(" °F"));
                     String unit;
-                    if (MainActivity.f) {
+                    if (MainActivity.restoreTempUnit(context).equals(" °F")) {
                         unit = "°F";
                     } else {
                         unit = "°C";
@@ -275,7 +274,7 @@ public class ReportViewPageAdapter extends PagerAdapter {
                     JSONObject obj = values.getJSONObject(timeIdx);
                     array.add(new String[]{obj.getString("temperature"), obj.getString("unit")});
                 }
-                avgTemp.add(averageCalc(array, MainActivity.f));
+                avgTemp.add(averageCalc(array, MainActivity.restoreTempUnit(context).equals(" °F")));
                 for (int j = 1; j < 7; j++) {
                     List<String[]> arr = new ArrayList<>();
                     calendar.setTime(sdf.parse(time));
@@ -291,7 +290,7 @@ public class ReportViewPageAdapter extends PagerAdapter {
                         JSONObject objSet = vals.getJSONObject(timeIdx);
                         arr.add(new String[]{objSet.getString("temperature"), objSet.getString("unit")});
                     }
-                    avgTemp.add(averageCalc(arr, MainActivity.f));
+                    avgTemp.add(averageCalc(arr, MainActivity.restoreTempUnit(context).equals(" °F")));
                 }
                 String[] daysOfWeek = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
                 barChart.setVisibility(View.VISIBLE);

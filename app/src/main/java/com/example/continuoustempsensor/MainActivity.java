@@ -41,11 +41,14 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -59,14 +62,10 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> al = new ArrayList<>();
-    File file;
-    FileWriter fileWriter = null;
-    BufferedWriter bufferedWriter = null;;
     private static final String TAG = "MainActivityCounter";
     public static String name;
     int i = 0;
-    public static boolean f = true;
-    String unit = "°F";
+    String unit = " °F";
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
     StringBuilder recDataString = new StringBuilder();
@@ -85,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
     Fragment active;
-    private ArrayAdapter<String> arrayAdapter;
     boolean plotData = false;
     ImageView btSym;
     TextView btStat;
@@ -101,8 +99,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String FILE_NAME = "temp.json";
-        file = new File(this.getFilesDir(), FILE_NAME);
         vg = (ViewGroup) getLayoutInflater().inflate(R.layout.activity_main, null);
         setContentView(vg);
         shadow = findViewById(R.id.complex);
@@ -113,6 +109,32 @@ public class MainActivity extends AppCompatActivity {
         btSym = findViewById(R.id.btSym);
         btStat = findViewById(R.id.btStat);
         notif = findViewById(R.id.notif);
+        File file;
+        FileReader fileReader;
+        BufferedReader bufferedReader;
+        String FILE_NAME = "notif.json";
+        file = new File(this.getFilesDir(), FILE_NAME);
+        try {
+            fileReader = new FileReader(file);
+            bufferedReader = new BufferedReader(fileReader);
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                stringBuilder.append(line).append("\n");
+                line = bufferedReader.readLine();
+            }
+            bufferedReader.close();
+            String response = stringBuilder.toString();
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray names = jsonObject.names();
+            if (names != null) {
+                notif.setImageResource(R.drawable.bell2);
+            } else {
+                notif.setImageResource(R.drawable.bell);
+            }
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
         Bundle bundle = getIntent().getExtras();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         mChart = findViewById(R.id.sparkView);
@@ -157,8 +179,7 @@ public class MainActivity extends AppCompatActivity {
         mChart.setDrawBorders(false);
         mChart.invalidate();
 
-//        temperature = "101.3";
-        arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         if (bundle != null) {
             address = bundle.getString("address");
             name = bundle.getString("name");
@@ -196,155 +217,155 @@ public class MainActivity extends AppCompatActivity {
 //        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
 //        jobScheduler.schedule(jobInfo);
 
-        String[] hours = {"1:30", "1:35", "1:40", "1:45"};
-        try {
-            for (int r = 0; r < 7; r++) {
-                JSONObject obj = new JSONObject();
-                JSONObject today = new JSONObject();
-                switch(r) {
-                    case(0):
-                        for (int p = 0; p < 4; p++) {
-                            String key = "time" + p;
-                            JSONObject reading = new JSONObject();
-                            if (p == 0) {
-                                reading.put("temperature", "98.6");
-                            } else if (p == 1) {
-                                reading.put("temperature", "96.7");
-                            } else if (p == 2) {
-                                reading.put("temperature", "99.0");
-                            } else {
-                                reading.put("temperature", "103.5");
-                            } // avg: 99.4
-                            reading.put("hour", hours[p]);
-                            reading.put("unit", "°F");
-                            obj.put(key, reading);
-                        }
-                        today.put("Sun.2021.05.16", obj);
-                        break;
-                    case(1):
-                        for (int p = 0; p < 4; p++) {
-                            String key = "time" + p;
-                            JSONObject reading = new JSONObject();
-                            if (p == 0) {
-                                reading.put("temperature", "99.6");
-                            } else if (p == 1) {
-                                reading.put("temperature", "96.7");
-                            } else if (p == 2) {
-                                reading.put("temperature", "102.0");
-                            } else {
-                                reading.put("temperature", "103.5");
-                            } // avg: 100.5
-                            reading.put("hour", hours[p]);
-                            reading.put("unit", "°F");
-                            obj.put(key, reading);
-                        }
-                        today.put("Mon.2021.05.17", obj);
-                         break;
-                    case(2):
-                        for (int p = 0; p < 4; p++) {
-                            String key = "time" + p;
-                            JSONObject reading = new JSONObject();
-                            if (p == 0) {
-                                reading.put("temperature", "108.6");
-                            } else if (p == 1) {
-                                reading.put("temperature", "103.7");
-                            } else if (p == 2) {
-                                reading.put("temperature", "102.0");
-                            } else {
-                                reading.put("temperature", "99.5");
-                            } // 103.5
-                            reading.put("hour", hours[p]);
-                            reading.put("unit", "°F");
-                            obj.put(key, reading);
-                        }
-                        today.put("Tue.2021.05.18", obj);
-                        break;
-                    case(3):
-                        for (int p = 0; p < 4; p++) {
-                            String key = "time" + p;
-                            JSONObject reading = new JSONObject();
-                            if (p == 0) {
-                                reading.put("temperature", "100.6");
-                            } else if (p == 1) {
-                                reading.put("temperature", "98.7");
-                            } else if (p == 2) {
-                                reading.put("temperature", "95.0");
-                            } else {
-                                reading.put("temperature", "97.5");
-                            }
-                            reading.put("hour", hours[p]);
-                            reading.put("unit", "°F");
-                            obj.put(key, reading);
-                        } // 97.9
-                        today.put("Wed.2021.05.19", obj);
-                        break;
-                    case(4):
-                        for (int p = 0; p < 4; p++) {
-                            String key = "time" + p;
-                            JSONObject reading = new JSONObject();
-                            if (p == 0) {
-                                reading.put("temperature", "100.6");
-                            } else if (p == 1) {
-                                reading.put("temperature", "101.7");
-                            } else if (p == 2) {
-                                reading.put("temperature", "100.0");
-                            } else {
-                                reading.put("temperature", "102.5");
-                            }
-                            reading.put("hour", hours[p]);
-                            reading.put("unit", "°F");
-                            obj.put(key, reading);
-                        } // 101.2
-                        today.put("Thu.2021.05.20", obj);
-                        break;
-                    case(5):
-                        for (int p = 0; p < 4; p++) {
-                            String key = "time" + p;
-                            JSONObject reading = new JSONObject();
-                            if (p == 0) {
-                                reading.put("temperature", "98.6");
-                            } else if (p == 1) {
-                                reading.put("temperature", "96.7");
-                            } else if (p == 2) {
-                                reading.put("temperature", "99.0");
-                            } else {
-                                reading.put("temperature", "98.5");
-                            }
-                            reading.put("hour", hours[p]);
-                            reading.put("unit", "°F");
-                            obj.put(key, reading);
-                        } // 98.2
-                        today.put("Fri.2021.05.21", obj);
-                        break;
-                    case(6):
-                        for (int p = 0; p < 4; p++) {
-                            String key = "time" + p;
-                            JSONObject reading = new JSONObject();
-                            if (p == 0) {
-                                reading.put("temperature", "98.6");
-                            } else if (p == 1) {
-                                reading.put("temperature", "105.7");
-                            } else if (p == 2) {
-                                reading.put("temperature", "99.0");
-                            } else {
-                                reading.put("temperature", "103.5");
-                            }
-                            reading.put("hour", hours[p]);
-                            reading.put("unit", "°F");
-                            obj.put(key, reading);
-                        } // 101.7
-                        today.put("Sat.2021.05.22", obj);
-                        break;
-                }
-                String userString = today.toString();
-                fileWriter = new FileWriter(file, true);
-                bufferedWriter = new BufferedWriter(fileWriter);
-                bufferedWriter.write(userString);
-                bufferedWriter.close();
-            }
-        } catch (JSONException | IOException e) {
-            e.printStackTrace();
-        }
+//        String[] hours = {"1:30", "1:35", "1:40", "1:45"};
+//        try {
+//            for (int r = 0; r < 7; r++) {
+//                JSONObject obj = new JSONObject();
+//                JSONObject today = new JSONObject();
+//                switch(r) {
+//                    case(0):
+//                        for (int p = 0; p < 4; p++) {
+//                            String key = "time" + p;
+//                            JSONObject reading = new JSONObject();
+//                            if (p == 0) {
+//                                reading.put("temperature", "98.6");
+//                            } else if (p == 1) {
+//                                reading.put("temperature", "96.7");
+//                            } else if (p == 2) {
+//                                reading.put("temperature", "99.0");
+//                            } else {
+//                                reading.put("temperature", "103.5");
+//                            } // avg: 99.4
+//                            reading.put("hour", hours[p]);
+//                            reading.put("unit", "°F");
+//                            obj.put(key, reading);
+//                        }
+//                        today.put("Sun.2021.05.16", obj);
+//                        break;
+//                    case(1):
+//                        for (int p = 0; p < 4; p++) {
+//                            String key = "time" + p;
+//                            JSONObject reading = new JSONObject();
+//                            if (p == 0) {
+//                                reading.put("temperature", "99.6");
+//                            } else if (p == 1) {
+//                                reading.put("temperature", "96.7");
+//                            } else if (p == 2) {
+//                                reading.put("temperature", "102.0");
+//                            } else {
+//                                reading.put("temperature", "103.5");
+//                            } // avg: 100.5
+//                            reading.put("hour", hours[p]);
+//                            reading.put("unit", "°F");
+//                            obj.put(key, reading);
+//                        }
+//                        today.put("Mon.2021.05.17", obj);
+//                         break;
+//                    case(2):
+//                        for (int p = 0; p < 4; p++) {
+//                            String key = "time" + p;
+//                            JSONObject reading = new JSONObject();
+//                            if (p == 0) {
+//                                reading.put("temperature", "108.6");
+//                            } else if (p == 1) {
+//                                reading.put("temperature", "103.7");
+//                            } else if (p == 2) {
+//                                reading.put("temperature", "102.0");
+//                            } else {
+//                                reading.put("temperature", "99.5");
+//                            } // 103.5
+//                            reading.put("hour", hours[p]);
+//                            reading.put("unit", "°F");
+//                            obj.put(key, reading);
+//                        }
+//                        today.put("Tue.2021.05.18", obj);
+//                        break;
+//                    case(3):
+//                        for (int p = 0; p < 4; p++) {
+//                            String key = "time" + p;
+//                            JSONObject reading = new JSONObject();
+//                            if (p == 0) {
+//                                reading.put("temperature", "100.6");
+//                            } else if (p == 1) {
+//                                reading.put("temperature", "98.7");
+//                            } else if (p == 2) {
+//                                reading.put("temperature", "95.0");
+//                            } else {
+//                                reading.put("temperature", "97.5");
+//                            }
+//                            reading.put("hour", hours[p]);
+//                            reading.put("unit", "°F");
+//                            obj.put(key, reading);
+//                        } // 97.9
+//                        today.put("Wed.2021.05.19", obj);
+//                        break;
+//                    case(4):
+//                        for (int p = 0; p < 4; p++) {
+//                            String key = "time" + p;
+//                            JSONObject reading = new JSONObject();
+//                            if (p == 0) {
+//                                reading.put("temperature", "100.6");
+//                            } else if (p == 1) {
+//                                reading.put("temperature", "101.7");
+//                            } else if (p == 2) {
+//                                reading.put("temperature", "100.0");
+//                            } else {
+//                                reading.put("temperature", "102.5");
+//                            }
+//                            reading.put("hour", hours[p]);
+//                            reading.put("unit", "°F");
+//                            obj.put(key, reading);
+//                        } // 101.2
+//                        today.put("Thu.2021.05.20", obj);
+//                        break;
+//                    case(5):
+//                        for (int p = 0; p < 4; p++) {
+//                            String key = "time" + p;
+//                            JSONObject reading = new JSONObject();
+//                            if (p == 0) {
+//                                reading.put("temperature", "98.6");
+//                            } else if (p == 1) {
+//                                reading.put("temperature", "96.7");
+//                            } else if (p == 2) {
+//                                reading.put("temperature", "99.0");
+//                            } else {
+//                                reading.put("temperature", "98.5");
+//                            }
+//                            reading.put("hour", hours[p]);
+//                            reading.put("unit", "°F");
+//                            obj.put(key, reading);
+//                        } // 98.2
+//                        today.put("Fri.2021.05.21", obj);
+//                        break;
+//                    case(6):
+//                        for (int p = 0; p < 4; p++) {
+//                            String key = "time" + p;
+//                            JSONObject reading = new JSONObject();
+//                            if (p == 0) {
+//                                reading.put("temperature", "98.6");
+//                            } else if (p == 1) {
+//                                reading.put("temperature", "105.7");
+//                            } else if (p == 2) {
+//                                reading.put("temperature", "99.0");
+//                            } else {
+//                                reading.put("temperature", "103.5");
+//                            }
+//                            reading.put("hour", hours[p]);
+//                            reading.put("unit", "°F");
+//                            obj.put(key, reading);
+//                        } // 101.7
+//                        today.put("Sat.2021.05.22", obj);
+//                        break;
+//                }
+//                String userString = today.toString();
+//                fileWriter = new FileWriter(file, true);
+//                bufferedWriter = new BufferedWriter(fileWriter);
+//                bufferedWriter.write(userString);
+//                bufferedWriter.close();
+//            }
+//        } catch (JSONException | IOException e) {
+//            e.printStackTrace();
+//        }
 
         notif.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), notifActivity.class);
@@ -379,25 +400,25 @@ public class MainActivity extends AppCompatActivity {
         } else if (num == 1) {
             shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
             ring.setColor(Color.parseColor("#00B050"));
-            temp.setText(temperature + " " + unit);
+            temp.setText(temperature + unit);
             temp.setTextSize(44);
             temp.setTextColor(Color.parseColor("#000000"));
         } else if (num == 2) {
             shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
             ring.setColor(Color.parseColor("#FB710B"));
-            temp.setText(temperature + " " + unit);
+            temp.setText(temperature + unit);
             temp.setTextSize(44);
             temp.setTextColor(Color.parseColor("#000000"));
         } else if (num == 3) {
             shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
             ring.setColor(Color.parseColor("#FF0000"));
-            temp.setText(temperature + " " + unit);
+            temp.setText(temperature + unit);
             temp.setTextSize(40);
             temp.setTextColor(Color.parseColor("#000000"));
         } else {
             shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
             ring.setColor(Color.parseColor("#00B0F0"));
-            temp.setText(temperature + " " + unit);
+            temp.setText(temperature + unit);
             temp.setTextSize(44);
             temp.setTextColor(Color.parseColor("#000000"));
         }
@@ -478,7 +499,6 @@ public class MainActivity extends AppCompatActivity {
                             float sensorVal =  Float.parseFloat(sensor);
                             tempVals.add(sensorVal);
                             int N = tempVals.size();
-                            Log.d(TAG, "tempVal size: " + N);
                             if (N >= 30){
                                 double total =0;
                                 for(int i=0;i<N;i++) {
@@ -507,12 +527,11 @@ public class MainActivity extends AppCompatActivity {
                                     } else {
                                         medianTemp = (G.get(G.size()/2)) / 1.0;
                                     }
-                                    if (!f) {
+                                    if (restoreTempUnit(MainActivity.this).equals(" °C")) {
                                         medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
                                     }
                                     DecimalFormat df = new DecimalFormat("#.#");
                                     temperature = df.format(medianTemp);
-                                    onResume();
                                     plotData = true;
                                     new Thread(() -> {
                                         while (plotData) {
@@ -521,13 +540,10 @@ public class MainActivity extends AppCompatActivity {
                                                 time.add(clock);
                                                 addEntry(temperature);
                                                 plotData = false;
-                                                if (f) {
-                                                    unit = "°F";
-                                                } else {
-                                                    unit = "°C";
-                                                }
+                                                unit = restoreTempUnit(MainActivity.this);
                                             writeJSON(temperature, clock, i, unit);
                                             i++;
+                                            onResume();
                                             });
                                             try {
                                                 Thread.sleep(5000);
@@ -555,6 +571,7 @@ public class MainActivity extends AppCompatActivity {
                                             // textTimeNotify time
                                             // normal notifictation interval check
                                             NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+                                            notif.setImageResource(R.drawable.bell2);
                                         }
                                     }
                                 }
@@ -596,7 +613,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void writeJSON(String temperature, String clock, int i, String unit) {
+        File file;
+        FileReader fileReader;
+        BufferedReader bufferedReader;
+        FileWriter fileWriter;
+        BufferedWriter bufferedWriter;
+        String FILE_NAME = "temp.json";
+        file = new File(this.getFilesDir(), FILE_NAME);
         try {
+            fileReader = new FileReader(file);
+            bufferedReader = new BufferedReader(fileReader);
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                stringBuilder.append(line).append("\n");
+                line = bufferedReader.readLine();
+            }
+            bufferedReader.close();
+            String response = stringBuilder.toString();
+            JSONObject jsonObject = new JSONObject(response);
             String index = String.valueOf(i);
             String key = "time" + index;
             JSONObject reading = new JSONObject();
@@ -605,10 +640,9 @@ public class MainActivity extends AppCompatActivity {
             reading.put("unit", unit);
             JSONObject obj = new JSONObject();
             obj.put(key, reading);
-            JSONObject today = new JSONObject();
-            today.put(jsonDate, obj);
-            String userString = today.toString();
-            fileWriter = new FileWriter(file);
+            jsonObject.put(jsonDate, obj);
+            String userString = jsonObject.toString();
+            fileWriter = new FileWriter(file, false);
             bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(userString);
             bufferedWriter.close();
@@ -646,14 +680,10 @@ public class MainActivity extends AppCompatActivity {
         mySet.setCubicIntensity(0.2f);
         mySet.setColors(ContextCompat.getColor(this, R.color.red), ContextCompat.getColor(this, R.color.green), ContextCompat.getColor(this, R.color.yellow));
 //        LineDataSet set = new LineDataSet(null, null);
-//        set.setDrawCircles(true);
 //        set.setFillAlpha(100);
 //        set.setFillColor(ColorTemplate.getHoloBlue());
-//        set.setAxisDependency(YAxis.AxisDependency.LEFT);
 //        set.setLineWidth(3f);
 //        set.setColor(Color.MAGENTA);
-//        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-//        set.setCubicIntensity(0.2f);
         return mySet;
     }
 
@@ -675,11 +705,6 @@ public class MainActivity extends AppCompatActivity {
         return pref.getString("address", null);
     }
 
-    private int restoreNumData() {
-        SharedPreferences pref = getApplicationContext().getSharedPreferences("arrayPrefs", MODE_PRIVATE);
-        return Integer.parseInt(pref.getString("number", String.valueOf(-1)));
-    }
-
     public static void saveIdx(int idx, Context context) {
         SharedPreferences preferences = context.getSharedPreferences("jsonIdx", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
@@ -691,6 +716,18 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences preferences = context.getSharedPreferences("jsonIdx", MODE_PRIVATE);
         int idx = preferences.getInt("idx", 0) + 1;
         return "Notif " + idx;
+    }
+
+    public static void saveTempUnit(String tempUnit, Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MainUnitPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("tempUnit", tempUnit);
+        editor.apply();
+    }
+
+    public static String restoreTempUnit(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MainUnitPrefs", MODE_PRIVATE);
+        return prefs.getString("tempUnit", " °F");
     }
 
     @Override
@@ -730,5 +767,32 @@ public class MainActivity extends AppCompatActivity {
             num = 0;
         }
         tempDisplay(num);
+
+        File file;
+        FileReader fileReader;
+        BufferedReader bufferedReader;
+        String FILE_NAME = "notif.json";
+        file = new File(this.getFilesDir(), FILE_NAME);
+        try {
+            fileReader = new FileReader(file);
+            bufferedReader = new BufferedReader(fileReader);
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                stringBuilder.append(line).append("\n");
+                line = bufferedReader.readLine();
+            }
+            bufferedReader.close();
+            String response = stringBuilder.toString();
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray names = jsonObject.names();
+            if (names != null) {
+                notif.setImageResource(R.drawable.bell2);
+            } else {
+                notif.setImageResource(R.drawable.bell);
+            }
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

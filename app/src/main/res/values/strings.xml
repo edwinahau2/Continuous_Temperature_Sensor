@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Continuous Temperature Sensor</string>
+    <string name="app_name">TEGG</string>
     <string name="tab_text_1">Temperature</string>
     <string name="tab_text_2">Data Log</string>
     <string name="tab_text_3">Settings</string>

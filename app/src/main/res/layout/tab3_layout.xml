@@ -25,10 +25,11 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="4dp"
-            android:text="Your Settings"
+            android:text="Settings"
             android:textAlignment="center"
             android:textColor="#000"
-            android:textSize="20sp"
+            android:textSize="24dp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -38,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:text="Temperature Display"
             android:textAlignment="center"
             android:textSize="18sp"
@@ -97,6 +98,7 @@
             android:text="Not Connected"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            android:background="@drawable/rounded_corners_for_buttons"
             app:layout_constraintTop_toBottomOf="@+id/Bluetooth" />
 
         <TextView
@@ -120,6 +122,8 @@
             android:layout_marginTop="8dp"
             android:checked="true"
             android:text="Enable Notifications"
+            android:buttonTint="#18a3fe"
+            android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
@@ -131,6 +135,7 @@
             android:layout_marginStart="11dp"
             android:layout_marginTop="8dp"
             android:text="Notify Every"
+            android:textSize="16dp"
             android:textColor="#000000"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/enable" />
@@ -168,6 +173,7 @@
             android:textAlignment="textStart"
             android:background="@android:color/transparent"
             android:drawableRight="@drawable/next_arrow"
+            android:drawableLeft="@drawable/bug_report"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tippers"
@@ -184,6 +190,7 @@
             android:textAlignment="textStart"
             android:background="@android:color/transparent"
             android:drawableRight="@drawable/next_arrow"
+            android:drawableLeft="@drawable/ic_b1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tutorial"
@@ -198,6 +205,7 @@
             android:layout_marginEnd="4dp"
             android:background="@android:color/transparent"
             android:drawableRight="@drawable/next_arrow"
+            android:drawableLeft="@drawable/ic_b1"
             android:text="How to Use Sensor and App"
             android:textAlignment="textStart"
             app:layout_constraintEnd_toEndOf="parent"
@@ -216,6 +224,7 @@
             android:textAlignment="textStart"
             android:background="@android:color/transparent"
             android:drawableRight="@drawable/next_arrow"
+            android:drawableLeft="@drawable/ic_b1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/spinner"
