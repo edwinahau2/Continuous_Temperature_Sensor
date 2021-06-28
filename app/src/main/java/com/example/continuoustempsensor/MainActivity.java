@@ -537,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }).start();
                                 //only applies when user has not force closed the app
-                                    //medianTemp = 101;
+                                    medianTemp = 101;
                                     if (medianTemp >= 0) {
                                         if (medianTemp >= 100.3) {// more urgent -- red
                                             if (firstNotif) {// send first notif
@@ -548,6 +548,10 @@ public class MainActivity extends AppCompatActivity {
                                                 //check if notif clicked -> if clicked then will cancel the buffer
 
                                                 //HERE!!!
+
+                                                /*if(){
+                                                    cancelJob();
+                                                }*/
 
                                             }
                                         } else{//not urgent normal notification -- temp greater than 0 but less than 100.3
@@ -589,7 +593,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void cancelJob(View v){
+    public void cancelJob(){
         JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
         scheduler.cancel(123); //jobID is to identify the job you are passing through
         Log.d(TAG, "Job cancelled");

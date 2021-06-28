@@ -36,6 +36,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         String message = intent.getStringExtra("ButtonUnderneath");
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 
+        //delete intent: https://www.tutorialspoint.com/how-to-use-notification-deleteintent-in-android
         String action = intent.getAction();
         if (action.equals("notification_cancelled")) {
             Toast.makeText(context, "Notification Removed", Toast.LENGTH_SHORT).show();
