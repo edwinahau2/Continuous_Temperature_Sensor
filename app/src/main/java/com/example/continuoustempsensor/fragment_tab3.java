@@ -9,18 +9,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.ClipDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,14 +24,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -58,6 +50,8 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     public static Context context;
     TabLayout tempTab;
     TabLayout.Tab selectTab;
+
+    private static final String TAG = "fragment3";
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -191,6 +185,8 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         textTimeNotify = parent.getItemAtPosition(position).toString();
         saveNotifData(textTimeNotify, position);
+        Log.d(TAG, "toast is out");
+        Toast.makeText(getContext(), textTimeNotify, Toast.LENGTH_SHORT).show();
     }
 
     @Override
