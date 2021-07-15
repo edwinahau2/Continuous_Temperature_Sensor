@@ -412,7 +412,7 @@ public class MainActivity extends AppCompatActivity {
                                         if (medianTemp >= 100.3) {// more urgent -- red
                                             if (firstNotif) {// send first notif
                                                 firstNotif = false;
-                                                scheduleJob(); //notif sent in urgentNotifJob class
+                                                scheduleUrgentJob(); //notif sent in urgentNotifJob class
                                             } else {// buffer for next urgent notification -- Job Scheduler
                                                 Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
                                                 //check if notif clicked -> if clicked then will cancel the buffer
@@ -424,6 +424,7 @@ public class MainActivity extends AppCompatActivity {
                                             // json write to notif file w/ nonurgent level
                                             // textTimeNotify time
                                             // normal notifictation interval check
+                                            scheduleNormalJob();
                                             NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
                                             notif.setImageResource(R.drawable.bell2);
                                         }
@@ -441,12 +442,31 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
-    public void scheduleJob(){
+    public void scheduleUrgentJob(){
         ComponentName componentName = new ComponentName(this, urgentNotifJob.class);
         JobInfo info = new JobInfo.Builder(123, componentName)
                 .setPersisted(true) // will continue job id device reboots
                 .setPeriodic(15*60*1000) //15 min minimum
                 .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
+                .setRequiresCharging(false)
+                .build();
+
+        JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
+        int resultCode = scheduler.schedule(info);
+        if (resultCode == JobScheduler.RESULT_SUCCESS){
+            Log.d(TAG, "Job scheduled");
+        } else{
+            Log.d(TAG, "Job scheduling failed");
+        }
+
+    }
+
+    public void scheduleNormalJob(){
+        ComponentName componentName = new ComponentName(this, normalNotifJob.class);
+        JobInfo info = new JobInfo.Builder(456, componentName)
+                .setPersisted(true) // will continue job id device reboots
+                .setPeriodic(15*60*1000) //15 min minimum
+                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(1), JobInfo.BACKOFF_POLICY_LINEAR)
                 .setRequiresCharging(false)
                 .build();
 
