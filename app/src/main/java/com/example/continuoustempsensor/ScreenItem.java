@@ -12,20 +12,6 @@ public class ScreenItem {
         pos = position;
     }
 
-//    public void setTitle(String title) {
-//        Title = title;
-//    }
-//
-//    public void setDescription(String description) {
-//        Description = description;
-//    }
-//
-//    public void setScreenImg(int screenImg) {
-//        ScreenImg = screenImg;
-//    }
-//
-//    public void setScreenImg(int tipsImg) { TipsImg = }
-
     public String getTitle() {
         return Title;
     }

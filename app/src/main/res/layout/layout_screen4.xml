@@ -5,19 +5,28 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.constraintlayout.widget.Guideline
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.1"
-        android:id="@+id/pdfHigh"/>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:id="@+id/reference"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:elevation="5dp"/>
 
     <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/pdfHigh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.8"
-        android:id="@+id/pdfLow"/>
+        app:layout_constraintGuide_percent="0.15" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/pdfLow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.7" />
 
 
     <com.github.barteksc.pdfviewer.PDFView
@@ -39,7 +48,7 @@
         app:layout_constraintBottom_toTopOf="@+id/pdfHigh"
         android:id="@+id/service"
         android:textColor="@color/intro_title_color"
-        android:textSize="32dp"
+        android:textSize="28dp"
         android:textStyle="bold"
         android:text="Terms and Conditions"/>
 
@@ -47,11 +56,12 @@
         android:id="@+id/terms"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:text="I agree to the terms and conditions"
+        android:layout_marginBottom="24dp"
+        android:text="I agree to the Terms and Conditions"
+        android:textSize="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:buttonTint="#18a3fe"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/reference"
         app:layout_constraintTop_toBottomOf="@+id/pdfLow"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

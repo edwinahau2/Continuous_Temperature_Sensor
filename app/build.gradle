@@ -59,6 +59,9 @@ dependencies {
     implementation "com.github.BluRe-CN:ComplexView:v1.1"
     implementation "com.github.barteksc:android-pdf-viewer:2.3.0"
     implementation 'com.github.mreram:showcaseview:1.2.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.5'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.8.5'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.8.5'
 }
 repositories {
     mavenCentral()

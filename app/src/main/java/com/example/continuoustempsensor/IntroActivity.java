@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDeviceListener {
 
@@ -63,7 +64,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
     String addy;
     Button find;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,11 +87,11 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
         myDialog.setCancelable(true);
         btnAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.button_animation);
         final List<ScreenItem> mList = new ArrayList<>();
-        mList.add(new ScreenItem("Welcome", "", R.drawable.uci, R.drawable.ic_temp, 0));
-        mList.add(new ScreenItem("Terms of Service", "", 0, 0, 1));
+        mList.add(new ScreenItem("Welcome", "Click Next to continue \n on your journey with TEGG", R.drawable.samueli, R.drawable.ic_temp, 0));
+        mList.add(new ScreenItem("Terms and Conditions", "", 0, 0, 1));
         mList.add(new ScreenItem("How To Sensor", "", 0, 0, 2));
         mList.add(new ScreenItem("App Navigation", "", 0, 0, 3));
-        mList.add(new ScreenItem("Connect", "", R.drawable.ic_gears, R.drawable.ic_temp, 4));
+        mList.add(new ScreenItem("Connect", "Please turn on your Bluetooth", R.drawable.ic_connect, 0, 4));
         mDots = new TextView[tracker];
         for (int i = 0; i < mDots.length; i++) {
             mDots[i] = new TextView(this);
@@ -159,7 +159,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                                 btRecycle = myDialog.findViewById(R.id.listOfBt);
                                 mData = new ArrayList<>();
 //                                mData.add(new BtDevice("HC-06:1234"));
-                                //mData.add(new BtDevice("HC-06:1234"));
                                 btRecycle.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                                 btAdapter = new BtAdapter(IntroViewPageAdapter.mContext, mData, (BtAdapter.OnDeviceListener) IntroViewPageAdapter.mContext);
                                 btRecycle.setAdapter(btAdapter);
@@ -277,25 +276,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                 screenPager.setCurrentItem(position);
             } 
         });
-
-//        btnGetStarted.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                position = screenPager.getCurrentItem();
-//                if (position < mList.size()) {
-//                    position++;
-//                    screenPager.setCurrentItem(position);
-//                }
-//
-//                if (position == mList.size()-1) {
-//                    loadLastScreen();
-//                Intent mainActivity = new Intent(getApplicationContext(), bluetoothActivity.class);
-//                startActivity(mainActivity);
-//
-//                savePrefsData();
-//                finish();
-//            }
-//        });
     }
 
     private void addDotsIndicator(int i) {
@@ -402,7 +382,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
         load = true;
         btnNext.setText("Skip");
         btnBack.setVisibility(View.VISIBLE);
-//        btnGetStarted.setAnimation(btnAnim);
     }
 
     @Override
@@ -427,9 +406,11 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
         no.setOnClickListener(v -> otherDialog.dismiss());
         yes.setOnClickListener(v -> {
             Intent mainActivity = new Intent(getApplicationContext(), MainActivity.class);
+            String uniqueID = UUID.randomUUID().toString();
             Bundle bundle = new Bundle();
             bundle.putString("address", addy);
             bundle.putString("name", correct);
+            bundle.putString("uniqueID", uniqueID);
             mainActivity.putExtras(bundle);
             startActivity(mainActivity);
 

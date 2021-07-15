@@ -65,10 +65,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     public static String daStatus;
     Button yes;
     Button no;
-//    BluetoothSocket mmSocket;
-//    UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-//    BluetoothDevice mDevice;
-//    AndroidService.ConnectedThread btt = null;
     boolean dontRunAgain = true;
 
     @Override
@@ -140,21 +136,13 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                 alertDialog.setTitle("Rename Sensor");
                 final EditText userInput = new EditText(c);
                 alertDialog.setView(userInput);
-                alertDialog.setCancelable(false).setPositiveButton("Rename", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        sensor = userInput.getText().toString();
-                        daStatus = "Connected to " + sensor;
-                        status.setText(daStatus);
-                        dialog.cancel();
-                        saveNameData();
-                    }
-                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
+                alertDialog.setCancelable(false).setPositiveButton("Rename", (dialog, which) -> {
+                    sensor = userInput.getText().toString();
+                    daStatus = "Connected to " + sensor;
+                    status.setText(daStatus);
+                    dialog.cancel();
+                    saveNameData();
+                }).setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
                 alertDialog.show();
             } else {
                 toast = Toast.makeText(getBaseContext(), "Please connect to a device", Toast.LENGTH_SHORT);
@@ -308,22 +296,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     }
 
     private void startConnection() {
-//        if (mmSocket == null || !mmSocket.isConnected()) {
-//            BluetoothSocket tmp;
-//            try {
-//                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-//                mmSocket = tmp;
-//                mmSocket.connect();
-//            } catch (IOException e) {
-//                try {
-//                    mmSocket.close();
-//                } catch (IOException c) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            btt = new MainActivity.ConnectedThread(mmSocket);
-//            btt.start();
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", addy);
             startService(intent);
@@ -332,7 +304,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             status.setText(daStatus);
             sensor = correct;
             saveNameData();
-//        }
     }
 
     private void saveNameData() {

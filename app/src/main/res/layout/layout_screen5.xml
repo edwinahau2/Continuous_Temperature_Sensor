@@ -7,6 +7,15 @@
     android:layout_height="match_parent"
     android:background="#ffffff">
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:id="@+id/reference"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:elevation="5dp"/>
+
     <TextView
         android:id="@+id/intro_connect"
         android:layout_width="wrap_content"
@@ -42,7 +51,7 @@
         android:layout_marginBottom="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/connect_describe"
-        tools:srcCompat="@tools:sample/avatars" />
+        android:background="@drawable/ic_connect"/>
 
     <Button
         android:layout_width="wrap_content"

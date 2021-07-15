@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,6 +52,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private static final int RESULT_OK = -1;
     private Button connect, tippers;
     private TextView notify;
+    private static final String TAG = "BluetoothButtonCheck";
     private static final int REQUEST_ENABLE_BT = 0;
     boolean uhh;
     String sensor;
@@ -264,8 +266,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_OFF) {
-                    connect.setTextColor(Color.parseColor("#656565"));
-                    connect.setBackgroundColor(Color.parseColor("#e3e3e3"));
+                    setButtonColor(false);
                     SpannableString spanString = new SpannableString("Not Connected");
                     spanString.setSpan(new StyleSpan(Typeface.NORMAL), 0, spanString.length(), 0);
                     connect.setText(spanString);
@@ -274,70 +275,75 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         }
     };
 
+    public void setButtonColor(Boolean doit) {
+        if (doit) {
+            connect.setTextColor(Color.parseColor("#FFFFFF"));
+            connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+        } else {
+            connect.setTextColor(Color.parseColor("#656565"));
+            connect.setBackgroundColor(Color.parseColor("#e3e3e3"));
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
         uhh = restoreBool();
         sensor = restoreNameData();
+        connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_buttons));
         if (uhh) {
             if (AndroidService.spark) {
-                connect.setTextColor(Color.parseColor("#FFFFFF"));
-                connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                setButtonColor(true);
                 SpannableString spanString = new SpannableString("Connected to " + MainActivity.name);
                 spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
                 connect.setText(spanString);
+                Log.d(TAG, "First");
             } else {
                 SpannableString spanString = new SpannableString("Not Connected");
                 spanString.setSpan(new StyleSpan(Typeface.NORMAL), 0, spanString.length(), 0);
                 connect.setText(spanString);
-                connect.setTextColor(Color.parseColor("#656565"));
-                connect.setBackgroundColor(Color.parseColor("#e3e3e3"));
+                setButtonColor(false);
+                Log.d(TAG, "Second");
             }
             uhh = false;
             saveNameData();
         } else {
-            if (ConnectionActivity.daStatus != null) {
-                connect.setTextColor(Color.parseColor("#FFFFFF"));
-                connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+            if (ConnectionActivity.daStatus != null && !ConnectionActivity.daStatus.equals("Not Connected")) {
+                setButtonColor(true);
                 SpannableString spanString = new SpannableString(ConnectionActivity.daStatus);
                 spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
                 connect.setText(spanString);
+                Log.d(TAG, "Third");
             } else {
                 if (!AndroidService.spark) {
                     connect.setText("Not Connected");
-                    connect.setTextColor(Color.parseColor("#656565"));
-                    connect.setBackgroundColor(Color.parseColor("#e3e3e3"));
+                    setButtonColor(false);
                 } else if (ConnectionActivity.sensor != null) {
                     sensor = ConnectionActivity.sensor;
-                    connect.setTextColor(Color.parseColor("#FFFFFF"));
-                    connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                    setButtonColor(true);
                     SpannableString spanString = new SpannableString("Connected to " + sensor);
                     spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
                     connect.setText(spanString);
                     saveNameData();
+                    Log.d(TAG, "Fourth");
                 } else if (sensor != null) {
-                    connect.setTextColor(Color.parseColor("#FFFFFF"));
-                    connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                    setButtonColor(true);
                     SpannableString spanString = new SpannableString("Connected to " + sensor);
                     spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
                     connect.setText(spanString);
+                    Log.d(TAG, "Fifth");
                 } else {
-                    connect.setTextColor(Color.parseColor("#FFFFFF"));
-                    connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+                    setButtonColor(true);
                     SpannableString spanString = new SpannableString("Connected to " + MainActivity.name);
                     spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
                     connect.setText(spanString);
+                    Log.d(TAG, "Sixth");
                 }
             }
         }
 
         IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         requireActivity().registerReceiver(mReceiver, intentFilter);
-
-//        if (MainActivity.address == null) {
-//            MainActivity.address = restoreTheAddy();
-//        }
-
     }
 
     @Override

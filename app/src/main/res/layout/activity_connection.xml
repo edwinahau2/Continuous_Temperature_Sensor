@@ -30,6 +30,8 @@
         android:layout_marginEnd="8dp"
         android:layout_weight="1"
         android:text="Rename Device"
+        android:backgroundTint="#1a4aab"
+        android:textColor="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/pairedBtn"
         app:layout_constraintTop_toBottomOf="@+id/status" />
@@ -43,6 +45,8 @@
         android:layout_marginTop="8dp"
         android:layout_weight="1"
         android:text="Find Devices"
+        android:backgroundTint="#1a4aab"
+        android:textColor="#FFFFFF"
         app:layout_constraintEnd_toStartOf="@+id/rename"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/status" />

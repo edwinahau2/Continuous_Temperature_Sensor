@@ -5,10 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-<!--    <androidx.constraintlayout.widget.Guideline-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        app:layout_constraintGuide_percent="0"-->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:id="@+id/reference"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:elevation="5dp"/>
 
     <androidx.constraintlayout.widget.Guideline
         android:layout_width="match_parent"
@@ -26,9 +30,9 @@
         android:textColor="@color/intro_title_color"
         android:textSize="32dp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/reference"
         app:layout_constraintTop_toTopOf="@+id/videoGuide"
-        android:text="TextView" />
+        android:text="Learn About Your Device" />
 
     <VideoView
         android:layout_width="0dp"

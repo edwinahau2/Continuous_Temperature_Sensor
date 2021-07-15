@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,6 +32,9 @@ import androidx.fragment.app.FragmentManager;
 
 import com.blure.complexview.ComplexView;
 import com.blure.complexview.Shadow;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
@@ -90,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     ImageView notif;
     ComplexView shadow, ring, white;
     ViewGroup vg;
-    int initMin, initHour = 0;
+    int initMin = 0;
     Boolean firstNotif = true;
     ArrayList<Float> G = new ArrayList<>();
 
@@ -105,7 +109,6 @@ public class MainActivity extends AppCompatActivity {
         ring = findViewById(R.id.ring);
         white = findViewById(R.id.white);
         temp = findViewById(R.id.temp);
-        JSONObject json = notifActivity.mainObj;
         btSym = findViewById(R.id.btSym);
         btStat = findViewById(R.id.btStat);
         notif = findViewById(R.id.notif);
@@ -134,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (IOException | JSONException e) {
             e.printStackTrace();
+            notif.setImageResource(R.drawable.bell);
         }
         Bundle bundle = getIntent().getExtras();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -183,11 +187,13 @@ public class MainActivity extends AppCompatActivity {
         if (bundle != null) {
             address = bundle.getString("address");
             name = bundle.getString("name");
+            String uniqueID = (String) bundle.get("uniqueID");
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
             startService(intent);
             startConnection();
             savePrefsData();
+            saveUniqueID(uniqueID);
         } else if (mBlueAdapter.isEnabled()) {
             address = restoreAddressData();
             name = restoreNameData();
@@ -204,168 +210,16 @@ public class MainActivity extends AppCompatActivity {
             scheduler.cancel(123); //job
             Log.d(TAG, "Job Cancelled");
         }*/
-//        ComponentName componentName = new ComponentName(getApplicationContext(), TestJobService.class);
-//        PersistableBundle bun = new PersistableBundle();
-//        bun.putString("address", address);
-//        JobInfo jobInfo = new JobInfo.Builder(101, componentName)
-//                .setExtras(bun)
-//                .setPersisted(false)
-//                .setRequiresCharging(false)
-//                .setPeriodic(TimeUnit.MINUTES.toMillis(15))
-//                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(1), JobInfo.BACKOFF_POLICY_LINEAR)
-//                .build();
-//        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-//        jobScheduler.schedule(jobInfo);
-
-//        String[] hours = {"1:30", "1:35", "1:40", "1:45"};
-//        try {
-//            for (int r = 0; r < 7; r++) {
-//                JSONObject obj = new JSONObject();
-//                JSONObject today = new JSONObject();
-//                switch(r) {
-//                    case(0):
-//                        for (int p = 0; p < 4; p++) {
-//                            String key = "time" + p;
-//                            JSONObject reading = new JSONObject();
-//                            if (p == 0) {
-//                                reading.put("temperature", "98.6");
-//                            } else if (p == 1) {
-//                                reading.put("temperature", "96.7");
-//                            } else if (p == 2) {
-//                                reading.put("temperature", "99.0");
-//                            } else {
-//                                reading.put("temperature", "103.5");
-//                            } // avg: 99.4
-//                            reading.put("hour", hours[p]);
-//                            reading.put("unit", "°F");
-//                            obj.put(key, reading);
-//                        }
-//                        today.put("Sun.2021.05.16", obj);
-//                        break;
-//                    case(1):
-//                        for (int p = 0; p < 4; p++) {
-//                            String key = "time" + p;
-//                            JSONObject reading = new JSONObject();
-//                            if (p == 0) {
-//                                reading.put("temperature", "99.6");
-//                            } else if (p == 1) {
-//                                reading.put("temperature", "96.7");
-//                            } else if (p == 2) {
-//                                reading.put("temperature", "102.0");
-//                            } else {
-//                                reading.put("temperature", "103.5");
-//                            } // avg: 100.5
-//                            reading.put("hour", hours[p]);
-//                            reading.put("unit", "°F");
-//                            obj.put(key, reading);
-//                        }
-//                        today.put("Mon.2021.05.17", obj);
-//                         break;
-//                    case(2):
-//                        for (int p = 0; p < 4; p++) {
-//                            String key = "time" + p;
-//                            JSONObject reading = new JSONObject();
-//                            if (p == 0) {
-//                                reading.put("temperature", "108.6");
-//                            } else if (p == 1) {
-//                                reading.put("temperature", "103.7");
-//                            } else if (p == 2) {
-//                                reading.put("temperature", "102.0");
-//                            } else {
-//                                reading.put("temperature", "99.5");
-//                            } // 103.5
-//                            reading.put("hour", hours[p]);
-//                            reading.put("unit", "°F");
-//                            obj.put(key, reading);
-//                        }
-//                        today.put("Tue.2021.05.18", obj);
-//                        break;
-//                    case(3):
-//                        for (int p = 0; p < 4; p++) {
-//                            String key = "time" + p;
-//                            JSONObject reading = new JSONObject();
-//                            if (p == 0) {
-//                                reading.put("temperature", "100.6");
-//                            } else if (p == 1) {
-//                                reading.put("temperature", "98.7");
-//                            } else if (p == 2) {
-//                                reading.put("temperature", "95.0");
-//                            } else {
-//                                reading.put("temperature", "97.5");
-//                            }
-//                            reading.put("hour", hours[p]);
-//                            reading.put("unit", "°F");
-//                            obj.put(key, reading);
-//                        } // 97.9
-//                        today.put("Wed.2021.05.19", obj);
-//                        break;
-//                    case(4):
-//                        for (int p = 0; p < 4; p++) {
-//                            String key = "time" + p;
-//                            JSONObject reading = new JSONObject();
-//                            if (p == 0) {
-//                                reading.put("temperature", "100.6");
-//                            } else if (p == 1) {
-//                                reading.put("temperature", "101.7");
-//                            } else if (p == 2) {
-//                                reading.put("temperature", "100.0");
-//                            } else {
-//                                reading.put("temperature", "102.5");
-//                            }
-//                            reading.put("hour", hours[p]);
-//                            reading.put("unit", "°F");
-//                            obj.put(key, reading);
-//                        } // 101.2
-//                        today.put("Thu.2021.05.20", obj);
-//                        break;
-//                    case(5):
-//                        for (int p = 0; p < 4; p++) {
-//                            String key = "time" + p;
-//                            JSONObject reading = new JSONObject();
-//                            if (p == 0) {
-//                                reading.put("temperature", "98.6");
-//                            } else if (p == 1) {
-//                                reading.put("temperature", "96.7");
-//                            } else if (p == 2) {
-//                                reading.put("temperature", "99.0");
-//                            } else {
-//                                reading.put("temperature", "98.5");
-//                            }
-//                            reading.put("hour", hours[p]);
-//                            reading.put("unit", "°F");
-//                            obj.put(key, reading);
-//                        } // 98.2
-//                        today.put("Fri.2021.05.21", obj);
-//                        break;
-//                    case(6):
-//                        for (int p = 0; p < 4; p++) {
-//                            String key = "time" + p;
-//                            JSONObject reading = new JSONObject();
-//                            if (p == 0) {
-//                                reading.put("temperature", "98.6");
-//                            } else if (p == 1) {
-//                                reading.put("temperature", "105.7");
-//                            } else if (p == 2) {
-//                                reading.put("temperature", "99.0");
-//                            } else {
-//                                reading.put("temperature", "103.5");
-//                            }
-//                            reading.put("hour", hours[p]);
-//                            reading.put("unit", "°F");
-//                            obj.put(key, reading);
-//                        } // 101.7
-//                        today.put("Sat.2021.05.22", obj);
-//                        break;
-//                }
-//                String userString = today.toString();
-//                fileWriter = new FileWriter(file, true);
-//                bufferedWriter = new BufferedWriter(fileWriter);
-//                bufferedWriter.write(userString);
-//                bufferedWriter.close();
-//            }
-//        } catch (JSONException | IOException e) {
-//            e.printStackTrace();
-//        }
+        ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
+        JobInfo jobInfo = new JobInfo.Builder(110, componentName)
+                .setPersisted(false)
+                .setRequiresCharging(false)
+                .setPeriodic(TimeUnit.MINUTES.toMillis(30))
+                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(1), JobInfo.BACKOFF_POLICY_LINEAR)
+                .build();
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        assert jobScheduler != null;
+        jobScheduler.schedule(jobInfo);
 
         notif.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), notifActivity.class);
@@ -614,22 +468,34 @@ public class MainActivity extends AppCompatActivity {
 
     private void writeJSON(String temperature, String clock, int i, String unit) {
         File file;
+        File tippersFile;
         FileReader fileReader;
+        FileReader tippersFileReader;
         BufferedReader bufferedReader;
-        FileWriter fileWriter;
-        BufferedWriter bufferedWriter;
+        BufferedReader tippersBufferedReader;
         String FILE_NAME = "temp.json";
+        String FILE_NAME2 = "tippers.json";
         file = new File(this.getFilesDir(), FILE_NAME);
+        tippersFile = new File(this.getFilesDir(), FILE_NAME2);
         try {
             fileReader = new FileReader(file);
+            tippersFileReader = new FileReader(tippersFile);
             bufferedReader = new BufferedReader(fileReader);
+            tippersBufferedReader = new BufferedReader(tippersFileReader);
             StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder tippersString = new StringBuilder();
             String line = bufferedReader.readLine();
             while (line != null) {
                 stringBuilder.append(line).append("\n");
                 line = bufferedReader.readLine();
             }
+            String tippersLine = tippersBufferedReader.readLine();
+            while (tippersLine != null) {
+                tippersString.append(tippersLine).append("\n");
+                tippersLine = tippersBufferedReader.readLine();
+            }
             bufferedReader.close();
+            tippersBufferedReader.close();
             String response = stringBuilder.toString();
             JSONObject jsonObject = new JSONObject(response);
             String index = String.valueOf(i);
@@ -642,14 +508,40 @@ public class MainActivity extends AppCompatActivity {
             obj.put(key, reading);
             jsonObject.put(jsonDate, obj);
             String userString = jsonObject.toString();
-            fileWriter = new FileWriter(file, false);
-            bufferedWriter = new BufferedWriter(fileWriter);
+            FileWriter fileWriter = new FileWriter(file, false);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(userString);
+            bufferedWriter.close();
+
+            String tippersResponse = tippersString.toString();
+            JSONArray firstArray = new JSONArray(tippersResponse);
+            String array1 = firstArray.toString();
+            JSONObject tippersData = new JSONObject();
+            tippersData.put("ID", retrieveID());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
+            String timestamp = sdf.format(Calendar.getInstance().getTime());
+            tippersData.put("timestamp", timestamp);
+            JSONObject read = new JSONObject();
+            read.put("val", temperature);
+            read.put("unit", unit);
+            tippersData.put("data", read);
+            JSONArray appendArray = new JSONArray();
+            appendArray.put(tippersData);
+            String array2 = appendArray.toString();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode tree1 = mapper.readTree(array1);
+            JsonNode tree2 = mapper.readTree(array2);
+            ((ArrayNode) tree1).addAll((ArrayNode) tree2);
+            String tippersJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree1);
+            fileWriter = new FileWriter(tippersFile, false);
+            bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(tippersJSON);
             bufferedWriter.close();
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
     }
+
 
     private void addEntry(String temperature) {
         LineData data = mChart.getData();
@@ -679,11 +571,6 @@ public class MainActivity extends AppCompatActivity {
         mySet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         mySet.setCubicIntensity(0.2f);
         mySet.setColors(ContextCompat.getColor(this, R.color.red), ContextCompat.getColor(this, R.color.green), ContextCompat.getColor(this, R.color.yellow));
-//        LineDataSet set = new LineDataSet(null, null);
-//        set.setFillAlpha(100);
-//        set.setFillColor(ColorTemplate.getHoloBlue());
-//        set.setLineWidth(3f);
-//        set.setColor(Color.MAGENTA);
         return mySet;
     }
 
@@ -730,9 +617,16 @@ public class MainActivity extends AppCompatActivity {
         return prefs.getString("tempUnit", " °F");
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    private void saveUniqueID(String ID) {
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("IDprefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("uniqueID", ID);
+        editor.apply();
+    }
+
+    private String retrieveID() {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("IDprefs", MODE_PRIVATE);
+        return pref.getString("uniqueID", "-1");
     }
 
     @Override
