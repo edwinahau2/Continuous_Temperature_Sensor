@@ -64,7 +64,6 @@ public class fragment_tab2 extends Fragment  {
     CalendarDay myDate = CalendarDay.today();
     LocalDate localDate;
     CalendarDay upToDay;
-    WeekDecorator weekDecorator;
     CurrentDayDecorator currentDayDecorator;
     ViewPager report;
     ReportViewPageAdapter reportAdapter;

@@ -1,5 +1,6 @@
 package com.example.continuoustempsensor;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
@@ -8,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -26,12 +28,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.blure.complexview.ComplexView;
 import com.blure.complexview.Shadow;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -52,6 +56,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -83,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
     public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
     public static final int RESPONSE_MESSAGE = 10;
-    String temperature = "101.2";
+    String temperature;
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
@@ -92,6 +97,10 @@ public class MainActivity extends AppCompatActivity {
     ImageView btSym;
     TextView btStat;
     ImageView notif;
+    Boolean good;
+    Boolean bad;
+    Boolean warning;
+    Boolean veryBad;
     ComplexView shadow, ring, white;
     ViewGroup vg;
     int initMin = 0;
@@ -173,8 +182,6 @@ public class MainActivity extends AppCompatActivity {
         leftAxis.removeAllLimitLines();
         leftAxis.setTextColor(Color.BLACK);
         leftAxis.setDrawGridLines(false);
-        leftAxis.setAxisMaximum(104f);
-        leftAxis.setAxisMinimum(98f);
         leftAxis.setEnabled(true);
         YAxis rightAxis = mChart.getAxisRight();
         rightAxis.setEnabled(false);
@@ -210,6 +217,57 @@ public class MainActivity extends AppCompatActivity {
             scheduler.cancel(123); //job
             Log.d(TAG, "Job Cancelled");
         }*/
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
+
+        FileReader tippersFileReader;
+        BufferedReader tippersBufferedReader;
+        String FILE_NAME2 = "tippers.json";
+        File tippersFile = new File(this.getFilesDir(), FILE_NAME2);
+        try {
+            tippersFileReader = new FileReader(tippersFile);
+            tippersBufferedReader = new BufferedReader(tippersFileReader);
+            String tippersLine = tippersBufferedReader.readLine();
+            StringBuilder tippersString = new StringBuilder();
+            while (tippersLine != null) {
+                tippersString.append(tippersLine).append("\n");
+                tippersLine = tippersBufferedReader.readLine();
+            }
+            tippersBufferedReader.close();
+            String tippersResponse = tippersString.toString();
+            JSONArray firstArray = new JSONArray(tippersResponse);
+            String array1 = firstArray.toString();
+            JSONObject tippersData = new JSONObject();
+            tippersData.put("ID", "1234");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
+            String timestamp = sdf.format(Calendar.getInstance().getTime());
+            tippersData.put("timestamp", timestamp);
+            JSONObject read = new JSONObject();
+            read.put("val", "98.6");
+            read.put("unit", unit);
+            tippersData.put("data", read);
+            JSONArray appendArray = new JSONArray();
+            appendArray.put(tippersData);
+            String array2 = appendArray.toString();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode tree1 = mapper.readTree(array1);
+            JsonNode tree2 = mapper.readTree(array2);
+            ((ArrayNode) tree1).addAll((ArrayNode) tree2);
+            String tippersJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree1);
+            FileWriter fileWriter = new FileWriter(tippersFile, false);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(tippersJSON);
+            bufferedWriter.close();
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+
         ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
         JobInfo jobInfo = new JobInfo.Builder(110, componentName)
                 .setPersisted(false)
@@ -246,31 +304,31 @@ public class MainActivity extends AppCompatActivity {
     private void tempDisplay(int num) {
         float[] radii = {250, 250, 250, 250, 250, 250, 250, 250};
         if (num == 0) {
-            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // blue
             ring.setColor(Color.parseColor("#00B0F0"));
             temperature = "--";
             temp.setText(temperature);
             temp.setTextSize(44);
         } else if (num == 1) {
-            shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // green
             ring.setColor(Color.parseColor("#00B050"));
             temp.setText(temperature + unit);
             temp.setTextSize(44);
             temp.setTextColor(Color.parseColor("#000000"));
         } else if (num == 2) {
-            shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#FFD500", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // yellow
             ring.setColor(Color.parseColor("#FB710B"));
             temp.setText(temperature + unit);
             temp.setTextSize(44);
             temp.setTextColor(Color.parseColor("#000000"));
         } else if (num == 3) {
-            shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // orange
             ring.setColor(Color.parseColor("#FF0000"));
             temp.setText(temperature + unit);
             temp.setTextSize(40);
             temp.setTextColor(Color.parseColor("#000000"));
         } else {
-            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+            shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // red
             ring.setColor(Color.parseColor("#00B0F0"));
             temp.setText(temperature + unit);
             temp.setTextSize(44);
@@ -364,7 +422,8 @@ public class MainActivity extends AppCompatActivity {
                                     total2 += Math.pow((tempVals.get(i) - mean), 2);
                                 }
                                 double std = Math.sqrt(total2 / (N - 1));
-                                if (std*std < 0.2) {
+                                double cv = std / mean;
+                                if (cv < 0.2) {
                                     for (int i = 0; i < N; i++) {
                                         double Gstat = Math.abs(tempVals.get(i) - mean) / std;
                                         if (Gstat < 2.75) {
@@ -386,6 +445,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     DecimalFormat df = new DecimalFormat("#.#");
                                     temperature = df.format(medianTemp);
+                                    booleanUpdate(temperature);
                                     plotData = true;
                                     new Thread(() -> {
                                         while (plotData) {
@@ -584,13 +644,26 @@ public class MainActivity extends AppCompatActivity {
 
     private MyLineDataSet createSet() {
         MyLineDataSet mySet = new MyLineDataSet(null, null);
-        mySet.setDrawCircles(false);
+        mySet.setDrawCircles(true);
+        mySet.setCircleRadius(4f);
         mySet.setDrawValues(false);
         mySet.setAxisDependency(YAxis.AxisDependency.LEFT);
         mySet.setLineWidth(3f);
         mySet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         mySet.setCubicIntensity(0.2f);
-        mySet.setColors(ContextCompat.getColor(this, R.color.red), ContextCompat.getColor(this, R.color.green), ContextCompat.getColor(this, R.color.yellow));
+        int colorId;
+        if (good) {
+            colorId = R.color.green;
+        } else if (warning) {
+            colorId = R.color.yellow;
+        } else if (bad) {
+            colorId = R.color.orange;
+        } else if (veryBad) {
+            colorId = R.color.red;
+        } else {
+            colorId = R.color.blue;
+        }
+        mySet.setColors(ContextCompat.getColor(this, colorId));
         return mySet;
     }
 
@@ -655,6 +728,33 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
     }
 
+    private void booleanUpdate(String val) {
+        if (val != null && !val.isEmpty()) {
+            float y = Float.parseFloat(temperature);
+            if (y <= 99.9 || y <= 37.7) {
+                good = true;
+                bad = false;
+                warning = false;
+                veryBad = false;
+            } else if ((y < 100.4 && y >= 100) || (y < 38 && y >= 37.8)) {
+                good = false;
+                warning = true;
+                bad = false;
+                veryBad = false;
+            } else if ((y >= 100.4 && y <= 102.9) || (y >= 38 && y <= 39.4)) {
+                good = false;
+                bad = true;
+                warning = false;
+                veryBad = false;
+            } else {
+                good = false;
+                bad = false;
+                warning = false;
+                veryBad = true;
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -666,7 +766,7 @@ public class MainActivity extends AppCompatActivity {
             btSym.setBackgroundResource(R.drawable.ic_b2);
         }
         int num;
-        if (temperature.length() != 0) {
+        if (temperature != null && !temperature.isEmpty()) {
             float y = Float.parseFloat(temperature);
             if (y <= 99.9 || y <= 37.7) {
                 num = 1;

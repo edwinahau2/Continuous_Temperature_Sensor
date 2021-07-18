@@ -13,12 +13,6 @@ public class MyLineDataSet extends LineDataSet {
 
     @Override
     public int getColor(int index) {
-        if (getEntryForIndex(index).getY() < 100.3 || getEntryForIndex(index).getY() < 37.9) {
-            return mColors.get(0);
-        } else if ((getEntryForIndex(index).getY() <= 103 && getEntryForIndex(index).getY() >= 100.4) || (getEntryForIndex(index).getY() <= 39.4 && getEntryForIndex(index).getY() >= 38)) {
-            return mColors.get(1);
-        } else {
-            return mColors.get(2);
-        }
+        return mColors.get(0);
     }
 }

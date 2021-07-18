@@ -19,6 +19,7 @@ import androidx.viewpager.widget.PagerAdapter;
 
 import com.blure.complexview.ComplexView;
 import com.github.barteksc.pdfviewer.PDFView;
+import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 
@@ -110,7 +111,18 @@ public class IntroViewPageAdapter extends PagerAdapter {
             TextView title = layoutScreen.findViewById(R.id.service);
             title.setText(mListScreen.get(position).getTitle());
             PDFView pdfView = layoutScreen.findViewById(R.id.pdf);
-            pdfView.fromAsset("Abstract.pdf").load();
+            pdfView.fromAsset("Abstract.pdf")
+                .enableSwipe(true)
+                .swipeHorizontal(false)
+                .enableDoubletap(true)
+                .enableAnnotationRendering(false)
+                .enableAntialiasing(true)
+                .autoSpacing(true)
+                .pageFitPolicy(FitPolicy.WIDTH)
+                .pageSnap(false) // snap pages to screen boundaries
+                .pageFling(false) // make a fling change only a single page like ViewPager
+                .nightMode(false) // toggle night mode
+                .load();
             terms = layoutScreen.findViewById(R.id.terms);
         } else {
             layoutScreen = inflater.inflate(R.layout.layout_screen5, null);

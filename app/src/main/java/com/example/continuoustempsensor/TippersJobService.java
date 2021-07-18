@@ -1,7 +1,13 @@
 package com.example.continuoustempsensor;
 
+import android.annotation.SuppressLint;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,11 +18,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public class TippersJobService extends JobService {
+public class TippersJobService extends JobService implements LocationListener{
 
+    protected LocationManager locationManager;
+
+    @SuppressLint("MissingPermission")
     @Override
     public boolean onStartJob(JobParameters params) {
         try {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            assert locationManager != null;
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             URL url = new URL("https://uci-tippers.ics.uci.edu/POST/observation/{obsTypeId}/many");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
@@ -39,7 +51,7 @@ public class TippersJobService extends JobService {
             String json = stringBuilder.toString();
             // [
                 // {
-            // ID = string/float
+            // ID = string
             // time = string
             // temp {
                 // val = float
@@ -66,5 +78,25 @@ public class TippersJobService extends JobService {
     @Override
     public boolean onStopJob(JobParameters params) {
         return true;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 }

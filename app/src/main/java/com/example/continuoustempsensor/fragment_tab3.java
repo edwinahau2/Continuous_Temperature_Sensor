@@ -52,8 +52,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     TabLayout tempTab;
     TabLayout.Tab selectTab;
 
-    private static final String TAG = "fragment3";
-
     @SuppressLint("SetTextI18n")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
