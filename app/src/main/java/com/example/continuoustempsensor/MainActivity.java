@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,7 +34,6 @@ import androidx.fragment.app.FragmentManager;
 
 import com.blure.complexview.ComplexView;
 import com.blure.complexview.Shadow;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -57,6 +55,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -121,32 +120,43 @@ public class MainActivity extends AppCompatActivity {
         btSym = findViewById(R.id.btSym);
         btStat = findViewById(R.id.btStat);
         notif = findViewById(R.id.notif);
-        File file;
-        FileReader fileReader;
-        BufferedReader bufferedReader;
-        String FILE_NAME = "notif.json";
-        file = new File(this.getFilesDir(), FILE_NAME);
-        try {
-            fileReader = new FileReader(file);
-            bufferedReader = new BufferedReader(fileReader);
-            StringBuilder stringBuilder = new StringBuilder();
-            String line = bufferedReader.readLine();
-            while (line != null) {
-                stringBuilder.append(line).append("\n");
-                line = bufferedReader.readLine();
+        if (!fileCreated()) {
+            try {
+                new FileOutputStream(this.getFilesDir() + "/notif.json");
+                new FileOutputStream(this.getFilesDir() + "/temp.json");
+                new FileOutputStream(this.getFilesDir() + "/tippers.json");
+                saveFileCreation();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
             }
-            bufferedReader.close();
-            String response = stringBuilder.toString();
-            JSONObject jsonObject = new JSONObject(response);
-            JSONArray names = jsonObject.names();
-            if (names != null) {
-                notif.setImageResource(R.drawable.bell2);
-            } else {
+        } else {
+            File file;
+            FileReader fileReader;
+            BufferedReader bufferedReader;
+            String FILE_NAME = "notif.json";
+            file = new File(this.getFilesDir(), FILE_NAME);
+            try {
+                fileReader = new FileReader(file);
+                bufferedReader = new BufferedReader(fileReader);
+                StringBuilder stringBuilder = new StringBuilder();
+                String line = bufferedReader.readLine();
+                while (line != null) {
+                    stringBuilder.append(line).append("\n");
+                    line = bufferedReader.readLine();
+                }
+                bufferedReader.close();
+                String response = stringBuilder.toString();
+                JSONObject jsonObject = new JSONObject(response);
+                JSONArray names = jsonObject.names();
+                if (names != null) {
+                    notif.setImageResource(R.drawable.bell2);
+                } else {
+                    notif.setImageResource(R.drawable.bell);
+                }
+            } catch (IOException | JSONException e) {
                 notif.setImageResource(R.drawable.bell);
+                e.printStackTrace();
             }
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-            notif.setImageResource(R.drawable.bell);
         }
         Bundle bundle = getIntent().getExtras();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -234,15 +244,18 @@ public class MainActivity extends AppCompatActivity {
             tippersFileReader = new FileReader(tippersFile);
             tippersBufferedReader = new BufferedReader(tippersFileReader);
             String tippersLine = tippersBufferedReader.readLine();
-            StringBuilder tippersString = new StringBuilder();
-            while (tippersLine != null) {
-                tippersString.append(tippersLine).append("\n");
-                tippersLine = tippersBufferedReader.readLine();
+            String array1 = null;
+            if (tippersLine != null) {
+                StringBuilder tippersString = new StringBuilder();
+                while (tippersLine != null) {
+                    tippersString.append(tippersLine).append("\n");
+                    tippersLine = tippersBufferedReader.readLine();
+                }
+                tippersBufferedReader.close();
+                String tippersResponse = tippersString.toString();
+                JSONArray firstArray = new JSONArray(tippersResponse);
+                array1 = firstArray.toString();
             }
-            tippersBufferedReader.close();
-            String tippersResponse = tippersString.toString();
-            JSONArray firstArray = new JSONArray(tippersResponse);
-            String array1 = firstArray.toString();
             JSONObject tippersData = new JSONObject();
             tippersData.put("ID", "1234");
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
@@ -256,9 +269,14 @@ public class MainActivity extends AppCompatActivity {
             appendArray.put(tippersData);
             String array2 = appendArray.toString();
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode tree1 = mapper.readTree(array1);
-            JsonNode tree2 = mapper.readTree(array2);
-            ((ArrayNode) tree1).addAll((ArrayNode) tree2);
+            JsonNode tree1;
+            if (array1 != null) {
+                tree1 = mapper.readTree(array1);
+                JsonNode tree2 = mapper.readTree(array2);
+                ((ArrayNode) tree1).addAll((ArrayNode) tree2);
+            } else {
+                tree1 = mapper.readTree(array2);
+            }
             String tippersJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree1);
             FileWriter fileWriter = new FileWriter(tippersFile, false);
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
@@ -721,6 +739,19 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("IDprefs", MODE_PRIVATE);
         return pref.getString("uniqueID", "-1");
     }
+
+    private void saveFileCreation() {
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("filePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("files", true);
+        editor.apply();
+    }
+
+    private boolean fileCreated() {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("filePrefs", MODE_PRIVATE);
+        return pref.getBoolean("files", false);
+    }
+
 
     @Override
     protected void onStop() {

@@ -54,6 +54,11 @@
             android:exported="true"
             android:stopWithTask="false"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
+        <service android:name=".TippersJobService"
+            android:enabled="true"
+            android:exported="true"
+            android:stopWithTask="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
 
     </application>
 

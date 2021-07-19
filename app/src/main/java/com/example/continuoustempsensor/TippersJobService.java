@@ -29,7 +29,7 @@ public class TippersJobService extends JobService implements LocationListener{
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             assert locationManager != null;
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            URL url = new URL("https://uci-tippers.ics.uci.edu/POST/observation/{obsTypeId}/many");
+            URL url = new URL("http://tippersweb.ics.uci.edu:8080/POST/observation/");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json; utf-8");
