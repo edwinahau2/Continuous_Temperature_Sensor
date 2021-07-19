@@ -7,9 +7,12 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -29,11 +32,6 @@ public class TippersJobService extends JobService implements LocationListener{
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             assert locationManager != null;
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            URL url = new URL("http://tippersweb.ics.uci.edu:8080/POST/observation/");
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("POST");
-            con.setRequestProperty("Content-Type", "application/json; utf-8");
-            con.setDoOutput(true);
             File file;
             FileReader fileReader;
             BufferedReader bufferedReader;
@@ -49,6 +47,8 @@ public class TippersJobService extends JobService implements LocationListener{
             }
             bufferedReader.close();
             String json = stringBuilder.toString();
+            String url = "http://tippersweb.ics.uci.edu:8080/POST/observation/";
+            new PushToServer().execute(url, json);
             // [
                 // {
             // ID = string
@@ -64,15 +64,44 @@ public class TippersJobService extends JobService implements LocationListener{
                 // unit = string
             // }
         // }, ... ]
-            OutputStream os = con.getOutputStream();
-            byte[] input = json.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         jobFinished(params, false);
         return true;
+    }
+
+    private static class PushToServer extends AsyncTask<String, Void, String> {
+
+        private static final String TAG = "Tippers Testing";
+
+        @Override
+        protected String doInBackground(String... strings) {
+            HttpURLConnection httpURLConnection = null;
+            try {
+                httpURLConnection = (HttpURLConnection) new URL(strings[0]).openConnection();
+                httpURLConnection.setRequestMethod("POST");
+                httpURLConnection.setDoOutput(true);
+                DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
+                dataOutputStream.writeBytes("PostData=" + strings[1]);
+                dataOutputStream.flush();
+                dataOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (httpURLConnection != null) {
+                    httpURLConnection.disconnect();
+                }
+            }
+            return "SUCCESS";
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            Log.d(TAG, s);
+        }
     }
 
     @Override
