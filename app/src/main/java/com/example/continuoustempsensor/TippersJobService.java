@@ -80,14 +80,20 @@ public class TippersJobService extends JobService implements LocationListener{
         protected String doInBackground(String... strings) {
             HttpURLConnection httpURLConnection = null;
             try {
-                httpURLConnection = (HttpURLConnection) new URL(strings[0]).openConnection();
+                URL urlInstance = new URL(strings[0]);
+//                Log.d(TAG, "Host = " + urlInstance.getHost());
+//                Log.d(TAG, "Port = " + urlInstance.getPort());
+                httpURLConnection = (HttpURLConnection) urlInstance.openConnection();
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
-                DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
-                dataOutputStream.writeBytes("PostData=" + strings[1]);
+                httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                httpURLConnection.connect();
+                OutputStream dataOutputStream = httpURLConnection.getOutputStream();
+                dataOutputStream.write(strings[1].getBytes());
                 dataOutputStream.flush();
                 dataOutputStream.close();
             } catch (IOException e) {
+                Log.d(TAG, "error");
                 e.printStackTrace();
             } finally {
                 if (httpURLConnection != null) {
