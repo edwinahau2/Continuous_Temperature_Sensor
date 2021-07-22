@@ -503,7 +503,6 @@ public class MainActivity extends AppCompatActivity {
                                             // textTimeNotify time
                                             // normal notifictation interval check
                                             scheduleNormalJob();
-                                            NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
                                             notif.setImageResource(R.drawable.bell2);
                                         }
                                     }
