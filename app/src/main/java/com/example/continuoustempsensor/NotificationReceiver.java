@@ -51,6 +51,13 @@ public class NotificationReceiver extends BroadcastReceiver {
         PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
 
 
+       // Intent result
+
+
+
+
+
+
         Intent broadcastIntent = new Intent(context, NotificationReceiver.class);
         broadcastIntent.putExtra("ButtonUnderneath", "open app");
         PendingIntent actionIntent = PendingIntent.getBroadcast(context, RequestCode, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
