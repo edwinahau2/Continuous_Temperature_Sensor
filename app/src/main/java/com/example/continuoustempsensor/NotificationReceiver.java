@@ -36,7 +36,6 @@ public class NotificationReceiver extends BroadcastReceiver {
         String message = intent.getStringExtra("ButtonUnderneath");
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 
-        //delete intent: https://www.tutorialspoint.com/how-to-use-notification-deleteintent-in-android
         String action = intent.getAction();
         if (action.equals("notification_cancelled")) {
             Toast.makeText(context, "Notification Removed", Toast.LENGTH_SHORT).show();
@@ -50,6 +49,13 @@ public class NotificationReceiver extends BroadcastReceiver {
         Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
         //activityIntent.putExtra("message", "message");
         PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
+
+
+       // Intent result
+
+
+
+
 
 
         Intent broadcastIntent = new Intent(context, NotificationReceiver.class);

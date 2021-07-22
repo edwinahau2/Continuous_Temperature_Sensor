@@ -65,8 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivityCounter";
     public static String name;
     int i = 0;
-    public static boolean f = true;
-    String unit = "°F";
+    String unit = " °F";
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
     StringBuilder recDataString = new StringBuilder();
@@ -80,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
     public static final int RESPONSE_MESSAGE = 10;
-    String temperature = "101.2";
+    String temperature;
     private Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
@@ -90,9 +89,13 @@ public class MainActivity extends AppCompatActivity {
     ImageView btSym;
     TextView btStat;
     ImageView notif;
+    Boolean good;
+    Boolean bad;
+    Boolean warning;
+    Boolean veryBad;
     ComplexView shadow, ring, white;
     ViewGroup vg;
-    int initMin, initHour = 0;
+    int initMin = 0;
     Boolean firstNotif = true;
     ArrayList<Float> G = new ArrayList<>();
 
@@ -490,7 +493,8 @@ public class MainActivity extends AppCompatActivity {
                                     total2 += Math.pow((tempVals.get(i) - mean), 2);
                                 }
                                 double std = Math.sqrt(total2 / (N - 1));
-                                if (std*std < 0.2) {
+                                double cv = std / mean;
+                                if (cv < 0.2) {
                                     for (int i = 0; i < N; i++) {
                                         double Gstat = Math.abs(tempVals.get(i) - mean) / std;
                                         if (Gstat < 2.75) {
@@ -507,12 +511,12 @@ public class MainActivity extends AppCompatActivity {
                                     } else {
                                         medianTemp = (G.get(G.size()/2)) / 1.0;
                                     }
-                                    if (!f) {
+                                    if (restoreTempUnit(MainActivity.this).equals(" °C")) {
                                         medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
                                     }
                                     DecimalFormat df = new DecimalFormat("#.#");
                                     temperature = df.format(medianTemp);
-                                    onResume();
+                                    booleanUpdate(temperature);
                                     plotData = true;
                                     new Thread(() -> {
                                         while (plotData) {
@@ -521,13 +525,10 @@ public class MainActivity extends AppCompatActivity {
                                                 time.add(clock);
                                                 addEntry(temperature);
                                                 plotData = false;
-                                                if (f) {
-                                                    unit = "°F";
-                                                } else {
-                                                    unit = "°C";
-                                                }
+                                                unit = restoreTempUnit(MainActivity.this);
                                             writeJSON(temperature, clock, i, unit);
                                             i++;
+                                            onResume();
                                             });
                                             try {
                                                 Thread.sleep(5000);
@@ -542,7 +543,7 @@ public class MainActivity extends AppCompatActivity {
                                         if (medianTemp >= 100.3) {// more urgent -- red
                                             if (firstNotif) {// send first notif
                                                 firstNotif = false;
-                                                scheduleJob(5); //notif sent in urgentNotifJob class
+                                                scheduleUrgentJob(); //notif sent in urgentNotifJob class
                                             } else {// buffer for next urgent notification -- Job Scheduler
                                                 Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
                                                 //check if notif clicked -> if clicked then will cancel the buffer
@@ -558,7 +559,8 @@ public class MainActivity extends AppCompatActivity {
                                             // json write to notif file w/ nonurgent level
                                             // textTimeNotify time
                                             // normal notifictation interval check
-                                            NotificationReceiver.sendNotification(getApplicationContext(), 2); // NOT URGENT notif
+                                            scheduleNormalJob();
+                                            notif.setImageResource(R.drawable.bell2);
                                         }
                                     }
                                 }
@@ -574,14 +576,14 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
-    public void scheduleJob(int timeBackoff){
-            ComponentName componentName = new ComponentName(this, urgentNotifJob.class);
-            JobInfo info = new JobInfo.Builder(123, componentName)
-                    .setPersisted(true) // will continue job id device reboots
-                    .setPeriodic(15 * 60 * 1000) //15 min minimum
-                    .setBackoffCriteria(TimeUnit.MINUTES.toMillis(timeBackoff), JobInfo.BACKOFF_POLICY_LINEAR)
-                    .setRequiresCharging(false)
-                    .build();
+    public void scheduleUrgentJob(){
+        ComponentName componentName = new ComponentName(this, urgentNotifJob.class);
+        JobInfo info = new JobInfo.Builder(123, componentName)
+                .setPersisted(true) // will continue job id device reboots
+                .setPeriodic(15*60*1000) //15 min minimum
+                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
+                .setRequiresCharging(false)
+                .build();
 
         JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
         int resultCode = scheduler.schedule(info);
@@ -593,7 +595,26 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void cancelJob(){
+    public void scheduleNormalJob(){
+        ComponentName componentName = new ComponentName(this, normalNotifJob.class);
+        JobInfo info = new JobInfo.Builder(456, componentName)
+                .setPersisted(true) // will continue job id device reboots
+                .setPeriodic(15*60*1000) //15 min minimum
+                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(1), JobInfo.BACKOFF_POLICY_LINEAR)
+                .setRequiresCharging(false)
+                .build();
+
+        JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
+        int resultCode = scheduler.schedule(info);
+        if (resultCode == JobScheduler.RESULT_SUCCESS){
+            Log.d(TAG, "Job scheduled");
+        } else{
+            Log.d(TAG, "Job scheduling failed");
+        }
+
+    }
+
+    public void cancelJob(View v){
         JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
         scheduler.cancel(123); //jobID is to identify the job you are passing through
         Log.d(TAG, "Job cancelled");
@@ -648,16 +669,19 @@ public class MainActivity extends AppCompatActivity {
         mySet.setLineWidth(3f);
         mySet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         mySet.setCubicIntensity(0.2f);
-        mySet.setColors(ContextCompat.getColor(this, R.color.red), ContextCompat.getColor(this, R.color.green), ContextCompat.getColor(this, R.color.yellow));
-//        LineDataSet set = new LineDataSet(null, null);
-//        set.setDrawCircles(true);
-//        set.setFillAlpha(100);
-//        set.setFillColor(ColorTemplate.getHoloBlue());
-//        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-//        set.setLineWidth(3f);
-//        set.setColor(Color.MAGENTA);
-//        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-//        set.setCubicIntensity(0.2f);
+        int colorId;
+        if (good) {
+            colorId = R.color.green;
+        } else if (warning) {
+            colorId = R.color.yellow;
+        } else if (bad) {
+            colorId = R.color.orange;
+        } else if (veryBad) {
+            colorId = R.color.red;
+        } else {
+            colorId = R.color.blue;
+        }
+        mySet.setColors(ContextCompat.getColor(this, colorId));
         return mySet;
     }
 
@@ -697,15 +721,49 @@ public class MainActivity extends AppCompatActivity {
         return "Notif " + idx;
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public static void saveTempUnit(String tempUnit, Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MainUnitPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("tempUnit", tempUnit);
+        editor.apply();
+    }
+
+    public static String restoreTempUnit(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MainUnitPrefs", MODE_PRIVATE);
+        return prefs.getString("tempUnit", " °F");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
+    }
+
+    private void booleanUpdate(String val) {
+        if (val != null && !val.isEmpty()) {
+            float y = Float.parseFloat(temperature);
+            if (y <= 99.9 || y <= 37.7) {
+                good = true;
+                bad = false;
+                warning = false;
+                veryBad = false;
+            } else if ((y < 100.4 && y >= 100) || (y < 38 && y >= 37.8)) {
+                good = false;
+                warning = true;
+                bad = false;
+                veryBad = false;
+            } else if ((y >= 100.4 && y <= 102.9) || (y >= 38 && y <= 39.4)) {
+                good = false;
+                bad = true;
+                warning = false;
+                veryBad = false;
+            } else {
+                good = false;
+                bad = false;
+                warning = false;
+                veryBad = true;
+            }
+        }
     }
 
     @Override
@@ -719,7 +777,7 @@ public class MainActivity extends AppCompatActivity {
             btSym.setBackgroundResource(R.drawable.ic_b2);
         }
         int num;
-        if (temperature.length() != 0) {
+        if (temperature != null && !temperature.isEmpty()) {
             float y = Float.parseFloat(temperature);
             if (y <= 99.9 || y <= 37.7) {
                 num = 1;
