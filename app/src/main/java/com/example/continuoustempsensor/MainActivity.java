@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> al = new ArrayList<>();
     File file;
     FileWriter fileWriter = null;
-    BufferedWriter bufferedWriter = null;;
+    BufferedWriter bufferedWriter = null;
     private static final String TAG = "MainActivityCounter";
     public static String name;
     int i = 0;
