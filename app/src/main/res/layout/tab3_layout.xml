@@ -102,7 +102,6 @@
             android:text="Not Connected"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:background="@drawable/rounded_corners_for_buttons"
             app:layout_constraintBottom_toTopOf="@+id/textView4"
             app:layout_constraintTop_toBottomOf="@+id/Bluetooth" />
 
@@ -192,7 +191,7 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="4dp"
-            android:text=" Report A Bug"
+            android:text=" Send App Feedback"
             android:textAlignment="textStart"
             android:background="@android:color/transparent"
             android:drawableRight="@drawable/next_arrow"

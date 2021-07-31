@@ -12,6 +12,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,7 +23,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -67,9 +69,8 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationListener {
 
-    ArrayList<String> al = new ArrayList<>();
     private static final String TAG = "MainActivityCounter";
     public static String name;
     int i = 0;
@@ -78,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> time = new ArrayList<>();
     StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<Float>();
-    TextView temp;
+    ArrayList<Float> tipperVals = new ArrayList<Float>();
+    TextView tempTextView;
     public static LineChart mChart;
     public static String address;
     @SuppressLint("SimpleDateFormat")
@@ -104,8 +106,7 @@ public class MainActivity extends AppCompatActivity {
     ViewGroup vg;
     int initMin = 0;
     Boolean firstNotif = true;
-    ArrayList<Float> G = new ArrayList<>();
-
+    protected LocationManager locationManager;
 
     @SuppressLint("ShowToast")
     @Override
@@ -116,11 +117,12 @@ public class MainActivity extends AppCompatActivity {
         shadow = findViewById(R.id.complex);
         ring = findViewById(R.id.ring);
         white = findViewById(R.id.white);
-        temp = findViewById(R.id.temp);
+        tempTextView = findViewById(R.id.temp);
         btSym = findViewById(R.id.btSym);
         btStat = findViewById(R.id.btStat);
         notif = findViewById(R.id.notif);
-        if (!fileCreated()) {
+//        if (!fileCreated()) {
+        if (true) { // TODO: change back to previous line when done
             try {
                 new FileOutputStream(this.getFilesDir() + "/notif.json");
                 new FileOutputStream(this.getFilesDir() + "/temp.json");
@@ -200,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
         mChart.setDrawBorders(false);
         mChart.invalidate();
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.item, R.id.helloText, al);
         if (bundle != null) {
             address = bundle.getString("address");
             name = bundle.getString("name");
@@ -227,14 +228,6 @@ public class MainActivity extends AppCompatActivity {
             scheduler.cancel(123); //job
             Log.d(TAG, "Job Cancelled");
         }*/
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-        }
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        }
 
         FileReader tippersFileReader;
         BufferedReader tippersBufferedReader;
@@ -286,16 +279,14 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
-        JobInfo jobInfo = new JobInfo.Builder(110, componentName)
-                .setPersisted(false)
-                .setRequiresCharging(false)
-                .setPeriodic(TimeUnit.MINUTES.toMillis(30))
-                .setBackoffCriteria(TimeUnit.MINUTES.toMillis(1), JobInfo.BACKOFF_POLICY_LINEAR)
-                .build();
-        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-        assert jobScheduler != null;
-        jobScheduler.schedule(jobInfo);
+//        ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
+//        JobInfo jobInfo = new JobInfo.Builder(110, componentName)
+//                .setPersisted(false)
+//                .setRequiresCharging(false)
+//                .build();
+//        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+//        assert jobScheduler != null;
+//        jobScheduler.schedule(jobInfo);
 
         notif.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), notifActivity.class);
@@ -325,32 +316,32 @@ public class MainActivity extends AppCompatActivity {
             shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // blue
             ring.setColor(Color.parseColor("#00B0F0"));
             temperature = "--";
-            temp.setText(temperature);
-            temp.setTextSize(44);
+            tempTextView.setText(temperature);
+            tempTextView.setTextSize(44);
         } else if (num == 1) {
             shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // green
             ring.setColor(Color.parseColor("#00B050"));
-            temp.setText(temperature + unit);
-            temp.setTextSize(44);
-            temp.setTextColor(Color.parseColor("#000000"));
+            tempTextView.setText(temperature + unit);
+            tempTextView.setTextSize(44);
+            tempTextView.setTextColor(Color.parseColor("#000000"));
         } else if (num == 2) {
             shadow.setShadow(new Shadow(4, 100, "#FFD500", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // yellow
             ring.setColor(Color.parseColor("#FB710B"));
-            temp.setText(temperature + unit);
-            temp.setTextSize(44);
-            temp.setTextColor(Color.parseColor("#000000"));
+            tempTextView.setText(temperature + unit);
+            tempTextView.setTextSize(44);
+            tempTextView.setTextColor(Color.parseColor("#000000"));
         } else if (num == 3) {
             shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // orange
             ring.setColor(Color.parseColor("#FF0000"));
-            temp.setText(temperature + unit);
-            temp.setTextSize(40);
-            temp.setTextColor(Color.parseColor("#000000"));
+            tempTextView.setText(temperature + unit);
+            tempTextView.setTextSize(40);
+            tempTextView.setTextColor(Color.parseColor("#000000"));
         } else {
             shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // red
             ring.setColor(Color.parseColor("#00B0F0"));
-            temp.setText(temperature + unit);
-            temp.setTextSize(44);
-            temp.setTextColor(Color.parseColor("#000000"));
+            tempTextView.setText(temperature + unit);
+            tempTextView.setTextSize(44);
+            tempTextView.setTextColor(Color.parseColor("#000000"));
         }
     }
 
@@ -363,15 +354,14 @@ public class MainActivity extends AppCompatActivity {
                     if (active != null) {
                         fm.beginTransaction().hide(active).commit();
                     }
-                    temp.setVisibility(View.VISIBLE);
+                    tempTextView.setVisibility(View.VISIBLE);
                     mChart.setVisibility(View.VISIBLE);
                     shadow.setVisibility(View.VISIBLE);
                     ring.setVisibility(View.VISIBLE);
                     white.setVisibility(View.VISIBLE);
                     btStat.setVisibility(View.VISIBLE);
                     btSym.setVisibility(View.VISIBLE);
-                    notif.setVisibility(View.VISIBLE);
-//                    temp.setText(temperature);
+                    notif.setVisibility(View.VISIBLE);;
                     return true;
 
                 case R.id.Bt:
@@ -380,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         fm.beginTransaction().show(fragment3).commit();
                     }
-                    temp.setVisibility(View.INVISIBLE);
+                    tempTextView.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
                     shadow.setVisibility(View.INVISIBLE);
                     ring.setVisibility(View.INVISIBLE);
@@ -397,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         fm.beginTransaction().show(fragment2).commit();
                     }
-                    temp.setVisibility(View.INVISIBLE);
+                    tempTextView.setVisibility(View.INVISIBLE);
                     mChart.setVisibility(View.INVISIBLE);
                     shadow.setVisibility(View.INVISIBLE);
                     ring.setVisibility(View.INVISIBLE);
@@ -423,46 +413,36 @@ public class MainActivity extends AppCompatActivity {
                     recDataString.append(readMessage);
                     int endOfLineIndex = recDataString.indexOf("~");
                     if (endOfLineIndex > 0) {
-                        boolean legit = false;
                         if (recDataString.charAt(0) == '#') {
                             String sensor = recDataString.substring(1, endOfLineIndex);
                             float sensorVal =  Float.parseFloat(sensor);
                             tempVals.add(sensorVal);
+                            tipperVals.add(sensorVal);
                             int N = tempVals.size();
-                            if (N >= 30){
-                                double total =0;
-                                for(int i=0;i<N;i++) {
-                                    total += tempVals.get(i);
+                            int M = tipperVals.size();
+
+                            if (M >= 60) { // TODO: change if sample size for tippers is not 1 min
+                                String tippersTemp = grubbs(tipperVals, M);
+                                if (!tippersTemp.equals("NaN")) {
+                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
+                                    String timestamp = sdf.format(Calendar.getInstance().getTime());
+                                    unit = restoreTempUnit(MainActivity.this);
+                                    writeTippersJSON(tippersTemp, timestamp, unit);
+                                    ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
+                                    JobInfo jobInfo = new JobInfo.Builder(110, componentName)
+                                            .setPersisted(false)
+                                            .setRequiresCharging(false)
+                                            .build();
+                                    JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+                                    assert jobScheduler != null;
+                                    jobScheduler.schedule(jobInfo);
                                 }
-                                double mean = total/N;
-                                double total2 = 0;
-                                for (int i=0;i<N; i++) {
-                                    total2 += Math.pow((tempVals.get(i) - mean), 2);
-                                }
-                                double std = Math.sqrt(total2 / (N - 1));
-                                double cv = std / mean;
-                                if (cv < 0.2) {
-                                    for (int i = 0; i < N; i++) {
-                                        double Gstat = Math.abs(tempVals.get(i) - mean) / std;
-                                        if (Gstat < 2.75) {
-                                            G.add(tempVals.get(i));
-                                        }
-                                    }
-                                    legit = !G.isEmpty();
-                                }
-                                if (legit) {
-                                    Collections.sort(tempVals);
-                                    double medianTemp;
-                                    if (N % 2 == 0) {
-                                        medianTemp = (G.get(G.size()/2) + G.get((G.size()/2) - 1)) / 2.0;
-                                    } else {
-                                        medianTemp = (G.get(G.size()/2)) / 1.0;
-                                    }
-                                    if (restoreTempUnit(MainActivity.this).equals(" °C")) {
-                                        medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
-                                    }
-                                    DecimalFormat df = new DecimalFormat("#.#");
-                                    temperature = df.format(medianTemp);
+                                tipperVals.clear();
+                            }
+
+                            if (N >= 30) {
+                                temperature = grubbs(tempVals, N);
+                                if (!temperature.equals("NaN")) {
                                     booleanUpdate(temperature);
                                     plotData = true;
                                     new Thread(() -> {
@@ -473,19 +453,22 @@ public class MainActivity extends AppCompatActivity {
                                                 addEntry(temperature);
                                                 plotData = false;
                                                 unit = restoreTempUnit(MainActivity.this);
-                                            writeJSON(temperature, clock, i, unit);
-                                            i++;
-                                            onResume();
+                                                writeJSON(temperature, clock, i, unit);
+                                                i++;
+                                                onResume();
                                             });
                                             try {
                                                 Thread.sleep(5000);
-                                            } catch (InterruptedException e){
+                                            } catch (InterruptedException e) {
                                                 e.printStackTrace();
                                             }
                                         }
                                     }).start();
-                                //only applies when user has not force closed the app
-                                    medianTemp = 101;
+                                    //only applies when user has not force closed the app
+
+//                                float medianTemp = Float.parseFloat(temperature);
+                                    // TODO: this entire notification stuff
+                                    float medianTemp = 101;
                                     if (medianTemp >= 0) {
                                         if (medianTemp >= 100.3) {// more urgent -- red
                                             if (firstNotif) {// send first notif
@@ -494,11 +477,9 @@ public class MainActivity extends AppCompatActivity {
                                             } else {// buffer for next urgent notification -- Job Scheduler
                                                 Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
                                                 //check if notif clicked -> if clicked then will cancel the buffer
-
                                                 //HERE!!!
-
                                             }
-                                        } else{//not urgent normal notification -- temp greater than 0 but less than 100.3
+                                        } else {//not urgent normal notification -- temp greater than 0 but less than 100.3
                                             // json write to notif file w/ nonurgent level
                                             // textTimeNotify time
                                             // normal notifictation interval check
@@ -508,8 +489,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
-                                G.clear();
-                                tempVals.clear();
+                                tempVals.clear(); // values get cleared regardless of whether grubbs test is passed or not
                             }
                         }
                     } else {
@@ -520,6 +500,53 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
+
+    private String grubbs(ArrayList<Float> Vals, int sampleSize) {
+        ArrayList<Float> GrubbTest = new ArrayList<>();
+        double total =0;
+        for (int i=0;i<sampleSize;i++) {
+            total += Vals.get(i);
+        }
+        double mean = total/sampleSize;
+        double total2 = 0;
+        for (int i=0; i<sampleSize; i++) {
+            total2 += Math.pow((Vals.get(i) - mean), 2);
+        }
+        double std = Math.sqrt(total2 / (sampleSize - 1));
+        double cv = std / mean;
+        if (cv < 0.2) {
+            for (int i = 0; i < sampleSize; i++) {
+                double Gstat = Math.abs(Vals.get(i) - mean) / std;
+                if (sampleSize == 30) {
+                    if (Gstat < 2.75) {
+                        GrubbTest.add(Vals.get(i));
+                    }
+                } else {
+                    if (Gstat < 3.03) { // TODO: change if sample size for tippers is not 1 min
+                        GrubbTest.add(Vals.get(i));
+                    }
+                }
+            }
+        }
+        boolean legit = !GrubbTest.isEmpty();
+        if (legit) {
+            Collections.sort(tempVals);
+            double medianTemp;
+            if (sampleSize % 2 == 0) {
+                medianTemp = (GrubbTest.get(GrubbTest.size() / 2) + GrubbTest.get((GrubbTest.size() / 2) - 1)) / 2.0;
+            } else {
+                medianTemp = (GrubbTest.get(GrubbTest.size() / 2)) / 1.0;
+            }
+            if (restoreTempUnit(MainActivity.this).equals(" °C")) {
+                medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
+            }
+            DecimalFormat df = new DecimalFormat("#.#");
+            return df.format(medianTemp);
+        } else {
+            return "NaN";
+        }
+    }
+
     public void scheduleUrgentJob(){
         ComponentName componentName = new ComponentName(this, urgentNotifJob.class);
         JobInfo info = new JobInfo.Builder(123, componentName)
@@ -566,34 +593,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void writeJSON(String temperature, String clock, int i, String unit) {
         File file;
-        File tippersFile;
         FileReader fileReader;
-        FileReader tippersFileReader;
         BufferedReader bufferedReader;
-        BufferedReader tippersBufferedReader;
         String FILE_NAME = "temp.json";
-        String FILE_NAME2 = "tippers.json";
         file = new File(this.getFilesDir(), FILE_NAME);
-        tippersFile = new File(this.getFilesDir(), FILE_NAME2);
         try {
             fileReader = new FileReader(file);
-            tippersFileReader = new FileReader(tippersFile);
             bufferedReader = new BufferedReader(fileReader);
-            tippersBufferedReader = new BufferedReader(tippersFileReader);
             StringBuilder stringBuilder = new StringBuilder();
-            StringBuilder tippersString = new StringBuilder();
             String line = bufferedReader.readLine();
             while (line != null) {
                 stringBuilder.append(line).append("\n");
                 line = bufferedReader.readLine();
             }
-            String tippersLine = tippersBufferedReader.readLine();
-            while (tippersLine != null) {
-                tippersString.append(tippersLine).append("\n");
-                tippersLine = tippersBufferedReader.readLine();
-            }
             bufferedReader.close();
-            tippersBufferedReader.close();
             String response = stringBuilder.toString();
             JSONObject jsonObject = new JSONObject(response);
             String index = String.valueOf(i);
@@ -610,36 +623,77 @@ public class MainActivity extends AppCompatActivity {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(userString);
             bufferedWriter.close();
-
-            String tippersResponse = tippersString.toString();
-            JSONArray firstArray = new JSONArray(tippersResponse);
-            String array1 = firstArray.toString();
-            JSONObject tippersData = new JSONObject();
-            tippersData.put("ID", retrieveID());
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
-            String timestamp = sdf.format(Calendar.getInstance().getTime());
-            tippersData.put("timestamp", timestamp);
-            JSONObject read = new JSONObject();
-            read.put("val", temperature);
-            read.put("unit", unit);
-            tippersData.put("data", read);
-            JSONArray appendArray = new JSONArray();
-            appendArray.put(tippersData);
-            String array2 = appendArray.toString();
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode tree1 = mapper.readTree(array1);
-            JsonNode tree2 = mapper.readTree(array2);
-            ((ArrayNode) tree1).addAll((ArrayNode) tree2);
-            String tippersJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree1);
-            fileWriter = new FileWriter(tippersFile, false);
-            bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.write(tippersJSON);
-            bufferedWriter.close();
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
     }
 
+    private void writeTippersJSON(String tippersTemp, String timestamp, String tempUnit) {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        assert locationManager != null;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if  (location != null) {
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            File tippersFile;
+            FileReader tippersFileReader;
+            BufferedReader tippersBufferedReader;
+            String FILE_NAME = "tippers.json";
+            tippersFile = new File(this.getFilesDir(), FILE_NAME);
+            try {
+                tippersFileReader = new FileReader(tippersFile);
+                tippersBufferedReader = new BufferedReader(tippersFileReader);
+                String tippersLine = tippersBufferedReader.readLine();
+                String array1 = null;
+                if (tippersLine != null) {
+                    StringBuilder tippersString = new StringBuilder();
+                    while (tippersLine != null) {
+                        tippersString.append(tippersLine).append("\n");
+                        tippersLine = tippersBufferedReader.readLine();
+                    }
+                    tippersBufferedReader.close();
+                    String tippersResponse = tippersString.toString();
+                    JSONArray firstArray = new JSONArray(tippersResponse);
+                    array1 = firstArray.toString();
+                }
+                JSONObject tippersData = new JSONObject();
+                tippersData.put("ID", retrieveID());
+                tippersData.put("timestamp", timestamp);
+                tippersData.put("Latitude", latitude);
+                tippersData.put("Longitude", longitude);
+                JSONObject read = new JSONObject();
+                read.put("val", tippersTemp);
+                read.put("unit", tempUnit);
+                tippersData.put("data", read);
+                JSONArray appendArray = new JSONArray();
+                appendArray.put(tippersData);
+                String array2 = appendArray.toString();
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode tree1;
+                if (array1 != null) {
+                    tree1 = mapper.readTree(array1);
+                    JsonNode tree2 = mapper.readTree(array2);
+                    ((ArrayNode) tree1).addAll((ArrayNode) tree2);
+                } else {
+                    tree1 = mapper.readTree(array2);
+                }
+                String tippersJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree1);
+                FileWriter fileWriter = new FileWriter(tippersFile, false);
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write(tippersJSON);
+                bufferedWriter.close();
+            } catch (JSONException | IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private void addEntry(String temperature) {
         LineData data = mChart.getData();
@@ -797,7 +851,7 @@ public class MainActivity extends AppCompatActivity {
             btSym.setBackgroundResource(R.drawable.ic_b2);
         }
         int num;
-        if (temperature != null && !temperature.isEmpty()) {
+        if (temperature != null && !temperature.isEmpty() && !temperature.equals("--")) {
             float y = Float.parseFloat(temperature);
             if (y <= 99.9 || y <= 37.7) {
                 num = 1;
@@ -840,4 +894,16 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void onLocationChanged(Location location) {}
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+    @Override
+    public void onProviderEnabled(String provider) {}
+
+    @Override
+    public void onProviderDisabled(String provider) {}
 }

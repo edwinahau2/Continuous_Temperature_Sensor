@@ -62,7 +62,6 @@ public class fragment_tab2 extends Fragment  {
     TabLayout tabLayout;
     TabLayout.Tab selectTab;
     CalendarDay myDate = CalendarDay.today();
-    LocalDate localDate;
     CalendarDay upToDay;
     CurrentDayDecorator currentDayDecorator;
     ViewPager report;
@@ -206,29 +205,6 @@ public class fragment_tab2 extends Fragment  {
                         } else {
                             tabSelect();
                         }
-//                if (tab.getPosition() == 1) {
-//                    if (verify) {
-//                        toast = Toast.makeText(getContext(), "No data found for this day", Toast.LENGTH_SHORT);
-//                        setToast();
-//                        report.setVisibility(View.GONE);
-//                    } else {
-//                        addDays(date);
-//                        current = convertCalendar(date);
-//                        reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
-//                        report.setVisibility(View.VISIBLE);
-//                        materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.WEEKS).commit();
-//                        report.setAdapter(reportAdapter);
-//                    }
-//                } else if (tab.getPosition() == 2) {
-//                    if (upToDay == null || upToDay.equals(myDate)) {
-//                        currentDayDecorator = new CurrentDayDecorator(myDate, true);
-//                        materialCalendarView.addDecorator(currentDayDecorator);
-//                    } else {
-//                        currentDayDecorator = new CurrentDayDecorator(myDate, false);
-//                        materialCalendarView.addDecorator(currentDayDecorator);
-//                    }
-//                    report.setVisibility(View.GONE);
-//                    materialCalendarView.state().edit().setCalendarDisplayMode(CalendarMode.MONTHS).commit();
                     }
 
                     @Override
@@ -321,103 +297,6 @@ public class fragment_tab2 extends Fragment  {
         }
         return current;
     }
-
-//    private void addDays(CalendarDay date) {
-//        Calendar calendar = Calendar.getInstance();
-//        String bruh = String.valueOf(date);
-//        String bruhpt2 = bruh.substring(12, bruh.length()-1);
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-//        try {
-//            calendar.setTime(sdf.parse(bruhpt2));
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//        }
-//        int c = calendar.get(Calendar.DAY_OF_WEEK);
-//        localDate = getLocalDate(bruhpt2);
-//        switch(c) {
-//            case 1:
-//                datesLeft.add(CalendarDay.from(localDate));
-//                for (int t = 1; t < 6; t++) {
-//                    datesCenter.add(CalendarDay.from(localDate.plusDays(t)));
-//                }
-//                datesRight.add(CalendarDay.from(localDate.plusDays(6)));
-//                break;
-//            case 2:
-//                datesLeft.add(CalendarDay.from(localDate.minusDays(1)));
-//                datesCenter.add(CalendarDay.from(localDate));
-//                for (int t = 1; t < 5; t++) {
-//                    datesCenter.add(CalendarDay.from(localDate.plusDays(t)));
-//                }
-//                datesRight.add(CalendarDay.from(localDate.plusDays(5)));
-//                break;
-//            case 3:
-//                datesLeft.add(CalendarDay.from(localDate.minusDays(2)));
-//                datesCenter.add(CalendarDay.from(localDate.minusDays(1)));
-//                datesCenter.add(CalendarDay.from(localDate));
-//                for (int t = 1; t < 4; t++) {
-//                    datesCenter.add(CalendarDay.from(localDate.plusDays(t)));
-//                }
-//                datesRight.add(CalendarDay.from(localDate.plusDays(4)));
-//                break;
-//            case 4:
-//                datesLeft.add(CalendarDay.from(localDate.minusDays(3)));
-//                datesCenter.add(CalendarDay.from(localDate.minusDays(2)));
-//                datesCenter.add(CalendarDay.from(localDate.minusDays(1)));
-//                datesCenter.add(CalendarDay.from(localDate));
-//                for (int t = 1; t < 3; t++) {
-//                    datesCenter.add(CalendarDay.from(localDate.plusDays(t)));
-//                }
-//                datesRight.add(CalendarDay.from(localDate.plusDays(3)));
-//                break;
-//            case 5:
-//                datesLeft.add(CalendarDay.from(localDate.minusDays(4)));
-//                datesCenter.add(CalendarDay.from(localDate.minusDays(3)));
-//                datesCenter.add(CalendarDay.from(localDate.minusDays(2)));
-//                datesCenter.add(CalendarDay.from(localDate.minusDays(1)));
-//                datesCenter.add(CalendarDay.from(localDate));
-//                for (int t = 1; t < 2; t++) {
-//                    datesCenter.add(CalendarDay.from(localDate.plusDays(t)));
-//                }
-//                datesRight.add(CalendarDay.from(localDate.plusDays(2)));
-//                break;
-//            case 6:
-//                datesLeft.add(CalendarDay.from(localDate.minusDays(5)));
-//                for (int t = 4; t > 0; t--) {
-//                    datesCenter.add(CalendarDay.from(localDate.minusDays(t)));
-//                }
-//                datesCenter.add(CalendarDay.from(localDate));
-//                datesRight.add(CalendarDay.from(localDate.plusDays(1)));
-//                break;
-//            case 7:
-//                datesLeft.add(CalendarDay.from(localDate.minusDays(6)));
-//                for (int t = 5; t > 0; t--) {
-//                    datesCenter.add(CalendarDay.from(localDate.minusDays(t)));
-//                }
-//                datesRight.add(CalendarDay.from(localDate));
-//                break;
-//        }
-//
-//        setDecor(datesLeft, R.drawable.g_left);
-//        setDecor(datesCenter, R.drawable.g_center);
-//        setDecor(datesRight, R.drawable.g_right);
-//    }
-
-//    private LocalDate getLocalDate(String ld) {
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-//        try {
-//            Date input = sdf.parse(ld);
-//            Calendar cal = Calendar.getInstance();
-//            cal.setTime(input);
-//            return LocalDate.of(cal.get(Calendar.YEAR),cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH));
-//        } catch (NullPointerException | ParseException e) {
-//            return null;
-//        }
-//    }
-
-//    private void setDecor(List<CalendarDay> calendarDayList, int drawable) {
-//        weekDecorator = new WeekDecorator(requireContext(), drawable, calendarDayList);
-//        materialCalendarView.addDecorators(weekDecorator);
-//    }
 
     public void setToast() {
         toast.setGravity(Gravity.BOTTOM, 0, 100);

@@ -4,34 +4,35 @@ import android.annotation.SuppressLint;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Context;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
+import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 
-public class TippersJobService extends JobService implements LocationListener{
-
-    protected LocationManager locationManager;
+public class TippersJobService extends JobService {
 
     @SuppressLint("MissingPermission")
     @Override
     public boolean onStartJob(JobParameters params) {
         try {
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            assert locationManager != null;
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            // relatively easier to get building level bc of coordinates info
+            // don't have exact accuracy for floor/room level
             File file;
             FileReader fileReader;
             BufferedReader bufferedReader;
@@ -47,7 +48,8 @@ public class TippersJobService extends JobService implements LocationListener{
             }
             bufferedReader.close();
             String json = stringBuilder.toString();
-            String url = "http://tippersweb.ics.uci.edu:8080/POST/observation/";
+            String url = "http://tippersweb.ics.uci.edu:8080/observation";
+//            String url = "http://standards-oui.ieee.org/oui/oui.txt";
             new PushToServer().execute(url, json);
             // [
                 // {
@@ -81,19 +83,25 @@ public class TippersJobService extends JobService implements LocationListener{
             HttpURLConnection httpURLConnection = null;
             try {
                 URL urlInstance = new URL(strings[0]);
-//                Log.d(TAG, "Host = " + urlInstance.getHost());
-//                Log.d(TAG, "Port = " + urlInstance.getPort());
+                Log.d(TAG, strings[1]);
                 httpURLConnection = (HttpURLConnection) urlInstance.openConnection();
+                httpURLConnection.setConnectTimeout(60*1000);
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
                 httpURLConnection.setRequestProperty("Content-Type", "application/json");
-                httpURLConnection.connect();
-                OutputStream dataOutputStream = httpURLConnection.getOutputStream();
-                dataOutputStream.write(strings[1].getBytes());
-                dataOutputStream.flush();
-                dataOutputStream.close();
+                OutputStream os = httpURLConnection.getOutputStream();
+                byte[] input = strings[1].getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+                BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream(), StandardCharsets.UTF_8));
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                System.out.println(response.toString());
+
             } catch (IOException e) {
-                Log.d(TAG, "error");
+                Log.d(TAG, "ERROR");
                 e.printStackTrace();
             } finally {
                 if (httpURLConnection != null) {
@@ -113,25 +121,5 @@ public class TippersJobService extends JobService implements LocationListener{
     @Override
     public boolean onStopJob(JobParameters params) {
         return true;
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
     }
 }

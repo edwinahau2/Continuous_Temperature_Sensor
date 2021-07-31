@@ -101,6 +101,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         }
 
         tempTab.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 int itab = tab.getPosition();
@@ -259,6 +260,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_OFF) {
+                    connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_buttons));
                     setButtonColor(false);
                     SpannableString spanString = new SpannableString("Not Connected");
                     spanString.setSpan(new StyleSpan(Typeface.NORMAL), 0, spanString.length(), 0);
@@ -271,10 +273,10 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     public void setButtonColor(Boolean doit) {
         if (doit) {
             connect.setTextColor(Color.parseColor("#FFFFFF"));
-            connect.setBackgroundColor(Color.parseColor("#4e95d4"));
+            connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_connected));
         } else {
             connect.setTextColor(Color.parseColor("#656565"));
-            connect.setBackgroundColor(Color.parseColor("#e3e3e3"));
+            connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_not_connected));
         }
     }
 
@@ -283,7 +285,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         super.onResume();
         uhh = restoreBool();
         sensor = restoreNameData();
-        connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_buttons));
         if (uhh) {
             if (AndroidService.spark) {
                 setButtonColor(true);
