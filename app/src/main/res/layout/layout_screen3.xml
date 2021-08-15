@@ -165,40 +165,6 @@
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.15" />
 
-        <!--        <ImageView-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="0dp"-->
-        <!--            android:background="@drawable/bars"-->
-        <!--            app:layout_constraintBottom_toTopOf="@+id/sparkView"-->
-        <!--            app:layout_constraintStart_toStartOf="parent"-->
-        <!--            app:layout_constraintTop_toBottomOf="@id/guide3"-->
-        <!--            app:layout_constraintEnd_toStartOf="@id/verticalGuide"-->
-        <!--            android:elevation="2dp"/>-->
-
-
-        <!--    <com.lorentzos.flingswipe.SwipeFlingAdapterView-->
-        <!--        android:id="@+id/frame"-->
-        <!--        android:layout_width="match_parent"-->
-        <!--        android:layout_height="wrap_content"-->
-        <!--        android:background="#e0e0e0"-->
-        <!--        app:layout_constraintTop_toBottomOf="@+id/sparkView"-->
-        <!--        app:layout_constraintEnd_toEndOf="parent"-->
-        <!--        app:layout_constraintStart_toStartOf="parent"-->
-        <!--        android:layout_marginTop="25dp"-->
-        <!--        app:layout_constraintHeight_max="150dp"-->
-        <!--        app:rotation_degrees="0" />-->
-        <!--    <TextView-->
-        <!--        android:layout_width="wrap_content"-->
-        <!--        android:layout_height="wrap_content"-->
-        <!--        android:layout_gravity="center"-->
-        <!--        android:layout_marginTop="5dp"-->
-        <!--        android:textAlignment="center"-->
-        <!--        android:textSize="25sp"-->
-        <!--        android:textColor="#FFFFFF"-->
-        <!--        android:id="@+id/counter"-->
-        <!--        app:layout_constraintEnd_toEndOf="@+id/frame"-->
-        <!--        android:background="@drawable/circular_border"-->
-        <!--        app:layout_constraintTop_toBottomOf="@+id/sparkView" />-->
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

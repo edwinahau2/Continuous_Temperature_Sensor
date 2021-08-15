@@ -31,6 +31,8 @@ public class AndroidService extends Service {
     public static boolean spark = false;
     private static final String TAG = "AndroidService";
 
+    // TODO: check if bluetooth is still connected while app is running (specifically when data is bad) --> maybe make it a job ?
+
     @Override
     public void onCreate() {
         super.onCreate();

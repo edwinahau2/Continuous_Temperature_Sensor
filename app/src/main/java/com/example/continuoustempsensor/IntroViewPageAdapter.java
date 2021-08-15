@@ -15,6 +15,7 @@ import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.viewpager.widget.PagerAdapter;
 
 import com.blure.complexview.ComplexView;
@@ -65,6 +66,8 @@ public class IntroViewPageAdapter extends PagerAdapter {
             layoutScreen = inflater.inflate(R.layout.layout_screen2, null);
             TextView title = layoutScreen.findViewById(R.id.sensorText);
             title.setText(mListScreen.get(position).getTitle());
+            TextView sensorDescription = layoutScreen.findViewById(R.id.sensorDescription);
+            sensorDescription.setText(mListScreen.get(position).getDescription());
             VideoView movie = layoutScreen.findViewById(R.id.videoTuts);
             Uri video = Uri.parse("android.resource://" + mContext.getPackageName() + "/" + R.raw.sample);
             movie.setVideoURI(video);
@@ -130,6 +133,7 @@ public class IntroViewPageAdapter extends PagerAdapter {
             TextView title = layoutScreen.findViewById(R.id.intro_connect);
             TextView description = layoutScreen.findViewById(R.id.connect_describe);
             button = layoutScreen.findViewById(R.id.buttonCnct);
+            button.setBackground(ContextCompat.getDrawable(mContext, R.drawable.rounded_corners_for_buttons));
             title.setText(mListScreen.get(position).getTitle());
             description.setText(mListScreen.get(position).getDescription());
             deviceImg.setImageResource(mListScreen.get(position).getScreenImg());

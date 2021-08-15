@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 JSONObject jsonObject = new JSONObject(response);
                 JSONArray names = jsonObject.names();
                 if (names != null) {
-                    notif.setImageResource(R.drawable.bell2);
+                    notif.setImageResource(R.drawable.bell2); //TODO: why is bell not showing up at all
                 } else {
                     notif.setImageResource(R.drawable.bell);
                 }
@@ -311,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private void tempDisplay(int num) {
-        float[] radii = {250, 250, 250, 250, 250, 250, 250, 250};
+        float[] radii = {250, 250, 250, 250, 250, 250, 250, 250}; // TODO: find a way to not hard-code radius of display
         if (num == 0) {
             shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // blue
             ring.setColor(Color.parseColor("#00B0F0"));
@@ -420,8 +420,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             tipperVals.add(sensorVal);
                             int N = tempVals.size();
                             int M = tipperVals.size();
-
-                            if (M >= 60) { // TODO: change if sample size for tippers is not 1 min
+                            if (M >= 120) { // 20 minutes for tippers
                                 String tippersTemp = grubbs(tipperVals, M);
                                 if (!tippersTemp.equals("NaN")) {
                                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
@@ -432,6 +431,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                     JobInfo jobInfo = new JobInfo.Builder(110, componentName)
                                             .setPersisted(false)
                                             .setRequiresCharging(false)
+                                            .setOverrideDeadline(5000)
                                             .build();
                                     JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
                                     assert jobScheduler != null;
@@ -440,7 +440,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                 tipperVals.clear();
                             }
 
-                            if (N >= 30) {
+                            if (N >= 30) { // 5 minutes for app TODO: add number based on moving average
                                 temperature = grubbs(tempVals, N);
                                 if (!temperature.equals("NaN")) {
                                     booleanUpdate(temperature);
@@ -501,6 +501,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private String grubbs(ArrayList<Float> Vals, int sampleSize) {
+        // TODO: add moving average
         ArrayList<Float> GrubbTest = new ArrayList<>();
         double total =0;
         for (int i=0;i<sampleSize;i++) {
@@ -513,15 +514,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
         double std = Math.sqrt(total2 / (sampleSize - 1));
         double cv = std / mean;
-        if (cv < 0.2) {
+        if (cv > 0.2) {
             for (int i = 0; i < sampleSize; i++) {
                 double Gstat = Math.abs(Vals.get(i) - mean) / std;
                 if (sampleSize == 30) {
-                    if (Gstat < 2.75) {
+                    if (Gstat < 2.9085) { // TODO: check for largest critical value and remove accordingly
                         GrubbTest.add(Vals.get(i));
                     }
                 } else {
-                    if (Gstat < 3.03) { // TODO: change if sample size for tippers is not 1 min
+                    if (Gstat < 3.4451) {
                         GrubbTest.add(Vals.get(i));
                     }
                 }
@@ -565,7 +566,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    public void scheduleNormalJob(){
+    public void scheduleNormalJob(){ // TODO: change periodic to account for fragment 3 setting
         ComponentName componentName = new ComponentName(this, normalNotifJob.class);
         JobInfo info = new JobInfo.Builder(456, componentName)
                 .setPersisted(true) // will continue job id device reboots
@@ -705,7 +706,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             float y = Float.parseFloat(temperature);
             data.addEntry(new Entry(mySet.getEntryCount(), y), 0);
             XAxis xl = mChart.getXAxis();
-            xl.setValueFormatter(new IndexAxisValueFormatter(time));
+            xl.setValueFormatter(new IndexAxisValueFormatter(time)); // TODO: x-axis is still wack
             data.notifyDataChanged();
             mChart.notifyDataSetChanged();
             mChart.setVisibleXRangeMaximum(6);
@@ -843,7 +844,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onResume() {
         super.onResume();
         if (AndroidService.spark) {
-            btStat.setText("Connected");
+            btStat.setText("Connected"); // TODO: doesn't work all the time
             btSym.setBackgroundResource(R.drawable.ic_b1);
         } else {
             btStat.setText("Not Connected");

@@ -16,20 +16,33 @@
         app:layout_constraintStart_toStartOf="parent"
         android:elevation="5dp"/>
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/imageHigh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.165" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.85"
+        android:id="@+id/dotGuide" />
+
     <TextView
         android:id="@+id/intro_connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="TextView"
-        android:layout_marginBottom="16dp"
+        android:layout_margin="24dp"
         android:textColor="@color/intro_title_color"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:textSize="56sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/connect_describe"
+        app:layout_constraintVertical_chainStyle="spread_inside"
+        android:textSize="54sp"
+        android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/ourDevice" />
 
     <TextView
         android:id="@+id/connect_describe"
@@ -37,8 +50,8 @@
         android:layout_height="wrap_content"
         android:text="TextView"
         android:textSize="20sp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@id/ourDevice"
+        android:layout_margin="16dp"
+        android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/intro_connect" />
@@ -47,21 +60,24 @@
         android:id="@+id/ourDevice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/buttonCnct"
+        app:layout_constraintBottom_toTopOf="@id/intro_connect"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"
+        android:layout_margin="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/connect_describe"
+        app:layout_constraintTop_toTopOf="@id/imageHigh"
+        app:layout_constraintBottom_toBottomOf="@id/dotGuide"
         android:background="@drawable/ic_connect"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ourDevice"
-        android:padding="12dp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/connect_describe"
+        android:padding="16dp"
+        android:layout_margin="32dp"
+        android:textAlignment="center"
         android:id="@+id/buttonCnct"
         android:background="@color/blue"
         android:textColor="@android:color/white"

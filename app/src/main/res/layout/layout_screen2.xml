@@ -19,7 +19,21 @@
         android:layout_height="0dp"
         android:orientation="horizontal"
         android:id="@+id/videoGuide"
-        app:layout_constraintGuide_percent="0.5"/>
+        app:layout_constraintGuide_percent="0.65"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.85"
+        android:id="@+id/dotGuide" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/videoHigh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.15" />
 
     <TextView
         android:id="@+id/sensorText"
@@ -29,21 +43,36 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:textColor="@color/intro_title_color"
         android:textSize="32dp"
+        android:layout_marginTop="16dp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/reference"
-        app:layout_constraintTop_toTopOf="@+id/videoGuide"
-        android:text="Learn About Your Device" />
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@id/videoHigh"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="Set Up Your TEGG" />
+
+    <TextView
+        android:id="@+id/sensorDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@color/intro_title_color"
+        android:textSize="18dp"
+        app:layout_constraintBottom_toTopOf="@id/dotGuide"
+        app:layout_constraintTop_toBottomOf="@+id/videoTuts"
+        android:textAlignment="center"
+        android:text="Please watch the video to learn \n how to start using your device" />
 
     <VideoView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="8dp"
         app:layout_constraintDimensionRatio="4:3"
+        android:layout_margin="8dp"
         android:id="@+id/videoTuts"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/videoHigh"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/sensorText"/>
+        app:layout_constraintBottom_toTopOf="@+id/videoGuide"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -55,4 +84,5 @@
         android:elevation="3dp"
         android:id="@+id/playButton"
         android:background="@drawable/roundbutton"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

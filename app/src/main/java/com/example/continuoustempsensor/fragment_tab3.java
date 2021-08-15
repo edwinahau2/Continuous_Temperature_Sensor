@@ -41,7 +41,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private static final int REQUEST_CODE = 1;
     Toast toast;
     private static final int RESULT_OK = -1;
-    private Button connect, tippers;
+    private Button connect;
     private TextView notify;
     private static final String TAG = "BluetoothButtonCheck";
     private static final int REQUEST_ENABLE_BT = 0;
@@ -51,6 +51,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     public static Context context;
     TabLayout tempTab;
     TabLayout.Tab selectTab;
+
+    // TODO: add activities for the three buttons under general
+    /* 1) app feedback --> google form
+       2) how to use sensor and app --> FAQ type page + video(s)
+       3) view consent forms --> PDF with downloadable option */
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -78,8 +83,11 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         }
         Spinner dropdown = view.findViewById(R.id.spinner);
         CheckBox enable = view.findViewById(R.id.enable);
-        tippers = view.findViewById(R.id.tippers);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this.getContext(), R.array.dropdown_times, android.R.layout.simple_spinner_item);
+        Button tippers = view.findViewById(R.id.tippers);
+        Button feedback = view.findViewById(R.id.bugs);
+        Button tutorial = view.findViewById(R.id.tutorial);
+        Button privacy = view.findViewById(R.id.consent);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(), R.array.dropdown_times, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         dropdown.setAdapter(adapter);
         if (restoreNotifFreq() != null) {
@@ -150,6 +158,21 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             Uri uriURL = Uri.parse("https://hub-tippers.ics.uci.edu/");
             Intent launch = new Intent(Intent.ACTION_VIEW, uriURL);
             startActivity(launch);
+        });
+
+        feedback.setOnClickListener(v -> {
+            Intent feedbackForm = new Intent(requireContext().getApplicationContext(), FeedbackActivity.class);
+            startActivity(feedbackForm);
+        });
+
+        tutorial.setOnClickListener(v -> {
+            Intent tutorialActivity = new Intent(requireContext().getApplicationContext(), TutorialActivity.class);
+            startActivity(tutorialActivity);
+        });
+
+        privacy.setOnClickListener(v -> {
+            Intent privacyForms = new Intent(requireContext().getApplicationContext(), PrivacyFormsActivity.class);
+            startActivity(privacyForms);
         });
 
         return view;
@@ -260,7 +283,7 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_OFF) {
-                    connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_buttons));
+                    connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_not_connected));
                     setButtonColor(false);
                     SpannableString spanString = new SpannableString("Not Connected");
                     spanString.setSpan(new StyleSpan(Typeface.NORMAL), 0, spanString.length(), 0);

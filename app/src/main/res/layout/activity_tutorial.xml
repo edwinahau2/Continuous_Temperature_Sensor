@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:scrollbarAlwaysDrawVerticalTrack="false"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".TutorialActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/howToTEGG"
+                    android:layout_width="wrap_content"
+                    android:elevation="2dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:textColor="@color/intro_title_color"
+                    android:textSize="32dp"
+                    android:layout_marginTop="16dp"
+                    android:textAlignment="center"
+                    app:layout_constraintBottom_toTopOf="@id/videoTuts"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:text="How to Use Your TEGG" />
+
+                <VideoView
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    app:layout_constraintDimensionRatio="4:3"
+                    android:layout_margin="16dp"
+                    android:elevation="2dp"
+                    android:id="@+id/videoTuts"
+                    app:layout_constraintTop_toBottomOf="@id/howToTEGG"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="@id/videoTuts"
+                    app:layout_constraintStart_toStartOf="@id/videoTuts"
+                    app:layout_constraintTop_toTopOf="@id/videoTuts"
+                    app:layout_constraintBottom_toBottomOf="@+id/videoTuts"
+                    android:elevation="3dp"
+                    android:id="@+id/playButton"
+                    android:background="@drawable/roundbutton"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/howToApp"
+                android:layout_width="wrap_content"
+                android:elevation="2dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:textColor="@color/intro_title_color"
+                android:textSize="32dp"
+                android:layout_marginTop="16dp"
+                android:textAlignment="center"
+                app:layout_constraintTop_toTopOf="parent"
+                android:text="How to Use the App" />
+
+            <com.example.continuoustempsensor.CustomViewPager
+                android:id="@+id/appContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/howToApp"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

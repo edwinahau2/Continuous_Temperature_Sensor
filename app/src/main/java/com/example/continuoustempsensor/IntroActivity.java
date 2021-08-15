@@ -89,9 +89,9 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
         myDialog.setCancelable(true);
         btnAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.button_animation);
         final List<ScreenItem> mList = new ArrayList<>();
-        mList.add(new ScreenItem("Welcome", "Click Next to continue \n on your journey with TEGG", R.drawable.samueli, R.drawable.ic_temp, 0));
+        mList.add(new ScreenItem("Welcome", "Click Next to continue \n on your journey with TEGG", R.drawable.samueli, R.drawable.tippers_logo, 0));
         mList.add(new ScreenItem("Terms and Conditions", "", 0, 0, 1));
-        mList.add(new ScreenItem("How To Sensor", "", 0, 0, 2));
+        mList.add(new ScreenItem("Set Up Your TEGG", "Please watch the video to learn \n how to start using your device", 0, 0, 2));
         mList.add(new ScreenItem("App Navigation", "", 0, 0, 3));
         mList.add(new ScreenItem("Connect", "Please turn on your Bluetooth", R.drawable.ic_connect, 0, 4));
         mDots = new TextView[tracker];
@@ -107,7 +107,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
         screenPager = findViewById(R.id.screen_viewpager);
         introViewPageAdapter = new IntroViewPageAdapter(this, mList);
         screenPager.setAdapter(introViewPageAdapter);
-//        screenPager.addOnPageChangeListener(viewListener);
         btnNext.setOnClickListener(v -> {
             btnBack.setVisibility(View.VISIBLE);
             position = screenPager.getCurrentItem();
@@ -169,10 +168,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                         });
                     }
                 }
-//                Intent mainActivity = new Intent(getApplicationContext(), bluetoothActivity.class);
-//                startActivity(mainActivity);
-//                savePrefsData();
-//                finish();
 
             if (position == 1) {
                 IntroViewPageAdapter.terms.setChecked(restoreCheckData());

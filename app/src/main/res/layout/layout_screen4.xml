@@ -45,6 +45,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
         app:layout_constraintBottom_toTopOf="@+id/pdfHigh"
         android:id="@+id/service"
         android:textColor="@color/intro_title_color"
@@ -52,17 +54,23 @@
         android:textStyle="bold"
         android:text="Terms and Conditions"/>
 
+    <androidx.constraintlayout.widget.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.85"
+        android:id="@+id/dotGuide" />
+
     <CheckBox
         android:id="@+id/terms"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:text="  I agree to the terms and conditions \n  and the privacy policy"
+        android:text="  I agree to the terms and conditions \n  and the privacy policy."
         android:gravity="top"
         android:textSize="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:buttonTint="#18a3fe"
-        app:layout_constraintBottom_toTopOf="@id/reference"
+        app:layout_constraintBottom_toTopOf="@id/dotGuide"
         app:layout_constraintTop_toBottomOf="@+id/pdfLow"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

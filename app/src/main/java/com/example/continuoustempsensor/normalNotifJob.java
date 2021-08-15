@@ -11,7 +11,7 @@ public class normalNotifJob extends JobService {
     public boolean onStartJob(JobParameters params) {
         Log.d(TAG, "Job started");
         NotificationReceiver.sendNotification(getApplicationContext(), 2);
-        jobFinished(params, true);
+        jobFinished(params, false);
         return true;
     }
 

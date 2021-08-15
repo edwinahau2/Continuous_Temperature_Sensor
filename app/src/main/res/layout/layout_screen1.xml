@@ -43,19 +43,26 @@
         app:layout_constraintGuide_percent="0.91"
         android:id="@+id/guideToTheRight" />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.85"
+        android:id="@+id/dotGuide" />
+
     <TextView
         android:id="@+id/description"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:layout_marginBottom="16dp"
-        android:text="Click Next to continue \n on your journey with TEGG"
+        android:text="Click Next to continue \n your journey with TEGG"
         android:textColor="#000000"
-        android:textSize="16dp"
-        app:layout_constraintBottom_toTopOf="@id/reference"
+        android:textSize="18dp"
+        app:layout_constraintBottom_toTopOf="@id/dotGuide"
         app:layout_constraintEnd_toEndOf="@id/guideToTheRight"
         app:layout_constraintStart_toStartOf="@id/guideToTheLeft"
-        app:layout_constraintTop_toBottomOf="@id/tips"/>
+        app:layout_constraintTop_toBottomOf="@id/intro_title"/>
 
     <androidx.constraintlayout.widget.Guideline
         android:layout_width="wrap_content"
@@ -75,11 +82,9 @@
         android:id="@+id/uci"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
         app:layout_constraintBottom_toTopOf="@id/botGuide"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideToTheRight"
+        app:layout_constraintStart_toStartOf="@id/guideToTheLeft"
         app:layout_constraintTop_toTopOf="@id/topGuide"
         android:src="@drawable/samueli"
         tools:ignore="ContentDescription" />
@@ -87,13 +92,11 @@
     <ImageView
         android:id="@+id/tips"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
+        android:layout_height="110dp"
         app:layout_constraintBottom_toTopOf="@id/intro_title"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/uci"
-        tools:srcCompat="@tools:sample/avatars"
+        app:layout_constraintEnd_toEndOf="@id/guideToTheRight"
+        app:layout_constraintStart_toStartOf="@id/guideToTheLeft"
+        app:layout_constraintTop_toBottomOf="@id/botGuide"
+        android:src="@drawable/tippers_logo"
         tools:ignore="ContentDescription" />
 </androidx.constraintlayout.widget.ConstraintLayout>
