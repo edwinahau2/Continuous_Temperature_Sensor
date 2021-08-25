@@ -35,7 +35,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.tabs.TabLayout;
 
-public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelectedListener {
+public class fragment_tab3 extends Fragment  {
 
     BluetoothAdapter mBlueAdapter;
     private static final int REQUEST_CODE = 1;
@@ -47,15 +47,13 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     private static final int REQUEST_ENABLE_BT = 0;
     boolean uhh;
     String sensor;
-    private static String textTimeNotify;
     public static Context context;
     TabLayout tempTab;
     TabLayout.Tab selectTab;
 
     // TODO: add activities for the three buttons under general
-    /* 1) app feedback --> google form
-       2) how to use sensor and app --> FAQ type page + video(s)
-       3) view consent forms --> PDF with downloadable option */
+    /* 2) how to use sensor and app --> FAQ type page + video(s)
+       3) downloadable option */
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -92,8 +90,36 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         dropdown.setAdapter(adapter);
         if (restoreNotifFreq() != null) {
             dropdown.setSelection(restoreNotifIndex());
+            String[] dropdownTimes = requireContext().getResources().getStringArray(R.array.dropdown_times);
+            String freq = dropdownTimes[restoreNotifIndex()];
+            if (freq.contains("min")) {
+                MainActivity.notifFreq = 30;
+            } else if (freq.contains("hour")) {
+                MainActivity.notifFreq = Integer.parseInt(freq.replace(" hours", ""))*60;
+            }
+        } else {
+            dropdown.setSelection(0);
+            MainActivity.notifFreq = 30;
         }
-        dropdown.setOnItemSelectedListener(this);
+        dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String[] dropdownTimes = requireContext().getResources().getStringArray(R.array.dropdown_times);
+                String freq = dropdownTimes[position];
+                String textTimeNotify = parent.getItemAtPosition(position).toString();
+                saveNotifData(textTimeNotify, position);
+                if (freq.contains("min")) {
+                    MainActivity.notifFreq = 30;
+                } else if (freq.contains("hour")) {
+                    MainActivity.notifFreq = Integer.parseInt(freq.replace(" hours", ""))*60;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         connect = view.findViewById(R.id.connect);
         if (!mBlueAdapter.isEnabled()) {
             connect.setText("Not Connected");
@@ -204,19 +230,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         }
     }
 
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        textTimeNotify = parent.getItemAtPosition(position).toString();
-        saveNotifData(textTimeNotify, position);
-        Log.d(TAG, "toast is out");
-        Toast.makeText(getContext(), textTimeNotify, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
-    }
-
     private void saveNameData() {
         SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
@@ -254,9 +267,9 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
         return prefs.getString("notifFreq", null);
     }
 
-    private int restoreNotifIndex() {
-        SharedPreferences prefs = requireContext().getApplicationContext().getSharedPreferences("notifPref", Context.MODE_PRIVATE);
-        return prefs.getInt("indexSelected", -1);
+    public static int restoreNotifIndex() {
+        SharedPreferences prefs = context.getApplicationContext().getSharedPreferences("notifPref", Context.MODE_PRIVATE);
+        return prefs.getInt("indexSelected", 0);
     }
 
     private void saveUnitPref(int itab) {
@@ -366,9 +379,6 @@ public class fragment_tab3 extends Fragment implements AdapterView.OnItemSelecte
     @Override
     public void onStop() {
         super.onStop();
-//        if (!mBlueAdapter.isEnabled()) {
-//            connect.setText("Not Connected");
-//        }
 
         IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         requireActivity().registerReceiver(mReceiver, intentFilter);

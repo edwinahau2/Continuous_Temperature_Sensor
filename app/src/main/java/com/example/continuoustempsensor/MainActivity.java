@@ -72,6 +72,7 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
     private static final String TAG = "MainActivityCounter";
+    public static int notifFreq = -1;
     public static String name;
     int i = 0;
     String unit = " °F";
@@ -83,9 +84,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     TextView tempTextView;
     public static LineChart mChart;
     public static String address;
-    @SuppressLint("SimpleDateFormat")
     SimpleDateFormat format = new SimpleDateFormat("h:mm a");
-    @SuppressLint("SimpleDateFormat")
     public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
     public static final int RESPONSE_MESSAGE = 10;
@@ -106,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     ViewGroup vg;
     int initMin = 0;
     Boolean firstNotif = true;
+    Boolean firstNormalNotif = true;
     protected LocationManager locationManager;
 
     @SuppressLint("ShowToast")
@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 new FileOutputStream(this.getFilesDir() + "/temp.json");
                 new FileOutputStream(this.getFilesDir() + "/tippers.json");
                 saveFileCreation();
+                notif.setImageResource(R.drawable.bell);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -151,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 JSONObject jsonObject = new JSONObject(response);
                 JSONArray names = jsonObject.names();
                 if (names != null) {
-                    notif.setImageResource(R.drawable.bell2); //TODO: why is bell not showing up at all
+                    notif.setImageResource(R.drawable.bell2);
                 } else {
                     notif.setImageResource(R.drawable.bell);
                 }
@@ -420,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             tipperVals.add(sensorVal);
                             int N = tempVals.size();
                             int M = tipperVals.size();
-                            if (M >= 120) { // 20 minutes for tippers
+                            if (M >= 125) { // 21 minutes for tippers
                                 String tippersTemp = grubbs(tipperVals, M);
                                 if (!tippersTemp.equals("NaN")) {
                                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
@@ -440,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                 tipperVals.clear();
                             }
 
-                            if (N >= 30) { // 5 minutes for app TODO: add number based on moving average
+                            if (N >= 35) { // 6 minutes for app
                                 temperature = grubbs(tempVals, N);
                                 if (!temperature.equals("NaN")) {
                                     booleanUpdate(temperature);
@@ -469,23 +470,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 //                                float medianTemp = Float.parseFloat(temperature);
                                     // TODO: this entire notification stuff
                                     float medianTemp = 101;
-                                    if (medianTemp >= 0) {
-                                        if (medianTemp >= 100.3) {// more urgent -- red
-                                            if (firstNotif) {// send first notif
-                                                firstNotif = false;
-                                                scheduleUrgentJob(); //notif sent in urgentNotifJob class
-                                            } else {// buffer for next urgent notification -- Job Scheduler
-                                                Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
-                                                //check if notif clicked -> if clicked then will cancel the buffer
-                                                //HERE!!!
-                                            }
-                                        } else {//not urgent normal notification -- temp greater than 0 but less than 100.3
-                                            // json write to notif file w/ nonurgent level
-                                            // textTimeNotify time
-                                            // normal notifictation interval check
-                                            scheduleNormalJob();
-                                            notif.setImageResource(R.drawable.bell2);
+                                    saveTempVal(medianTemp, getApplicationContext());
+                                    if (medianTemp > 100.3) { // more urgent -- red
+                                        if (firstNotif) {// send first notif
+                                            firstNotif = false;
+                                            scheduleUrgentJob(); //notif sent in urgentNotifJob class
+                                        } else { // buffer for next urgent notification -- Job Scheduler
+                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
+                                            //check if notif clicked -> if clicked then will cancel the buffer
+                                            //HERE!!!
                                         }
+                                    } else if (firstNormalNotif){ //not urgent normal notification -- temp greater than 0 but less than 100.3
+                                        firstNormalNotif = false;
+                                        scheduleNormalJob();
+                                        notif.setImageResource(R.drawable.bell2);
                                     }
                                 }
                                 tempVals.clear(); // values get cleared regardless of whether grubbs test is passed or not
@@ -501,50 +499,89 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     private String grubbs(ArrayList<Float> Vals, int sampleSize) {
-        // TODO: add moving average
-        ArrayList<Float> GrubbTest = new ArrayList<>();
-        double total =0;
-        for (int i=0;i<sampleSize;i++) {
-            total += Vals.get(i);
+        String returnVal = "NaN";
+
+        ArrayList<Float> MovingAverage = new ArrayList<>();
+        for (int window = 0; window < (sampleSize - 5); window++) {
+            ArrayList<Float> subArray = (ArrayList<Float>) Vals.subList(window, window + 4);
+            int sum = 0;
+            for (int idx = 0; idx<subArray.size(); idx++) {
+                sum += subArray.get(idx);
+            }
+            double avg = sum/5f;
+            MovingAverage.add((float) avg);
         }
-        double mean = total/sampleSize;
-        double total2 = 0;
-        for (int i=0; i<sampleSize; i++) {
-            total2 += Math.pow((Vals.get(i) - mean), 2);
-        }
-        double std = Math.sqrt(total2 / (sampleSize - 1));
-        double cv = std / mean;
-        if (cv > 0.2) {
-            for (int i = 0; i < sampleSize; i++) {
-                double Gstat = Math.abs(Vals.get(i) - mean) / std;
-                if (sampleSize == 30) {
-                    if (Gstat < 2.9085) { // TODO: check for largest critical value and remove accordingly
-                        GrubbTest.add(Vals.get(i));
-                    }
+
+        int arraySize = MovingAverage.size();
+
+        if (arraySize == 30) {
+            Collections.sort(MovingAverage);
+            double median = (MovingAverage.get(15) + MovingAverage.get(16)) / 2.0;
+            ArrayList<Float> madVals = new ArrayList<>();
+            for (int i = 0; i < arraySize; i++) {
+                madVals.add((float) Math.abs(MovingAverage.get(i) - median));
+            }
+            Collections.sort(madVals);
+            double MAD =  (madVals.get(15) + madVals.get(16)) / 2.0;
+            for (int i = 0; i < arraySize; i++) {
+                double M = 0.675*(MovingAverage.get(i) - median) / MAD;
+                if (Math.abs(M) > 3.5) {
+                    MovingAverage.remove(i);
+                }
+            }
+            if (!MovingAverage.isEmpty()) {
+                Collections.sort(MovingAverage);
+                double medianTemp;
+                if (sampleSize % 2 == 0) {
+                    medianTemp = (MovingAverage.get(MovingAverage.size() / 2) + MovingAverage.get((MovingAverage.size() / 2) - 1)) / 2.0;
                 } else {
+                    medianTemp = (MovingAverage.get(MovingAverage.size() / 2)) / 1.0;
+                }
+                if (restoreTempUnit(MainActivity.this).equals(" °C")) {
+                    medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
+                }
+                DecimalFormat df = new DecimalFormat("#.#");
+                returnVal = df.format(medianTemp);
+            }
+        } else if (arraySize != 0){
+            ArrayList<Float> GrubbTest = new ArrayList<>();
+            double total = 0;
+            for (int i = 0; i < arraySize; i++) {
+                total += Vals.get(i);
+            }
+            double mean = total / arraySize;
+            double total2 = 0;
+            for (int i = 0; i < arraySize; i++) {
+                total2 += Math.pow((Vals.get(i) - mean), 2);
+            }
+            double std = Math.sqrt(total2 / (arraySize - 1));
+            double cv = std / mean;
+            boolean legit;
+            if (cv > 0.2) {
+                for (int i = 0; i < arraySize; i++) {
+                    double Gstat = Math.abs(Vals.get(i) - mean) / std;
                     if (Gstat < 3.4451) {
                         GrubbTest.add(Vals.get(i));
                     }
                 }
+                legit = !GrubbTest.isEmpty();
+                if (legit) {
+                    Collections.sort(GrubbTest);
+                    double medianTemp;
+                    if (sampleSize % 2 == 0) {
+                        medianTemp = (GrubbTest.get(GrubbTest.size() / 2) + GrubbTest.get((GrubbTest.size() / 2) - 1)) / 2.0;
+                    } else {
+                        medianTemp = (GrubbTest.get(GrubbTest.size() / 2)) / 1.0;
+                    }
+                    if (restoreTempUnit(MainActivity.this).equals(" °C")) {
+                        medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
+                    }
+                    DecimalFormat df = new DecimalFormat("#.#");
+                    returnVal = df.format(medianTemp);
+                }
             }
         }
-        boolean legit = !GrubbTest.isEmpty();
-        if (legit) {
-            Collections.sort(tempVals);
-            double medianTemp;
-            if (sampleSize % 2 == 0) {
-                medianTemp = (GrubbTest.get(GrubbTest.size() / 2) + GrubbTest.get((GrubbTest.size() / 2) - 1)) / 2.0;
-            } else {
-                medianTemp = (GrubbTest.get(GrubbTest.size() / 2)) / 1.0;
-            }
-            if (restoreTempUnit(MainActivity.this).equals(" °C")) {
-                medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
-            }
-            DecimalFormat df = new DecimalFormat("#.#");
-            return df.format(medianTemp);
-        } else {
-            return "NaN";
-        }
+        return returnVal;
     }
 
     public void scheduleUrgentJob(){
@@ -566,11 +603,25 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    public void scheduleNormalJob(){ // TODO: change periodic to account for fragment 3 setting
+    public void scheduleNormalJob(){ // TODO: test whether programatic change of notification timing works
         ComponentName componentName = new ComponentName(this, normalNotifJob.class);
+        if (notifFreq == -1) {
+            if (fragment_tab3.restoreNotifFreq() == null) {
+                notifFreq = 30;
+            } else {
+                String[] dropdownTimes = this.getResources().getStringArray(R.array.dropdown_times);
+                String freq = dropdownTimes[fragment_tab3.restoreNotifIndex()];
+                if (freq.contains("min")) {
+                    notifFreq = 30;
+                } else if (freq.contains("hour")) {
+                    notifFreq = Integer.parseInt(freq.replace("hours", ""))*60;
+                }
+            }
+        }
+
         JobInfo info = new JobInfo.Builder(456, componentName)
                 .setPersisted(true) // will continue job id device reboots
-                .setPeriodic(15*60*1000) //15 min minimum
+                .setPeriodic(notifFreq*60*1000) //30 min minimum
                 .setBackoffCriteria(TimeUnit.MINUTES.toMillis(1), JobInfo.BACKOFF_POLICY_LINEAR)
                 .setRequiresCharging(false)
                 .build();
@@ -775,6 +826,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("tempUnit", tempUnit);
         editor.apply();
+    }
+
+    public static void saveTempVal(float medianTemp, Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MainUnitPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putFloat("tempVal", medianTemp);
+        editor.apply();
+    }
+
+    public static float restoreTempVal(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("MainUnitPrefs", MODE_PRIVATE);
+        return prefs.getFloat("tempVal", 0);
     }
 
     public static String restoreTempUnit(Context context) {

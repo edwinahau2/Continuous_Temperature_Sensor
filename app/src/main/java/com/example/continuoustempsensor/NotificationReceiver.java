@@ -31,7 +31,6 @@ public class NotificationReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
         //sends toast when click button called open app under the notification
         String message = intent.getStringExtra("ButtonUnderneath");
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -68,7 +67,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         Bitmap greenIcon = BitmapFactory.decodeResource(context.getResources(), R.drawable.temp_green);
         Date nowTime = Calendar.getInstance().getTime();
         String currentTime = String.valueOf(nowTime);
-        if (RequestCode == 0) {//red
+        if (RequestCode == 0) { //red
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
                     //.setContentTitle(title)
@@ -91,8 +90,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .build();
             writeJSON(context, RequestCode, currentTime); // ADD STRING AND TIME
             notificationManager.notify(1, notification);
-        }
-        if (RequestCode == 1) {//orange
+        } else if (RequestCode == 1) { //orange
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
                     //.setContentTitle(title)
@@ -115,8 +113,26 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .build();
             writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(2, notification);
-        }
-        if (RequestCode == 2) {//green
+        } else if (RequestCode == 2) { // yellow
+            android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_2_ID)
+                    .setSmallIcon(R.drawable.announcement)
+//                    .setContentTitle(title)
+//                    .setContentText(message)
+                    .setLargeIcon(greenIcon)
+                    .setStyle(new NotificationCompat.InboxStyle()
+                            .addLine("Your temperatures are normal") // can add up to 7 lines
+                    )
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setCategory(NotificationCompat.CATEGORY_EVENT)
+                    .setColor(Color.argb(255, 48, 154, 230))
+                    .setContentIntent(contentIntent)
+                    .setAutoCancel(true)
+                    //******* setDeleteIntent needs to be tested
+                    .setDeleteIntent(getDeleteIntent(context))
+                    .build();
+            writeJSON(context, RequestCode, currentTime);
+            notificationManager.notify(3, notification);
+        } else {
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_2_ID)
                     .setSmallIcon(R.drawable.announcement)
 //                    .setContentTitle(title)

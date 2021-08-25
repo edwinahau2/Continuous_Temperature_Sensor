@@ -30,14 +30,13 @@
         <activity
             android:name=".PrivacyFormsActivity"
             android:label="@string/title_activity_privacy_forms"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".TutorialActivity" />
         <activity android:name=".FeedbackActivity" />
         <activity android:name=".notifActivity" />
         <activity android:name=".DataLog" />
         <activity android:name=".IntroActivity" />
-        <activity android:name=".ConnectionActivity" /> <!-- <activity android:name=".bluetoothActivity" /> -->
-        <!-- android:roundIcon="@mipmap/ic_launcher_round" -->
+        <activity android:name=".ConnectionActivity" />
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -68,6 +67,12 @@
             android:stopWithTask="false" />
         <service
             android:name=".TippersJobService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:stopWithTask="false" />
+        <service
+            android:name=".normalNotifJob"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE"

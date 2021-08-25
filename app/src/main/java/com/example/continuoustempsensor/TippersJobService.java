@@ -49,7 +49,6 @@ public class TippersJobService extends JobService {
             bufferedReader.close();
             String json = stringBuilder.toString();
             String url = "http://tippersweb.ics.uci.edu:8080/observation";
-//            String url = "http://standards-oui.ieee.org/oui/oui.txt";
             new PushToServer().execute(url, json);
             // [
                 // {
