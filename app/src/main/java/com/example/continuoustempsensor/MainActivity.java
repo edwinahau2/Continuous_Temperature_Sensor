@@ -503,7 +503,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         ArrayList<Float> MovingAverage = new ArrayList<>();
         for (int window = 0; window < (sampleSize - 5); window++) {
-            ArrayList<Float> subArray = (ArrayList<Float>) Vals.subList(window, window + 4);
+            ArrayList<Float> subArray;
+            subArray = new ArrayList(Vals.subList(window, window + 4));
             int sum = 0;
             for (int idx = 0; idx<subArray.size(); idx++) {
                 sum += subArray.get(idx);
