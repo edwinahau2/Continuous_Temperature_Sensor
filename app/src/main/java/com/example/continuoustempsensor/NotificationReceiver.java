@@ -27,7 +27,7 @@ import java.util.Date;
 
 public class NotificationReceiver extends BroadcastReceiver {
 
-    public static JSONObject mainObj = new JSONObject();
+    public static String msg;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -45,18 +45,6 @@ public class NotificationReceiver extends BroadcastReceiver {
         NotificationManagerCompat notificationManager;
         notificationManager = NotificationManagerCompat.from(context);
 
-        Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
-        //activityIntent.putExtra("message", "message");
-        PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
-
-
-       // Intent result
-
-
-
-
-
-
         Intent broadcastIntent = new Intent(context, NotificationReceiver.class);
         broadcastIntent.putExtra("ButtonUnderneath", "open app");
         PendingIntent actionIntent = PendingIntent.getBroadcast(context, RequestCode, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -68,6 +56,10 @@ public class NotificationReceiver extends BroadcastReceiver {
         Date nowTime = Calendar.getInstance().getTime();
         String currentTime = String.valueOf(nowTime);
         if (RequestCode == 0) { //red
+            msg = "High Fever Temperatures Detected";
+            Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
+            activityIntent.putExtra("message", "URGENT");
+            PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
                     //.setContentTitle(title)
@@ -75,7 +67,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setLargeIcon(redIcon)
                     .setStyle(new NotificationCompat.BigTextStyle()
                             .bigText(context.getString(R.string.red_spike_message))
-                            .setBigContentTitle("Fever Temperatures Detected")
+                            .setBigContentTitle(msg)
                             .setSummaryText("Fever Temperature"))
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setCategory(NotificationCompat.CATEGORY_ALARM)
@@ -88,9 +80,13 @@ public class NotificationReceiver extends BroadcastReceiver {
                     //******* setDeleteIntent needs to be tested
                     .setDeleteIntent(getDeleteIntent(context))
                     .build();
-            writeJSON(context, RequestCode, currentTime); // ADD STRING AND TIME
+            writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(1, notification);
         } else if (RequestCode == 1) { //orange
+            msg = "Fever Temperatures Detected";
+            Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
+            activityIntent.putExtra("message", "NOT URGENT");
+            PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
                     //.setContentTitle(title)
@@ -98,7 +94,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setLargeIcon(orangeIcon)
                     .setStyle(new NotificationCompat.BigTextStyle()
                             .bigText(context.getString(R.string.orange_spike_message))
-                            .setBigContentTitle("Fever Temperatures Detected")
+                            .setBigContentTitle(msg)
                             .setSummaryText("Increasing Temperature"))
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setCategory(NotificationCompat.CATEGORY_ALARM)
@@ -114,13 +110,17 @@ public class NotificationReceiver extends BroadcastReceiver {
             writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(2, notification);
         } else if (RequestCode == 2) { // yellow
+            msg = "Your Temperatures Are Near a Fever";
+            Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
+            activityIntent.putExtra("message", "NOT URGENT");
+            PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_2_ID)
                     .setSmallIcon(R.drawable.announcement)
 //                    .setContentTitle(title)
 //                    .setContentText(message)
                     .setLargeIcon(greenIcon)
                     .setStyle(new NotificationCompat.InboxStyle()
-                            .addLine("Your temperatures are normal") // can add up to 7 lines
+                            .addLine(msg) // can add up to 7 lines
                     )
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setCategory(NotificationCompat.CATEGORY_EVENT)
@@ -133,13 +133,17 @@ public class NotificationReceiver extends BroadcastReceiver {
             writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(3, notification);
         } else {
+            msg = "Your Temperatures Are Normal";
+            Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
+            activityIntent.putExtra("message", "NOT URGENT");
+            PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_2_ID)
                     .setSmallIcon(R.drawable.announcement)
 //                    .setContentTitle(title)
 //                    .setContentText(message)
                     .setLargeIcon(greenIcon)
                     .setStyle(new NotificationCompat.InboxStyle()
-                            .addLine("Your temperatures are normal") // can add up to 7 lines
+                            .addLine(msg) // can add up to 7 lines
                     )
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setCategory(NotificationCompat.CATEGORY_EVENT)
@@ -187,9 +191,9 @@ public class NotificationReceiver extends BroadcastReceiver {
                 JSONObject jText = new JSONObject();
                 JSONObject jTime = new JSONObject();
                 JSONObject jColor = new JSONObject();
-                jText.put("notifText", "Testing 2nd Text"); //change
+                jText.put("notifText", msg);
                 jTime.put("notifTime", currentTime);
-                jColor.put("notifColor", RequestCode); //change
+                jColor.put("notifColor", RequestCode);
                 idx = MainActivity.restoreIdx(context);
                 jsonArray.put(jText);
                 jsonArray.put(jTime);
@@ -201,14 +205,15 @@ public class NotificationReceiver extends BroadcastReceiver {
                 bufferedWriter.write(jsonStr);
                 bufferedWriter.close();
             } else {
+                JSONObject mainObj = new JSONObject();
                 JSONArray jsonArray = new JSONArray();
                 JSONObject jText = new JSONObject();
                 JSONObject jTime = new JSONObject();
                 JSONObject jColor = new JSONObject();
-                jText.put("notifText", "Testing 1st Text"); //change
+                jText.put("notifText", msg);
                 jTime.put("notifTime", currentTime);
-                jColor.put("notifColor", RequestCode); //change
-                idx = "Notif 1"; // save this value
+                jColor.put("notifColor", RequestCode);
+                idx = "Notif 1";
                 MainActivity.saveIdx(1, context);
                 jsonArray.put(jText);
                 jsonArray.put(jTime);
@@ -223,59 +228,5 @@ public class NotificationReceiver extends BroadcastReceiver {
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
-//        try {
-//            String idx;
-//            if (mainObj.length() != 0) {
-//                fileReader = new FileReader(file);
-//                bufferedReader = new BufferedReader(fileReader);
-//                StringBuilder stringBuilder = new StringBuilder();
-//                String line = bufferedReader.readLine();
-//                while (line != null) {
-//                    stringBuilder.append(line).append("\n");
-//                    line = bufferedReader.readLine();
-//                }
-//                bufferedReader.close();
-//                String response = stringBuilder.toString();
-//                JSONObject jsonObject = new JSONObject(response);
-//                JSONArray jsonArray = new JSONArray();
-//                JSONObject jText = new JSONObject();
-//                JSONObject jTime = new JSONObject();
-//                JSONObject jColor = new JSONObject();
-//                jText.put("notifText", "Testing 4th Text"); //change
-//                jTime.put("notifTime", currentTime);
-//                jColor.put("notifColor", RequestCode); //change
-//                idx = MainActivity.restoreIdx(context);
-//                jsonArray.put(jText);
-//                jsonArray.put(jTime);
-//                jsonArray.put(jColor);
-//                jsonObject.put(idx, jsonArray);
-//                String jsonStr = jsonObject.toString();
-//                fileWriter = new FileWriter(file, false);
-//                bufferedWriter = new BufferedWriter(fileWriter);
-//                bufferedWriter.write(jsonStr);
-//                bufferedWriter.close();
-//            } else {
-//                JSONArray jsonArray = new JSONArray();
-//                JSONObject jText = new JSONObject();
-//                JSONObject jTime = new JSONObject();
-//                JSONObject jColor = new JSONObject();
-//                jText.put("notifText", "Testing 1st Text"); //change
-//                jTime.put("notifTime", "Testing 1st Time"); //change
-//                jColor.put("notifColor", RequestCode); //change
-//                idx = "Notif 1"; // save this value
-//                MainActivity.saveIdx(1, context);
-//                jsonArray.put(jText);
-//                jsonArray.put(jTime);
-//                jsonArray.put(jColor);
-//                mainObj.put(idx, jsonArray);
-//                String jsonStr = mainObj.toString();
-//                fileWriter = new FileWriter(file, true);
-//                bufferedWriter = new BufferedWriter(fileWriter);
-//                bufferedWriter.write(jsonStr);
-//                bufferedWriter.close();
-//            }
-//        } catch (IOException | JSONException e) {
-//            e.printStackTrace();
-//        }
     }
 }

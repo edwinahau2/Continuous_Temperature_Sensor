@@ -33,6 +33,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.viewpager.widget.PagerAdapter;
 
 import com.blure.complexview.ComplexView;
 import com.blure.complexview.Shadow;
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private static final String TAG = "MainActivityCounter";
     public static int notifFreq = -1;
+    private int tempFreq = notifFreq;
     public static String name;
     int i = 0;
     String unit = " °F";
@@ -162,6 +164,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         }
         Bundle bundle = getIntent().getExtras();
+        Intent notifIntent = getIntent();
+        if (notifIntent.hasExtra("message")) {
+            String msg = notifIntent.getExtras().getString("message");
+            if (msg.equals("URGENT")) {
+                cancelJob(0);
+                Toast.makeText(this, "urgent identified", Toast.LENGTH_SHORT).show();
+            }
+        }
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         mChart = findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
@@ -230,6 +240,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Log.d(TAG, "Job Cancelled");
         }*/
 
+
+        // can delete once TIPPERS is confirmed
         FileReader tippersFileReader;
         BufferedReader tippersBufferedReader;
         String FILE_NAME2 = "tippers.json";
@@ -279,15 +291,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
-
-//        ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
-//        JobInfo jobInfo = new JobInfo.Builder(110, componentName)
-//                .setPersisted(false)
-//                .setRequiresCharging(false)
-//                .build();
-//        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-//        assert jobScheduler != null;
-//        jobScheduler.schedule(jobInfo);
 
         notif.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), notifActivity.class);
@@ -475,15 +478,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                         if (firstNotif) {// send first notif
                                             firstNotif = false;
                                             scheduleUrgentJob(); //notif sent in urgentNotifJob class
-                                        } else { // buffer for next urgent notification -- Job Scheduler
-                                            Toast.makeText(getApplicationContext(), String.valueOf(initMin), Toast.LENGTH_SHORT).show(); //for me to see if it works
-                                            //check if notif clicked -> if clicked then will cancel the buffer
-                                            //HERE!!!
                                         }
-                                    } else if (firstNormalNotif){ //not urgent normal notification -- temp greater than 0 but less than 100.3
+                                    } else if (firstNormalNotif) { //not urgent normal notification -- temp greater than 0 but less than 100.3
                                         firstNormalNotif = false;
                                         scheduleNormalJob();
                                         notif.setImageResource(R.drawable.bell2);
+                                    } else if (notifFreq != tempFreq) {
+                                        cancelJob(1);
+                                        scheduleNormalJob();
                                     }
                                 }
                                 tempVals.clear(); // values get cleared regardless of whether grubbs test is passed or not
@@ -503,7 +505,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         ArrayList<Float> MovingAverage = new ArrayList<>();
         for (int window = 0; window < (sampleSize - 5); window++) {
-            ArrayList<Float> subArray = (ArrayList<Float>) Vals.subList(window, window + 4);
+            ArrayList<Float> subArray = new ArrayList<>(Vals.subList(window, window + 4));
             int sum = 0;
             for (int idx = 0; idx<subArray.size(); idx++) {
                 sum += subArray.get(idx);
@@ -603,7 +605,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    public void scheduleNormalJob(){ // TODO: test whether programatic change of notification timing works
+    public void scheduleNormalJob(){ // TODO: test whether programmatic change of notification timing works
         ComponentName componentName = new ComponentName(this, normalNotifJob.class);
         if (notifFreq == -1) {
             if (fragment_tab3.restoreNotifFreq() == null) {
@@ -618,6 +620,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             }
         }
+
+        tempFreq = notifFreq;
 
         JobInfo info = new JobInfo.Builder(456, componentName)
                 .setPersisted(true) // will continue job id device reboots
@@ -636,9 +640,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    public void cancelJob(View v){
-        JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
-        scheduler.cancel(123); //jobID is to identify the job you are passing through
+    public void cancelJob(int reqCode){
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        assert scheduler != null;
+        if (reqCode == 1) {
+            scheduler.cancel(456);
+        } else {
+            scheduler.cancel(123);
+            firstNotif = true;
+        }
         Log.d(TAG, "Job cancelled");
     }
 

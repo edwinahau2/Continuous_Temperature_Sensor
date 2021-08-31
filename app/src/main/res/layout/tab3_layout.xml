@@ -157,18 +157,6 @@
             app:layout_constraintStart_toEndOf="@+id/notify"
             app:layout_constraintTop_toBottomOf="@+id/enable" />
 
-<!--        <CheckBox-->
-<!--            android:id="@+id/hide"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:layout_marginStart="4dp"-->
-<!--            android:layout_marginTop="8dp"-->
-<!--            android:layout_weight="1"-->
-<!--            android:text="Hide In-App Notifications"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toBottomOf="@+id/notify" />-->
-
         <TextView
             android:id="@+id/general"
             android:layout_width="match_parent"
@@ -273,34 +261,7 @@
             app:layout_constraintTop_toBottomOf="@+id/consent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
-        <!--            <TextView-->
-<!--                android:layout_width="0dp"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:textDirection="rtl"-->
-<!--                android:layout_marginEnd="10dp"-->
-<!--                android:text="Connected Devices"-->
-<!--                android:textSize="18sp"-->
-<!--                android:textStyle="bold"-->
-<!--                android:layout_weight="1"/>-->
 
-<!--            <ToggleButton-->
-<!--                android:id="@+id/mBlueIv"-->
-<!--                android:layout_width="45dp"-->
-<!--                android:layout_height="45dp"-->
-<!--                android:layout_gravity="center"-->
-<!--                android:layout_marginTop="10dp"-->
-<!--                android:layout_marginBottom="10dp"-->
-<!--                android:textOn="@null"-->
-<!--                android:textOff="@null"-->
-<!--                android:background="@drawable/button" />-->
-
-<!--        <ImageView-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="70dp"-->
-<!--            android:layout_marginTop="10dp"-->
-<!--            android:id="@+id/progressBar"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:src="@drawable/anteater_clip"/>-->
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>

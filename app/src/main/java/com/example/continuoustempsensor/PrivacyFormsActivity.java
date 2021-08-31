@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.View;
+import android.widget.Button;
 
 public class PrivacyFormsActivity extends AppCompatActivity {
 
@@ -18,6 +19,9 @@ public class PrivacyFormsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_privacy_forms);
+        Button back = findViewById(R.id.termsBack);
+        back.setOnClickListener(v -> onBackPressed());
+
 
         PDFView pdfView = findViewById(R.id.privacyPDF);
         pdfView.fromAsset("Abstract.pdf")
@@ -36,5 +40,10 @@ public class PrivacyFormsActivity extends AppCompatActivity {
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show());
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }

@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.Path;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -46,7 +47,6 @@ public class notifActivity extends AppCompatActivity {
     FileWriter fileWriter = null;
     BufferedWriter bufferedWriter = null;
     int img;
-    public static JSONObject mainObj = new JSONObject();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +54,7 @@ public class notifActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notif);
         recyclerView = findViewById(R.id.notif_list);
         notifConstraintLayout = findViewById(R.id.notif_constraint);
+        Button back = findViewById(R.id.notifBack);
         String FILE_NAME = "notif.json";
         file = new File(this.getFilesDir(), FILE_NAME);
         try {
@@ -62,6 +63,7 @@ public class notifActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         enableSwipeToDeleteAndUndo();
+        back.setOnClickListener(v -> onBackPressed());
     }
 
     private void populateRecyclerView() throws IOException, JSONException {
@@ -87,12 +89,12 @@ public class notifActivity extends AppCompatActivity {
                 String notifTime = nTime.getString("notifTime");
                 SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
                 SimpleDateFormat sdf1 = new SimpleDateFormat("MMM dd");
-                SimpleDateFormat sdf2 = new SimpleDateFormat("HH:mm a");
+                SimpleDateFormat sdf2 = new SimpleDateFormat("hh:mm a");
                 try {
                     Date date = sdf.parse(notifTime);
                     Date nowTime = Calendar.getInstance().getTime();
                     float diff = nowTime.getTime() - date.getTime();
-                    float t = diff/(1000*60*60);
+                    float t = diff/(1000*60*60); // convert to hours
                     if (t >= 1) {
                         if (t < 24 && t >= 2) {
                             notifTime = String.valueOf((sdf2.parse(notifTime)));
@@ -110,12 +112,12 @@ public class notifActivity extends AppCompatActivity {
                             }
                         }
                     } else if (t < 1/60){ // is t less than 1 min (1/60 hours) ?
-                        float s = t*3600;
+                        float s = t*3600; // convert to seconds
                         if (s <= 1) {
                             notifTime =  "Just now";
                         }
                     } else {
-                        float m = t*60;
+                        float m = t*60; // convert to minutes
                         if (m <= 1) {
                             notifTime = "1 minute ago";
                         } else {
@@ -127,11 +129,13 @@ public class notifActivity extends AppCompatActivity {
                 }
                 int notifColor = nColor.getInt("notifColor");
                 if (notifColor == 0) {
-                    img = R.drawable.play_arrow; //change
+                    img = R.drawable.temp_red;
                 } else if (notifColor == 1) {
-                    img = R.drawable.clear; //change
-                } else {
+                    img = R.drawable.temp_orange;
+                } else if (notifColor == 2){
                     img = R.drawable.ic_b1; //change
+                } else {
+                    img = R.drawable.temp_green;
                 }
                 stringArrayList.add(new NotifItem(img, notifText, notifTime + " | Swipe to Dismiss"));
             }
@@ -191,5 +195,10 @@ public class notifActivity extends AppCompatActivity {
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeToDeleteCallBack);
         itemTouchHelper.attachToRecyclerView(recyclerView);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }
