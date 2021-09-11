@@ -31,8 +31,6 @@ public class TippersJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
         try {
-            // relatively easier to get building level bc of coordinates info
-            // don't have exact accuracy for floor/room level
             File file;
             FileReader fileReader;
             BufferedReader bufferedReader;
@@ -48,23 +46,8 @@ public class TippersJobService extends JobService {
             }
             bufferedReader.close();
             String json = stringBuilder.toString();
-            String url = "http://tippersweb.ics.uci.edu:8080/observation";
+            String url = "http://tippersweb.ics.uci.edu:8080/observation/temperature";
             new PushToServer().execute(url, json);
-            // [
-                // {
-            // ID = string
-            // time = string
-            // temp {
-                // val = float
-                // unit = string
-            // }
-        //},
-            // { temp {
-                // time = string
-                //val = float
-                // unit = string
-            // }
-        // }, ... ]
         } catch (IOException e) {
             e.printStackTrace();
         }

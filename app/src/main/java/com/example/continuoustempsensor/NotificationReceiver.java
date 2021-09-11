@@ -1,6 +1,10 @@
 package com.example.continuoustempsensor;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.job.JobScheduler;
+import android.app.job.JobService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -35,15 +39,20 @@ public class NotificationReceiver extends BroadcastReceiver {
         String message = intent.getStringExtra("ButtonUnderneath");
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 
-        String action = intent.getAction();
-        if (action.equals("notification_cancelled")) {
+        String action = intent.getExtras().getString("status");
+        assert action != null;
+        if (action.equals("cancelled")) { // TODO: test
             Toast.makeText(context, "Notification Removed", Toast.LENGTH_SHORT).show();
+            JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+            assert scheduler != null;
+            scheduler.cancel(123);
+            MainActivity.firstNotif = true;
         }
     }
 
     public static void sendNotification(Context context, int RequestCode){
-        NotificationManagerCompat notificationManager;
-        notificationManager = NotificationManagerCompat.from(context);
+        NotificationManager notificationManager;
+        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         Intent broadcastIntent = new Intent(context, NotificationReceiver.class);
         broadcastIntent.putExtra("ButtonUnderneath", "open app");
@@ -56,11 +65,12 @@ public class NotificationReceiver extends BroadcastReceiver {
         Date nowTime = Calendar.getInstance().getTime();
         String currentTime = String.valueOf(nowTime);
         if (RequestCode == 0) { //red
-            msg = "High Fever Temperatures Detected";
+            msg = "High Fever Detected";
             Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
             activityIntent.putExtra("message", "URGENT");
+            activityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
-            android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
+            Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
                     //.setContentTitle(title)
                     //.setContentText(message)
@@ -74,7 +84,6 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setColor(Color.argb(255, 48, 154, 230))
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true) //when tapped the notification will go away
-                    //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
                     .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
                     //******* setDeleteIntent needs to be tested
@@ -83,9 +92,10 @@ public class NotificationReceiver extends BroadcastReceiver {
             writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(1, notification);
         } else if (RequestCode == 1) { //orange
-            msg = "Fever Temperatures Detected";
+            msg = "Fever Detected";
             Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
             activityIntent.putExtra("message", "NOT URGENT");
+            activityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_1_ID)
                     .setSmallIcon(R.drawable.warning)
@@ -101,11 +111,8 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setColor(Color.argb(255, 48, 154, 230))
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true) //when tapped the notification will go away
-                    //.setOnlyAlertOnce(true) will only make sound and popup the first time we show it
                     .addAction(R.mipmap.ic_launcher, "Open App", actionIntent) // button at the moment sends toast, but want to send it to notify supervisor etc.
                     //can add up to 3 action buttons
-                    //******* setDeleteIntent needs to be tested
-                    .setDeleteIntent(getDeleteIntent(context))
                     .build();
             writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(2, notification);
@@ -113,6 +120,7 @@ public class NotificationReceiver extends BroadcastReceiver {
             msg = "Your Temperatures Are Near a Fever";
             Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
             activityIntent.putExtra("message", "NOT URGENT");
+            activityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_2_ID)
                     .setSmallIcon(R.drawable.announcement)
@@ -127,8 +135,6 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setColor(Color.argb(255, 48, 154, 230))
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true)
-                    //******* setDeleteIntent needs to be tested
-                    .setDeleteIntent(getDeleteIntent(context))
                     .build();
             writeJSON(context, RequestCode, currentTime);
             notificationManager.notify(3, notification);
@@ -136,6 +142,7 @@ public class NotificationReceiver extends BroadcastReceiver {
             msg = "Your Temperatures Are Normal";
             Intent activityIntent = new Intent(context, MainActivity.class); // opens the app at home when notification clicked
             activityIntent.putExtra("message", "NOT URGENT");
+            activityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             PendingIntent contentIntent = PendingIntent.getActivity(context, RequestCode, activityIntent, 0);
             android.app.Notification notification = new NotificationCompat.Builder(context, notifications.CHANNEL_2_ID)
                     .setSmallIcon(R.drawable.announcement)
@@ -150,17 +157,15 @@ public class NotificationReceiver extends BroadcastReceiver {
                     .setColor(Color.argb(255, 48, 154, 230))
                     .setContentIntent(contentIntent)
                     .setAutoCancel(true)
-                    //******* setDeleteIntent needs to be tested
-                    .setDeleteIntent(getDeleteIntent(context))
                     .build();
             writeJSON(context, RequestCode, currentTime);
-            notificationManager.notify(3, notification);
+            notificationManager.notify(4, notification);
         }
     }
 
     protected static PendingIntent getDeleteIntent(Context context){
         Intent intent = new Intent(context, NotificationReceiver.class);
-        intent.setAction("notification_cancelled");
+        intent.putExtra("status", "cancelled");
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
@@ -183,10 +188,9 @@ public class NotificationReceiver extends BroadcastReceiver {
             }
             bufferedReader.close();
             String response = stringBuilder.toString();
-            JSONObject jsonObject = new JSONObject(response);
-            JSONArray names = jsonObject.names();
             String idx;
-            if (names != null) {
+            if (response.isEmpty()) {
+                JSONObject jsonObject = new JSONObject();
                 JSONArray jsonArray = new JSONArray();
                 JSONObject jText = new JSONObject();
                 JSONObject jTime = new JSONObject();
@@ -205,26 +209,49 @@ public class NotificationReceiver extends BroadcastReceiver {
                 bufferedWriter.write(jsonStr);
                 bufferedWriter.close();
             } else {
-                JSONObject mainObj = new JSONObject();
-                JSONArray jsonArray = new JSONArray();
-                JSONObject jText = new JSONObject();
-                JSONObject jTime = new JSONObject();
-                JSONObject jColor = new JSONObject();
-                jText.put("notifText", msg);
-                jTime.put("notifTime", currentTime);
-                jColor.put("notifColor", RequestCode);
-                idx = "Notif 1";
-                MainActivity.saveIdx(1, context);
-                jsonArray.put(jText);
-                jsonArray.put(jTime);
-                jsonArray.put(jColor);
-                mainObj.put(idx, jsonArray);
-                String jsonStr = mainObj.toString();
-                fileWriter = new FileWriter(file, true);
-                bufferedWriter = new BufferedWriter(fileWriter);
-                bufferedWriter.write(jsonStr);
-                bufferedWriter.close();
+                JSONObject jsonObject = new JSONObject(response);
+                JSONArray names = jsonObject.names();
+                if (names != null) {
+                    JSONArray jsonArray = new JSONArray();
+                    JSONObject jText = new JSONObject();
+                    JSONObject jTime = new JSONObject();
+                    JSONObject jColor = new JSONObject();
+                    jText.put("notifText", msg);
+                    jTime.put("notifTime", currentTime);
+                    jColor.put("notifColor", RequestCode);
+                    idx = MainActivity.restoreIdx(context);
+                    jsonArray.put(jText);
+                    jsonArray.put(jTime);
+                    jsonArray.put(jColor);
+                    jsonObject.put(idx, jsonArray);
+                    String jsonStr = jsonObject.toString();
+                    fileWriter = new FileWriter(file, false);
+                    bufferedWriter = new BufferedWriter(fileWriter);
+                    bufferedWriter.write(jsonStr);
+                    bufferedWriter.close();
+                } else {
+                    JSONObject mainObj = new JSONObject();
+                    JSONArray jsonArray = new JSONArray();
+                    JSONObject jText = new JSONObject();
+                    JSONObject jTime = new JSONObject();
+                    JSONObject jColor = new JSONObject();
+                    jText.put("notifText", msg);
+                    jTime.put("notifTime", currentTime);
+                    jColor.put("notifColor", RequestCode);
+                    idx = "Notif 1";
+                    MainActivity.saveIdx(1, context);
+                    jsonArray.put(jText);
+                    jsonArray.put(jTime);
+                    jsonArray.put(jColor);
+                    mainObj.put(idx, jsonArray);
+                    String jsonStr = mainObj.toString();
+                    fileWriter = new FileWriter(file, true);
+                    bufferedWriter = new BufferedWriter(fileWriter);
+                    bufferedWriter.write(jsonStr);
+                    bufferedWriter.close();
+                }
             }
+            MainActivity.notif.setImageResource(R.drawable.bell2);
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }

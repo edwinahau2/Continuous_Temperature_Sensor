@@ -43,9 +43,7 @@ public class fragment_tab3 extends Fragment  {
     private static final int RESULT_OK = -1;
     private Button connect;
     private TextView notify;
-    private static final String TAG = "BluetoothButtonCheck";
     private static final int REQUEST_ENABLE_BT = 0;
-    boolean uhh;
     String sensor;
     public static Context context;
     TabLayout tempTab;
@@ -125,7 +123,6 @@ public class fragment_tab3 extends Fragment  {
             connect.setText("Not Connected");
         }
         notify = view.findViewById(R.id.notify);
-
         if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
         }
@@ -233,9 +230,8 @@ public class fragment_tab3 extends Fragment  {
     private void saveNameData() {
         SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("device", ConnectionActivity.sensor);
-        editor.putString("address", ConnectionActivity.addy);
-        editor.putBoolean("uhh", uhh);
+        editor.putString("device", MainActivity.name);
+        editor.putString("address", MainActivity.address);
         editor.apply();
     }
 
@@ -250,16 +246,6 @@ public class fragment_tab3 extends Fragment  {
     private String restoreNameData() {
         SharedPreferences pref = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
         return pref.getString("device", null);
-    }
-
-    private String restoreTheAddy() {
-        SharedPreferences pref = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
-        return pref.getString("address", null);
-    }
-
-    private Boolean restoreBool() {
-        SharedPreferences pref = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
-        return pref.getBoolean("uhh", true);
     }
 
     public static String restoreNotifFreq() {
@@ -319,57 +305,16 @@ public class fragment_tab3 extends Fragment  {
     @Override
     public void onResume() {
         super.onResume();
-        uhh = restoreBool();
         sensor = restoreNameData();
-        if (uhh) {
-            if (AndroidService.spark) {
-                setButtonColor(true);
-                SpannableString spanString = new SpannableString("Connected to " + MainActivity.name);
-                spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
-                connect.setText(spanString);
-                Log.d(TAG, "First");
-            } else {
-                SpannableString spanString = new SpannableString("Not Connected");
-                spanString.setSpan(new StyleSpan(Typeface.NORMAL), 0, spanString.length(), 0);
-                connect.setText(spanString);
-                setButtonColor(false);
-                Log.d(TAG, "Second");
-            }
-            uhh = false;
+        if (!MainActivity.spark) {
+            connect.setText("Not Connected");
+            setButtonColor(false);
+        } else if (sensor != null) {
+            setButtonColor(true);
+            SpannableString spanString = new SpannableString("Connected to " + sensor);
+            spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+            connect.setText(spanString);
             saveNameData();
-        } else {
-            if (ConnectionActivity.daStatus != null && !ConnectionActivity.daStatus.equals("Not Connected")) {
-                setButtonColor(true);
-                SpannableString spanString = new SpannableString(ConnectionActivity.daStatus);
-                spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
-                connect.setText(spanString);
-                Log.d(TAG, "Third");
-            } else {
-                if (!AndroidService.spark) {
-                    connect.setText("Not Connected");
-                    setButtonColor(false);
-                } else if (ConnectionActivity.sensor != null) {
-                    sensor = ConnectionActivity.sensor;
-                    setButtonColor(true);
-                    SpannableString spanString = new SpannableString("Connected to " + sensor);
-                    spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
-                    connect.setText(spanString);
-                    saveNameData();
-                    Log.d(TAG, "Fourth");
-                } else if (sensor != null) {
-                    setButtonColor(true);
-                    SpannableString spanString = new SpannableString("Connected to " + sensor);
-                    spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
-                    connect.setText(spanString);
-                    Log.d(TAG, "Fifth");
-                } else {
-                    setButtonColor(true);
-                    SpannableString spanString = new SpannableString("Connected to " + MainActivity.name);
-                    spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
-                    connect.setText(spanString);
-                    Log.d(TAG, "Sixth");
-                }
-            }
         }
 
         IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);

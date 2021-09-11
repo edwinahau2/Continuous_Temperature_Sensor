@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -17,6 +18,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
@@ -73,6 +75,7 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
     private static final String TAG = "MainActivityCounter";
+    public static boolean spark;
     public static int notifFreq = -1;
     private int tempFreq = notifFreq;
     public static String name;
@@ -81,8 +84,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
     StringBuilder recDataString = new StringBuilder();
-    ArrayList<Float> tempVals = new ArrayList<Float>();
-    ArrayList<Float> tipperVals = new ArrayList<Float>();
+    ArrayList<Float> tempVals = new ArrayList<>();
+    ArrayList<Float> tipperVals = new ArrayList<>();
     TextView tempTextView;
     public static LineChart mChart;
     public static String address;
@@ -98,17 +101,34 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     boolean plotData = false;
     ImageView btSym;
     TextView btStat;
-    ImageView notif;
+    public static ImageView notif;
     Boolean good;
     Boolean bad;
     Boolean warning;
     Boolean veryBad;
     ComplexView shadow, ring, white;
     ViewGroup vg;
-    int initMin = 0;
-    Boolean firstNotif = true;
+    public static Boolean firstNotif = true;
     Boolean firstNormalNotif = true;
     protected LocationManager locationManager;
+    AndroidService mService;
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mService = ((AndroidService.LocalBinder) service).getService();
+            spark = mService.startConnection();
+            onResume();
+            fragment3 = new fragment_tab3();
+            fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            spark = false;
+        }
+    };
+
 
     @SuppressLint("ShowToast")
     @Override
@@ -164,14 +184,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         }
         Bundle bundle = getIntent().getExtras();
-        Intent notifIntent = getIntent();
-        if (notifIntent.hasExtra("message")) {
-            String msg = notifIntent.getExtras().getString("message");
-            if (msg.equals("URGENT")) {
-                cancelJob(0);
-                Toast.makeText(this, "urgent identified", Toast.LENGTH_SHORT).show();
-            }
-        }
+
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         mChart = findViewById(R.id.sparkView);
         mChart.setVisibility(View.VISIBLE);
@@ -219,33 +232,56 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             String uniqueID = (String) bundle.get("uniqueID");
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
-            startService(intent);
+            bindService(intent, connection, Context.BIND_AUTO_CREATE);
+            if (spark) {
+                btStat.setText("Connected");
+                btSym.setBackgroundResource(R.drawable.ic_b1);
+            }
+//            startService(intent);
             startConnection();
             savePrefsData();
             saveUniqueID(uniqueID);
+            String msg = bundle.getString("message");
+            assert msg != null;
+            if (msg.equals("URGENT")) {
+                cancelJob(0);
+                Toast.makeText(this, "urgent identified", Toast.LENGTH_SHORT).show();
+            }
         } else if (mBlueAdapter.isEnabled()) {
             address = restoreAddressData();
             name = restoreNameData();
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
-            startService(intent);
+            bindService(intent, connection, Context.BIND_AUTO_CREATE);
+//            startService(intent);
+            if (spark) {
+                btStat.setText("Connected");
+                btSym.setBackgroundResource(R.drawable.ic_b1);
+            }
             startConnection();
         }
-
-        /*Intent intent = getIntent();
-        if (intent.hasExtra("message")) {
-            firstNotif = true;
-            JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
-            scheduler.cancel(123); //job
-            Log.d(TAG, "Job Cancelled");
-        }*/
-
 
         // can delete once TIPPERS is confirmed
         FileReader tippersFileReader;
         BufferedReader tippersBufferedReader;
         String FILE_NAME2 = "tippers.json";
         File tippersFile = new File(this.getFilesDir(), FILE_NAME2);
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        assert locationManager != null;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        double latitude = 0;
+        double longitude = 0;
+        if  (location != null) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+        }
         try {
             tippersFileReader = new FileReader(tippersFile);
             tippersBufferedReader = new BufferedReader(tippersFileReader);
@@ -271,6 +307,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             read.put("val", "98.6");
             read.put("unit", unit);
             tippersData.put("data", read);
+            tippersData.put("Latitude", latitude);
+            tippersData.put("Longitude", longitude);
             JSONArray appendArray = new JSONArray();
             appendArray.put(tippersData);
             String array2 = appendArray.toString();
@@ -288,6 +326,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(tippersJSON);
             bufferedWriter.close();
+            // delete below when done
+            ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
+            JobInfo jobInfo = new JobInfo.Builder(110, componentName)
+                    .setPersisted(false)
+                    .setRequiresCharging(false)
+                    .setOverrideDeadline(5000)
+                    .build();
+            JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+            assert jobScheduler != null;
+            jobScheduler.schedule(jobInfo);
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
@@ -471,7 +519,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                     //only applies when user has not force closed the app
 
 //                                float medianTemp = Float.parseFloat(temperature);
-                                    // TODO: this entire notification stuff
+                                    // TODO: test notification
                                     float medianTemp = 101;
                                     saveTempVal(medianTemp, getApplicationContext());
                                     if (medianTemp > 100.3) { // more urgent -- red
@@ -505,7 +553,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         ArrayList<Float> MovingAverage = new ArrayList<>();
         for (int window = 0; window < (sampleSize - 5); window++) {
-            ArrayList<Float> subArray = new ArrayList<>(Vals.subList(window, window + 4));
+            ArrayList<Float> subArray = new ArrayList<>(Vals.subList(window, window + 5));
             int sum = 0;
             for (int idx = 0; idx<subArray.size(); idx++) {
                 sum += subArray.get(idx);
@@ -515,6 +563,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
 
         int arraySize = MovingAverage.size();
+        ArrayList<Integer> removeIdx = new ArrayList<>();
 
         if (arraySize == 30) {
             Collections.sort(MovingAverage);
@@ -524,13 +573,19 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 madVals.add((float) Math.abs(MovingAverage.get(i) - median));
             }
             Collections.sort(madVals);
-            double MAD =  (madVals.get(15) + madVals.get(16)) / 2.0;
+            double MAD = (madVals.get(15) + madVals.get(16)) / 2.0;
             for (int i = 0; i < arraySize; i++) {
                 double M = 0.675*(MovingAverage.get(i) - median) / MAD;
                 if (Math.abs(M) > 3.5) {
-                    MovingAverage.remove(i);
+                    removeIdx.add(i);
                 }
             }
+
+            Collections.sort(removeIdx, Collections.reverseOrder());
+            for (int rIdx : removeIdx) {
+                MovingAverage.remove(rIdx);
+            }
+
             if (!MovingAverage.isEmpty()) {
                 Collections.sort(MovingAverage);
                 double medianTemp;
@@ -768,6 +823,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             data.addEntry(new Entry(mySet.getEntryCount(), y), 0);
             XAxis xl = mChart.getXAxis();
             xl.setValueFormatter(new IndexAxisValueFormatter(time)); // TODO: x-axis is still wack
+            xl.setGranularityEnabled(true);
+            xl.setGranularity(1f);
+            xl.setSpaceMax(0.3f);
             data.notifyDataChanged();
             mChart.notifyDataSetChanged();
             mChart.setVisibleXRangeMaximum(6);
@@ -780,21 +838,28 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         mySet.setDrawCircles(true);
         mySet.setCircleRadius(4f);
         mySet.setDrawValues(false);
+        mySet.setFillAlpha(65);
+        mySet.setCircleHoleColor(Color.WHITE);
         mySet.setAxisDependency(YAxis.AxisDependency.LEFT);
         mySet.setLineWidth(3f);
-        mySet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        mySet.setMode(LineDataSet.Mode.LINEAR);
         mySet.setCubicIntensity(0.2f);
         int colorId;
         if (good) {
             colorId = R.color.green;
+            mySet.setCircleColor(Color.parseColor("#009e48"));
         } else if (warning) {
             colorId = R.color.yellow;
+            mySet.setCircleColor(Color.parseColor("#d6b300"));
         } else if (bad) {
             colorId = R.color.orange;
+            mySet.setCircleColor(Color.parseColor("#d4600b"));
         } else if (veryBad) {
             colorId = R.color.red;
+            mySet.setCircleColor(Color.parseColor("#d10000"));
         } else {
             colorId = R.color.blue;
+            mySet.setCircleColor(Color.parseColor("#0099d1"));
         }
         mySet.setColors(ContextCompat.getColor(this, colorId));
         return mySet;
@@ -916,8 +981,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     protected void onResume() {
         super.onResume();
-        if (AndroidService.spark) {
-            btStat.setText("Connected"); // TODO: doesn't work all the time
+        if (spark) {
+            btStat.setText("Connected"); 
             btSym.setBackgroundResource(R.drawable.ic_b1);
         } else {
             btStat.setText("Not Connected");
@@ -965,6 +1030,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         } catch (IOException | JSONException e) {
             e.printStackTrace();
+        }
+
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            String msg = bundle.getString("message");
+            assert msg != null;
+            if (msg.equals("URGENT")) {
+                cancelJob(0);
+                Toast.makeText(this, "urgent identified", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

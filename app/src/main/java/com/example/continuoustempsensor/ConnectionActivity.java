@@ -44,7 +44,7 @@ import java.util.UUID;
 public class ConnectionActivity extends AppCompatActivity implements BtAdapter.OnDeviceListener {
 
     Button back;
-    public static String sensor;
+    public String sensor;
     @SuppressLint("StaticFieldLeak")
     public static Context context;
     TextView status;
@@ -61,8 +61,8 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     Toast toast;
     final Context c = this;
     String correct;
-    public static String addy;
-    public static String daStatus;
+    public String addy;
+    public String daStatus;
     Button yes;
     Button no;
     boolean dontRunAgain = true;
@@ -80,7 +80,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         status = findViewById(R.id.status);
         sensor = restoreNameData();
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (!AndroidService.spark || !mBlueAdapter.isEnabled()) {
+        if (!MainActivity.spark || !mBlueAdapter.isEnabled()) {
             daStatus = "Not Connected";
             status.setText(daStatus);
         } else if ((MainActivity.name != null) && (sensor == null)) {
@@ -131,7 +131,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         });
 
         rename.setOnClickListener(v -> {
-            if (AndroidService.spark && mBlueAdapter.isEnabled()) {
+            if (MainActivity.spark && mBlueAdapter.isEnabled()) {
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(c);
                 alertDialog.setTitle("Rename Sensor");
                 final EditText userInput = new EditText(c);
@@ -189,7 +189,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         public void onReceive(Context context, final Intent intent) {
             String action = intent.getAction();
             if (mBlueAdapter.isEnabled()) {
-                if (AndroidService.spark) {
+                if (MainActivity.spark) {
                     if (dontRunAgain) {
                         mData.add(new BtDevice(sensor + ":" + MainActivity.address));
                         dontRunAgain = false;
@@ -240,7 +240,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     public void onDeviceClick(int position) {
         correct = mData.get(position).getDevice();
         addy = mData.get(position).getAddress();
-        if (addy.equals(MainActivity.address) && AndroidService.spark && !daStatus.equals("Not Connected")) {
+        if (addy.equals(MainActivity.address) && MainActivity.spark && !daStatus.equals("Not Connected")) {
             DisconnectPopUp();
         } else {
             ShowPopUp();
@@ -258,7 +258,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             try {
                 if (AndroidService.mmSocket != null) {
                     AndroidService.mmSocket.close();
-                    AndroidService.spark = false;
+                    MainActivity.spark = false;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -282,7 +282,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         yes.setOnClickListener(v -> {
             try {
                 AndroidService.mmSocket.close();
-                AndroidService.spark = false;
+                MainActivity.spark = false;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -319,11 +319,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         return pref.getString("rename", null);
     }
 
-    public static String restoreTheAddy() {
-        SharedPreferences pref = context.getSharedPreferences("connectPref", Context.MODE_PRIVATE);
-        return pref.getString("address", null);
-    }
-
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -332,7 +327,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_OFF) {
                     daStatus = "Not Connected";
-                    AndroidService.spark = false;
+                    MainActivity.spark = false;
                     status.setText(daStatus);
                 }
             }

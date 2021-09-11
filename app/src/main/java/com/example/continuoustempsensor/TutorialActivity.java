@@ -33,11 +33,11 @@ public class TutorialActivity extends AppCompatActivity {
 
         CustomViewPager appPages = findViewById(R.id.appContainer);
         final List<PageItem> mList = new ArrayList<>();
-        mList.add(R.drawable.homepage, 1);
-        mList.add(R.drawable.datalog, 0);
-        mList.add(R.drawable.settings, 2);
-        AppViewPageAdapter appViewPageAdapter = new AppViewPageAdapter(this, mList);
-        appPages.setAdapter(appViewPageAdapter);
+//        mList.add(R.drawable.homepage, 1);
+//        mList.add(R.drawable.datalog, 0);
+//        mList.add(R.drawable.settings, 2);
+//        AppViewPageAdapter appViewPageAdapter = new AppViewPageAdapter(this, mList);
+//        appPages.setAdapter(appViewPageAdapter);
 
     }
 

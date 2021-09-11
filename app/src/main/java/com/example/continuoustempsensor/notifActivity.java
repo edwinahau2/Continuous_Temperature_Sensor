@@ -7,12 +7,14 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.PagerAdapter;
 
 import android.graphics.Color;
 import android.graphics.Path;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -47,12 +49,14 @@ public class notifActivity extends AppCompatActivity {
     FileWriter fileWriter = null;
     BufferedWriter bufferedWriter = null;
     int img;
+    TextView noNotif;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notif);
         recyclerView = findViewById(R.id.notif_list);
+        noNotif = findViewById(R.id.noNotif);
         notifConstraintLayout = findViewById(R.id.notif_constraint);
         Button back = findViewById(R.id.notifBack);
         String FILE_NAME = "notif.json";
@@ -87,7 +91,7 @@ public class notifActivity extends AppCompatActivity {
                 JSONObject nColor = notifJSON.getJSONObject(2);
                 String notifText = nText.getString("notifText");
                 String notifTime = nTime.getString("notifTime");
-                SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
+                SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
                 SimpleDateFormat sdf1 = new SimpleDateFormat("MMM dd");
                 SimpleDateFormat sdf2 = new SimpleDateFormat("hh:mm a");
                 try {
@@ -104,7 +108,7 @@ public class notifActivity extends AppCompatActivity {
                             notifTime = String.valueOf(sdf1.parse(notifTime));
                             float d = t/24;
                             if (d < 7 && d >= 2) {
-                                notifTime = Math.floor(d) + " days ago";
+                                notifTime = (int) Math.floor(d) + " days ago";
                             } else if (d >= 7) {
                                 notifTime = String.valueOf(sdf1.parse(notifTime)); 
                             } else {
@@ -121,11 +125,12 @@ public class notifActivity extends AppCompatActivity {
                         if (m <= 1) {
                             notifTime = "1 minute ago";
                         } else {
-                            notifTime = Math.floor(m) + " minutes ago";
+                            notifTime = (int) Math.floor(m) + " minutes ago";
                         }
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
+                    noNotif.setVisibility(View.VISIBLE);
                 }
                 int notifColor = nColor.getInt("notifColor");
                 if (notifColor == 0) {
@@ -139,10 +144,15 @@ public class notifActivity extends AppCompatActivity {
                 }
                 stringArrayList.add(new NotifItem(img, notifText, notifTime + " | Swipe to Dismiss"));
             }
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            mAdapter = new NotificationRecyclerViewAdapter(stringArrayList);
+            recyclerView.setAdapter(mAdapter);
+            noNotif.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        } else {
+            noNotif.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.INVISIBLE);
         }
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mAdapter = new NotificationRecyclerViewAdapter(stringArrayList);
-        recyclerView.setAdapter(mAdapter);
     }
 
     private void enableSwipeToDeleteAndUndo() {
@@ -185,9 +195,12 @@ public class notifActivity extends AppCompatActivity {
                                 bufferedWriter = new BufferedWriter(fileWriter);
                                 bufferedWriter.write(jsonStr);
                                 bufferedWriter.close();
+                            } else {
+                                noNotif.setVisibility(View.VISIBLE);
                             }
                         } catch (JSONException | IOException e) {
                             e.printStackTrace();
+                            noNotif.setVisibility(View.VISIBLE);
                         }
                     }
                 });
