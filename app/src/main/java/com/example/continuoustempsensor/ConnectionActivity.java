@@ -16,13 +16,16 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -66,6 +69,20 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     Button yes;
     Button no;
     boolean dontRunAgain = true;
+    AndroidService mService;
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mService = ((AndroidService.LocalBinder) service).getService();
+            MainActivity.spark = mService.startConnection();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            MainActivity.spark = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +95,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         myDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         rename = findViewById(R.id.rename);
         status = findViewById(R.id.status);
-        sensor = restoreNameData();
+        sensor = restoreNameData(this);
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         if (!MainActivity.spark || !mBlueAdapter.isEnabled()) {
             daStatus = "Not Connected";
@@ -141,7 +158,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                     daStatus = "Connected to " + sensor;
                     status.setText(daStatus);
                     dialog.cancel();
-                    saveNameData();
+                    saveNameData(this, sensor, addy);
                 }).setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
                 alertDialog.show();
             } else {
@@ -298,24 +315,25 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     private void startConnection() {
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", addy);
-            startService(intent);
+            bindService(intent, connection, Context.BIND_AUTO_CREATE);
+//            startService(intent);
             myDialog.dismiss();
             daStatus = "Connected to " + correct;
             status.setText(daStatus);
             sensor = correct;
-            saveNameData();
+            saveNameData(this, sensor, addy);
     }
 
-    private void saveNameData() {
-        SharedPreferences preferences = getApplicationContext().getSharedPreferences("connectPref", MODE_PRIVATE);
+    public static void saveNameData(Context context, String sensor, String addy) {
+        SharedPreferences preferences = context.getSharedPreferences("connectPref", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString("rename", sensor);
         editor.putString("address", addy);
         editor.apply();
     }
 
-    public String restoreNameData() {
-        SharedPreferences pref = getApplicationContext().getSharedPreferences("connectPref", Context.MODE_PRIVATE);
+    public static String restoreNameData(Context context) {
+        SharedPreferences pref = context.getSharedPreferences("connectPref", Context.MODE_PRIVATE);
         return pref.getString("rename", null);
     }
 
