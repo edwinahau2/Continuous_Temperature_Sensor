@@ -16,7 +16,7 @@ public class FeedbackActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feedback);
         Button back = findViewById(R.id.feedbackBack);
-        back.setOnClickListener(v -> onBackPressed()); // TODO: fix layout of back button
+        back.setOnClickListener(v -> onBackPressed());
         Button submitButton = findViewById(R.id.submit);
         submitButton.setOnClickListener(v -> {
             Uri uriURL = Uri.parse(URL);

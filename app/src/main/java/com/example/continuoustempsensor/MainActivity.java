@@ -378,21 +378,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             tempTextView.setTextColor(Color.parseColor("#000000"));
         } else if (num == 2) {
             shadow.setShadow(new Shadow(4, 100, "#FFD500", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // yellow
-            ring.setColor(Color.parseColor("#FB710B"));
+            ring.setColor(Color.parseColor("#FFD500"));
             tempTextView.setText(temperature + unit);
             tempTextView.setTextSize(44);
             tempTextView.setTextColor(Color.parseColor("#000000"));
         } else if (num == 3) {
             shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // orange
-            ring.setColor(Color.parseColor("#FF0000"));
+            ring.setColor(Color.parseColor("#FB710B"));
             tempTextView.setText(temperature + unit);
             tempTextView.setTextSize(40);
             tempTextView.setTextColor(Color.parseColor("#000000"));
         } else {
             shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // red
-            ring.setColor(Color.parseColor("#00B0F0"));
+            ring.setColor(Color.parseColor("#FF0000"));
             tempTextView.setText(temperature + unit);
-            tempTextView.setTextSize(44);
+            tempTextView.setTextSize(42);
             tempTextView.setTextColor(Color.parseColor("#000000"));
         }
     }

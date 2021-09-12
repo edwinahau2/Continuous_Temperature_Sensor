@@ -50,7 +50,7 @@ public class fragment_tab3 extends Fragment  {
     TabLayout.Tab selectTab;
 
     // TODO: add activities for the three buttons under general
-    /* 2) how to use sensor and app --> FAQ type page + video(s)
+    /* 2) how to use sensor and app --> video(s)
        3) downloadable option */
 
     @SuppressLint("SetTextI18n")
@@ -311,6 +311,7 @@ public class fragment_tab3 extends Fragment  {
             setButtonColor(false);
         } else if (sensor != null) {
             setButtonColor(true);
+            sensor = ConnectionActivity.restoreNameData(requireContext());
             SpannableString spanString = new SpannableString("Connected to " + sensor);
             spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
             connect.setText(spanString);

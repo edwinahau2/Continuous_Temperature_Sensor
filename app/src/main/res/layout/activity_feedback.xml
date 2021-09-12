@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     tools:context=".FeedbackActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -14,68 +15,65 @@
             android:id="@+id/feedbackText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/feedback_form"
             android:layout_margin="24dp"
-            android:textSize="32sp"
+            android:text="@string/feedback_form"
             android:textColor="#000"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            android:textSize="32sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias='0.0'/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/opinion"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Your opinion is important to us."
             android:layout_margin="24dp"
+            android:text="Your opinion is important to us."
             android:textSize="22sp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias='0.0'
-            app:layout_constraintTop_toBottomOf="@id/feedbackText"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/feedbackText" />
 
         <TextView
             android:id="@+id/header1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="Please click the link below to access our feedback form."
-            android:layout_marginTop="56dp"
             android:layout_marginStart="24dp"
-            android:textSize="22sp"
+            android:layout_marginTop="56dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintVertical_chainStyle="packed"
+            android:text="Please click the link below to access our feedback form."
             android:textColor="#000"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias='0.0'
+            android:textSize="22sp"
             app:layout_constraintBottom_toTopOf="@+id/submit"
-            app:layout_constraintTop_toBottomOf="@id/opinion"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/opinion" />
 
         <Button
             android:id="@+id/submit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
             android:layout_marginStart="22dp"
             android:layout_marginTop="16dp"
-            app:layout_constraintBottom_toTopOf="@id/feedbackBack"
             android:backgroundTint="#18a3fe"
+            android:text="Link to Feedback Form"
             android:textColor="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias='0.0'
-            android:text="Link to Feedback Form"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/header1" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="22dp"
-            android:text="Back"
-            app:layout_constraintTop_toBottomOf="@+id/submit"
+            android:id="@+id/feedbackBack"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="16dp"
-            android:id="@+id/feedbackBack"/>
-
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginStart="22dp"
+            android:text="BACK"
+            android:layout_marginBottom="16dp"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>
