@@ -8,6 +8,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,10 +63,10 @@ public class ReportViewPageAdapter extends PagerAdapter {
     BarChart barChart;
     String response;
     String red = "#FF0000";
-    String yellow = "#FB710B";
+    String yellow = "#ffdd00";
     String green = "#00B050";
+    String orange = "#FB710B";
     String blue = "#00B0F0";
-    ComplexView avgCard, highCard, lowCard;
     ArrayList<Integer> colorSet = new ArrayList<>();
 
     public ReportViewPageAdapter(Context mContext, String date, String response, Boolean daily) {
@@ -83,162 +84,214 @@ public class ReportViewPageAdapter extends PagerAdapter {
         if (daily) {
             layoutScreen = inflater.inflate(R.layout.daily_report, null);
             try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    JSONObject values = (JSONObject) jsonObject.get(date);
-                    List<String[]> array = new ArrayList<>();
-                    for (int i = 0; i < values.names().length(); i++) {
-                        String time = "time" + i;
-                        JSONObject obj = values.getJSONObject(time);
-                        array.add(new String[]{obj.getString("temperature"), obj.getString("hour"), obj.getString("unit")});
-                    }
-                    ArrayList<Float> threeParams = threeParams(array, MainActivity.restoreTempUnit(context).equals(" °F"));
-                    String unit;
-                    if (MainActivity.restoreTempUnit(context).equals(" °F")) {
-                        unit = "°F";
-                    } else {
-                        unit = "°C";
-                    }
-                    DecimalFormat df = new DecimalFormat("#.#");
-                    float avgTemp = Float.parseFloat(df.format(threeParams.get(0)));
-                    float max = threeParams.get(1);
-                    float min = threeParams.get(2);
-                    TextView dailyAvg = layoutScreen.findViewById(R.id.average);
-//                    dailyAvg.setTextSize(10);
-                    TextView dailyHigh = layoutScreen.findViewById(R.id.high);
-//                    dailyHigh.setTextSize(10);
-                    TextView dailyLow = layoutScreen.findViewById(R.id.low);
-//                    dailyLow.setTextSize(10);
-                    avgCard = layoutScreen.findViewById(R.id.averageCard);
-                    highCard = layoutScreen.findViewById(R.id.highCard);
-                    lowCard = layoutScreen.findViewById(R.id.lowCard);
-                    float[] radii = {20, 20, 20, 20, 20, 20, 20, 20};
-                    if (max <= 100.3 || max <= 37.9) {
+                JSONObject jsonObject = new JSONObject(response);
+                JSONObject values = (JSONObject) jsonObject.get(date);
+                List<String[]> array = new ArrayList<>();
+                for (int i = 0; i < values.names().length(); i++) {
+                    String time = "time" + i;
+                    JSONObject obj = values.getJSONObject(time);
+                    array.add(new String[]{obj.getString("temperature"), obj.getString("hour"), obj.getString("unit")});
+                }
+                ArrayList<Float> threeParams = threeParams(array, MainActivity.restoreTempUnit(context).equals(" °F"));
+                DecimalFormat df = new DecimalFormat("#.#");
+                float avgTemp = Float.parseFloat(df.format(threeParams.get(0)));
+                float max = Float.parseFloat(df.format(threeParams.get(1)));
+                float min = Float.parseFloat(df.format(threeParams.get(2)));
+                TextView dailyAvg = layoutScreen.findViewById(R.id.avgTemp);
+                TextView dailyHigh = layoutScreen.findViewById(R.id.highTemp);
+                TextView dailyLow = layoutScreen.findViewById(R.id.lowTemp);
+                ImageView pic = layoutScreen.findViewById(R.id.tempImage);
+                String unit = " °F";
+                if (!MainActivity.restoreTempUnit(context).equals(" °F")) {
+                    unit = " °C";
+                    avgTemp = (float) ((avgTemp - 32) * 5 / 9.0);
+                    avgTemp = Float.parseFloat(df.format(avgTemp));
+                    max = (float) ((max - 32) * 5 / 9.0);
+                    max = Float.parseFloat(df.format(max));
+                    min = (float) ((min - 32) * 5 / 9.0);
+                    min = Float.parseFloat(df.format(min));
+                    if (max <= 37.7f) {
                         dailyHigh.setTextColor(Color.parseColor(green));
-                        highCard.setShadow(new Shadow(2, 100, green, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
-                    } else if ((max >= 100.4 && max < 103) || (max < 38 && max > 39.4)) {
+                    } else if (max <= 38f && max >= 37.8f) {
                         dailyHigh.setTextColor(Color.parseColor(yellow));
-                        highCard.setShadow(new Shadow(2, 100, yellow, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
-                    } else if ((max >= 103) || (max >= 39.4)) {
+                    } else if (max > 38f && max <= 39.4f) {
+                        dailyHigh.setTextColor(Color.parseColor(orange));
+                    } else if (max > 39.4f) {
                         dailyHigh.setTextColor(Color.parseColor(red));
-                        highCard.setShadow(new Shadow(2, 100, red, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     } else {
+                        dailyHigh.setText("--");
                         dailyHigh.setTextColor(Color.parseColor(blue));
-                        highCard.setShadow(new Shadow(2, 100, blue, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     }
 
-                    if (min <= 100.3 || min <= 37.9) {
+                    if (min <= 37.7f) {
                         dailyLow.setTextColor(Color.parseColor(green));
-                        lowCard.setShadow(new Shadow(2, 100, green, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
-                    } else if ((min >= 100.4 && min < 103) || (min < 38 && min > 39.4)) {
+                    } else if (min <= 38f && min >= 37.8f) {
                         dailyLow.setTextColor(Color.parseColor(yellow));
-                        lowCard.setShadow(new Shadow(2, 100, yellow, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
-                    } else if ((min >= 103) || (min >= 39.4)) {
+                    } else if (min > 38f && min <= 39.4f) {
+                        dailyLow.setTextColor(Color.parseColor(orange));
+                    } else if (min > 39.4f) {
                         dailyLow.setTextColor(Color.parseColor(red));
-                        lowCard.setShadow(new Shadow(2, 100, red, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     } else {
+                        dailyLow.setText("--");
                         dailyLow.setTextColor(Color.parseColor(blue));
-                        lowCard.setShadow(new Shadow(2, 100, blue, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
                     }
-                    if (avgTemp <= 100.3 || avgTemp <= 37.9) {
+
+                    if (avgTemp <= 37.7f) {
                         dailyAvg.setTextColor(Color.parseColor(green));
-                        avgCard.setShadow(new Shadow(2, 100, green, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
-                    } else if ((avgTemp >= 100.4 && avgTemp < 103) || (avgTemp < 38 && avgTemp > 39.4)) {
+                        pic.setImageResource(R.drawable.temp_green);
+                    } else if (avgTemp <= 38f && avgTemp >= 37.8f) {
                         dailyAvg.setTextColor(Color.parseColor(yellow));
-                        avgCard.setShadow(new Shadow(2, 100, yellow, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
-                    } else if ((avgTemp >= 103) || (avgTemp >= 39.4)) {
+                    } else if (avgTemp > 38f && avgTemp <= 39.4f) {
+                        dailyAvg.setTextColor(Color.parseColor(orange));
+                        pic.setImageResource(R.drawable.temp_orange);
+                    } else if (avgTemp > 39.4f) {
                         dailyAvg.setTextColor(Color.parseColor(red));
-                        avgCard.setShadow(new Shadow(2, 100, red, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
+                        pic.setImageResource(R.drawable.temp_red);
                     } else {
+                        dailyAvg.setText("--");
                         dailyAvg.setTextColor(Color.parseColor(blue));
-                        avgCard.setShadow(new Shadow(2, 100, blue, GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER));
-                    }
-                    dailyAvg.setText(avgTemp + " " + unit);
-                    dailyHigh.setText(max + " " + unit);
-                    dailyLow.setText(min + " " + unit);
-                    mChart = layoutScreen.findViewById(R.id.lineChart);
-                    mChart.setVisibility(View.VISIBLE);
-                    mChart.setDescription(null);
-                    mChart.setTouchEnabled(true);
-                    mChart.setExtraBottomOffset(10f);
-                    mChart.setBackgroundColor(Color.TRANSPARENT);
-                    mChart.setHighlightPerTapEnabled(true);
-                    mChart.setDragEnabled(true);
-                    mChart.setScaleEnabled(true);
-                    mChart.setDrawGridBackground(false);
-                    mChart.setPinchZoom(false);
-                    mChart.setDoubleTapToZoomEnabled(false);
-                    LineData data = new LineData();
-                    data.setValueTextColor(Color.WHITE);
-                    mChart.setData(data);
-                    mChart.setMaxHighlightDistance(20);
-                    MyMarkerView mv = new MyMarkerView(context, R.layout.marker);
-                    mChart.setDrawMarkers(true);
-                    mChart.setMarker(mv);
-
-                    XAxis xl = mChart.getXAxis();
-                    xl.setTextColor(Color.BLACK);
-                    xl.setAvoidFirstLastClipping(true);
-                    xl.setEnabled(true);
-                    xl.setDrawGridLines(false);
-                    xl.setPosition(XAxis.XAxisPosition.BOTTOM);
-                    xl.setLabelCount(4, true);
-
-                    LimitLine limitLine = new LimitLine(100.4f, null);
-                    limitLine.setLineColor(Color.RED);
-                    limitLine.enableDashedLine(10f, 10f, 0);
-
-                    YAxis leftAxis = mChart.getAxisLeft();
-                    leftAxis.setDrawLimitLinesBehindData(true);
-                    leftAxis.removeAllLimitLines();
-                    leftAxis.addLimitLine(limitLine);
-                    leftAxis.setTextColor(Color.BLACK);
-                    leftAxis.setDrawGridLines(false);
-                    leftAxis.setAxisMaximum(Math.round(max + 3));
-                    leftAxis.setAxisMinimum(Math.round(min-3));
-                    leftAxis.setDrawGridLines(false);
-                    leftAxis.setEnabled(true);
-
-                    YAxis rightAxis = mChart.getAxisRight();
-                    rightAxis.setEnabled(false);
-
-                    mChart.getLegend().setEnabled(false);
-                    mChart.setDrawBorders(false);
-                    mChart.invalidate();
-
-                    ArrayList<Entry> yVals = new ArrayList<>();
-                    for (int o = 0; o < array.size(); o++) {
-                        yVals.add(new Entry(o, Float.parseFloat(array.get(o)[0])));
                     }
 
-                    LineData lineData = mChart.getData();
-                    if (lineData != null) {
-                        MyLineDataSet mySet = (MyLineDataSet) data.getDataSetByIndex(0);
-//                        LineDataSet set = (LineDataSet) data.getDataSetByIndex(0);
-                        if (mySet == null) {
-                            mySet = new MyLineDataSet(yVals, null);
-                            mySet.setDrawCircles(true);
-                            mySet.setDrawValues(false);
-//                            mySet.setFillAlpha(100);
-//                            mySet.setFillColor(ColorTemplate.getHoloBlue());
-                            mySet.setAxisDependency(YAxis.AxisDependency.LEFT);
-                            mySet.setLineWidth(3f);
-                            mySet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-                            mySet.setCubicIntensity(0.2f);
-                            mySet.setColors(colorSet);
-//                            data.addDataSet(set);
-                            data.addDataSet(mySet);
+                } else {
+                    if (max <= 99.9f) {
+                        dailyHigh.setTextColor(Color.parseColor(green));
+                    } else if (max < 100.4 && max >= 100) {
+                        dailyHigh.setTextColor(Color.parseColor(yellow));
+                    } else if (max >= 100.4 && max <= 102.9) {
+                        dailyHigh.setTextColor(Color.parseColor(orange));
+                    } else if (max >= 103) {
+                        dailyHigh.setTextColor(Color.parseColor(red));
+                    } else {
+                        dailyHigh.setText("--");
+                        dailyHigh.setTextColor(Color.parseColor(blue));
+                    }
+
+                    if (min <= 99.9f) {
+                        dailyLow.setTextColor(Color.parseColor(green));
+                    } else if (min < 100.4f && min >= 100f) {
+                        dailyLow.setTextColor(Color.parseColor(yellow));
+                    } else if (min >= 100.4f && min <= 102.9f) {
+                        dailyLow.setTextColor(Color.parseColor(orange));
+                    } else if (min >= 103f) {
+                        dailyLow.setTextColor(Color.parseColor(red));
+                    } else {
+                        dailyLow.setText("--");
+                        dailyLow.setTextColor(Color.parseColor(blue));
+                    }
+
+                    if (avgTemp <= 99.9f) {
+                        dailyAvg.setTextColor(Color.parseColor(green));
+                        pic.setImageResource(R.drawable.temp_green);
+                    } else if (avgTemp < 100.4f && avgTemp >= 100f) {
+                        dailyAvg.setTextColor(Color.parseColor(yellow));
+                    } else if (avgTemp >= 100.4f && avgTemp <= 102.9f) {
+                        dailyAvg.setTextColor(Color.parseColor(orange));
+                        pic.setImageResource(R.drawable.temp_orange);
+                    } else if (avgTemp >= 103f) {
+                        dailyAvg.setTextColor(Color.parseColor(red));
+                        pic.setImageResource(R.drawable.temp_red);
+                    } else {
+                        dailyAvg.setText("--");
+                        dailyAvg.setTextColor(Color.parseColor(blue));
+                    }
+
+                }
+
+                dailyAvg.setText(avgTemp + unit);
+                dailyHigh.setText(max + unit);
+                dailyLow.setText(min + unit);
+                mChart = layoutScreen.findViewById(R.id.lineChart);
+                mChart.setVisibility(View.VISIBLE);
+                mChart.setDescription(null);
+                mChart.setTouchEnabled(true);
+                mChart.setExtraBottomOffset(10f);
+                mChart.setBackgroundColor(Color.TRANSPARENT);
+                mChart.setHighlightPerTapEnabled(true);
+                mChart.setDragEnabled(true);
+                mChart.setScaleEnabled(true);
+                mChart.setDrawGridBackground(false);
+                mChart.setPinchZoom(false);
+                mChart.setDoubleTapToZoomEnabled(false);
+                LineData data = new LineData();
+                data.setValueTextColor(Color.WHITE);
+                mChart.setData(data);
+                mChart.setMaxHighlightDistance(20);
+                MyMarkerView mv = new MyMarkerView(context, R.layout.marker);
+                mChart.setDrawMarkers(true);
+                mChart.setMarker(mv);
+
+                XAxis xl = mChart.getXAxis();
+                xl.setTextColor(Color.BLACK);
+                xl.setAvoidFirstLastClipping(true);
+                xl.setEnabled(true);
+                xl.setDrawGridLines(false);
+                xl.setPosition(XAxis.XAxisPosition.BOTTOM);
+                xl.setLabelCount(4, true);
+
+                float limitVal = 100.4f;
+                if (!MainActivity.restoreTempUnit(context).equals(" °F")) {
+                    limitVal = (float) ((limitVal - 32) * 5 / 9.0);
+                    limitVal = Float.parseFloat(df.format(limitVal));
+                }
+                LimitLine limitLine = new LimitLine(limitVal, null);
+                limitLine.setLineColor(Color.RED);
+                limitLine.enableDashedLine(10f, 10f, 0);
+
+                YAxis leftAxis = mChart.getAxisLeft();
+                leftAxis.setDrawLimitLinesBehindData(true);
+                leftAxis.removeAllLimitLines();
+                leftAxis.addLimitLine(limitLine);
+                leftAxis.setTextColor(Color.BLACK);
+                leftAxis.setDrawGridLines(false);
+                leftAxis.setAxisMaximum(Math.round(max + 1));
+                leftAxis.setAxisMinimum(Math.round(min-1));
+                leftAxis.setDrawGridLines(false);
+                leftAxis.setEnabled(true);
+
+                YAxis rightAxis = mChart.getAxisRight();
+                rightAxis.setEnabled(false);
+
+                mChart.getLegend().setEnabled(false);
+                mChart.setDrawBorders(false);
+                mChart.invalidate();
+
+                LineData lineData = mChart.getData();
+                if (lineData != null) {
+                    MyLineDataSet mySet = (MyLineDataSet) data.getDataSetByIndex(0);
+                    if (mySet == null) {
+                        mySet = new MyLineDataSet(null, null);
+                        mySet.setDrawCircles(true);
+                        mySet.setCircleRadius(4f);
+                        mySet.setDrawValues(false);
+                        mySet.setFillAlpha(65);
+                        mySet.setCircleHoleColor(Color.WHITE);
+                        mySet.setCircleColor(Color.parseColor(blue));
+                        mySet.setAxisDependency(YAxis.AxisDependency.LEFT);
+                        mySet.setLineWidth(3f);
+                        mySet.setMode(LineDataSet.Mode.LINEAR);
+                        mySet.setColors(ContextCompat.getColor(context, R.color.blue));
+                        data.addDataSet(mySet);
+                    }
+                    ArrayList<String> xTime = new ArrayList<>();
+                    for (int r = 0; r < array.size(); r++) {
+                        xTime.add(array.get(r)[1]);
+                    }
+                    for (int r = 0; r < array.size(); r++) {
+                        float yVals = Float.parseFloat(array.get(r)[0]);
+                        if (!MainActivity.restoreTempUnit(context).equals(" °F")) {
+                            yVals = (float) ((yVals - 32) * 5 / 9.0);
                         }
-                        for (int r = 0; r < array.size(); r++) {
-                            float y = Float.parseFloat(array.get(r)[0]);
-                            data.addEntry(new Entry(mySet.getEntryCount(), y), 0);
-                            xl.setValueFormatter(new IndexAxisValueFormatter(Collections.singleton(array.get(r)[1])));
-                            lineData.notifyDataChanged();
-                            mChart.notifyDataSetChanged();
-                            mChart.setVisibleXRangeMaximum(6);
-                            mChart.moveViewToX(lineData.getEntryCount());
-                        }
+                        data.addEntry(new Entry(mySet.getEntryCount(), yVals), 0);
+                        xl.setValueFormatter(new IndexAxisValueFormatter(xTime));
+                        xl.setGranularityEnabled(true);
+                        xl.setGranularity(1f);
+                        xl.setSpaceMax(0.1f);
+                        lineData.notifyDataChanged();
+                        mChart.notifyDataSetChanged();
+                        mChart.setVisibleXRangeMaximum(6);
+                        mChart.moveViewToX(lineData.getEntryCount());
                     }
-//                }
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -283,6 +336,10 @@ public class ReportViewPageAdapter extends PagerAdapter {
                     String result = stringBuilder.toString();
                     int idx = result.indexOf(newDate);
                     String obj = result.substring(idx - 2);
+                    String bracket = String.valueOf(obj.charAt(0));
+                    if (!bracket.equals("{")) {
+                        obj = obj.replaceFirst(",", "{");
+                    }
                     JSONObject jsonObj = new JSONObject(obj);
                     JSONObject vals = (JSONObject) jsonObj.get(newDate);
                     for (int i = 0; i < vals.names().length(); i++) {
@@ -307,8 +364,8 @@ public class ReportViewPageAdapter extends PagerAdapter {
                 XAxis xl = barChart.getXAxis();
                 xl.setPosition(XAxis.XAxisPosition.BOTTOM);
                 xl.setDrawGridLines(false);
-                xl.setCenterAxisLabels(true);
-                xl.setCenterAxisLabels(true);
+                xl.setCenterAxisLabels(false);
+                xl.setGranularity(1f);
                 xl.setTextColor(Color.BLACK);
                 xl.setValueFormatter(new ValueFormatter() {
                     @Override
@@ -319,8 +376,15 @@ public class ReportViewPageAdapter extends PagerAdapter {
                         return "";
                     }
                 });
+                DecimalFormat df = new DecimalFormat("#.#");
 
-                LimitLine limitLine = new LimitLine(100.4f, null);
+                float limitVal = 100.4f;
+                if (!MainActivity.restoreTempUnit(context).equals(" °F")) {
+                    limitVal = (float) ((limitVal - 32) * 5 / 9.0);
+                    limitVal = Float.parseFloat(df.format(limitVal));
+                }
+
+                LimitLine limitLine = new LimitLine(limitVal, null);
                 limitLine.setLineColor(Color.RED);
                 limitLine.enableDashedLine(10f, 10f, 0);
 
@@ -335,10 +399,13 @@ public class ReportViewPageAdapter extends PagerAdapter {
 
                 Legend legend = barChart.getLegend();
                 legend.setEnabled(false);
-                DecimalFormat df = new DecimalFormat("#.#");
                 ArrayList<BarEntry> barValues = new ArrayList<>();
                 for (int d = 0; d < 7; d++) {
-                    barValues.add(new BarEntry(d, Float.parseFloat(df.format(avgTemp.get(d)))));
+                    float yVals = avgTemp.get(d);
+                    if (!MainActivity.restoreTempUnit(context).equals(" °F")) {
+                        yVals = (float) ((yVals - 32) * 5 / 9.0);
+                    }
+                    barValues.add(new BarEntry(d, Float.parseFloat(df.format(yVals))));
                 }
                 BarDataSet set = new BarDataSet(barValues, null);
                 set.setColors(colorSet);
@@ -381,17 +448,32 @@ public class ReportViewPageAdapter extends PagerAdapter {
         }
         float total = 0;
         for (int l = 0; l < temp.size(); l++) {
-            Log.d("averageTemp", "value: " + temp.get(l));
             total = total + temp.get(l);
         }
         float avgTemp = total / temp.size();
-        if(avgTemp < 100.3 || avgTemp < 37.9) {
-            colorSet.add(ContextCompat.getColor(context, R.color.green));
-        } else if ((avgTemp <= 103 && avgTemp >= 100.4) || (avgTemp <= 39.4 && avgTemp >= 38)) {
-            colorSet.add(ContextCompat.getColor(context, R.color.yellow));
+        if (!MainActivity.restoreTempUnit(context).equals(" °F")) {
+            avgTemp = (float) ((avgTemp - 32) * 5 / 9.0);
+            if (avgTemp <= 37.7f) {
+                colorSet.add(ContextCompat.getColor(context, R.color.green));
+            } else if (avgTemp <= 38f && avgTemp >= 37.8f) {
+                colorSet.add(ContextCompat.getColor(context, R.color.yellow));
+            } else if (avgTemp > 38f && avgTemp <= 39.4f) {
+                colorSet.add(ContextCompat.getColor(context, R.color.orange));
+            } else if (avgTemp > 39.4f) {
+                colorSet.add(ContextCompat.getColor(context, R.color.red));
+            }
         } else {
-            colorSet.add(ContextCompat.getColor(context, R.color.red));
+            if (avgTemp <= 99.9f) {
+                colorSet.add(ContextCompat.getColor(context, R.color.green));
+            } else if (avgTemp < 100.4f && avgTemp >= 100f) {
+                colorSet.add(ContextCompat.getColor(context, R.color.yellow));
+            } else if (avgTemp >= 100.4f && avgTemp <= 102.9f) {
+                colorSet.add(ContextCompat.getColor(context, R.color.orange));
+            } else if (avgTemp >= 103f) {
+                colorSet.add(ContextCompat.getColor(context, R.color.red));
+            }
         }
+
         return avgTemp;
     }
 
@@ -424,13 +506,6 @@ public class ReportViewPageAdapter extends PagerAdapter {
             total = total + temp.get(l);
         }
         float avgTemp = total / temp.size();
-        if(avgTemp < 100.3 || avgTemp < 37.9) {
-            colorSet.add(ContextCompat.getColor(context, R.color.green));
-        } else if ((avgTemp <= 103 && avgTemp >= 100.4) || (avgTemp <= 39.4 && avgTemp >= 38)) {
-            colorSet.add(ContextCompat.getColor(context, R.color.yellow));
-        } else {
-            colorSet.add(ContextCompat.getColor(context, R.color.red));
-        }
         threeParams.add(avgTemp);
         threeParams.add(max);
         threeParams.add(min);

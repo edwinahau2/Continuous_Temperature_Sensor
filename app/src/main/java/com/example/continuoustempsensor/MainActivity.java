@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     Boolean firstNormalNotif = true;
     protected LocationManager locationManager;
     AndroidService mService;
+    public static boolean notifChecked = true;
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -340,6 +341,49 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             e.printStackTrace();
         }
 
+        File file;
+        String FILE_NAME = "temp.json";
+        file = new File(this.getFilesDir(), FILE_NAME);
+        ArrayList<String> timeArray = new ArrayList<>();
+        timeArray.add("1:30 PM");
+        timeArray.add("1:35 PM");
+        timeArray.add("1:40 PM");
+        timeArray.add("1:45 PM");
+        timeArray.add("1:50 PM");
+        timeArray.add("1:55 PM");
+
+        ArrayList<String> dayArray = new ArrayList<>();
+        dayArray.add("Sun.2021.09.19");
+        dayArray.add("Mon.2021.09.20");
+        dayArray.add("Tue.2021.09.21");
+        dayArray.add("Wed.2021.09.22");
+        dayArray.add("Thu.2021.09.23");
+        dayArray.add("Fri.2021.09.24");
+        dayArray.add("Sat.2021.09.25");
+        try {
+            JSONObject jsonObject = new JSONObject();
+            for (int d = 0; d < dayArray.size(); d++) {
+                JSONObject obj = new JSONObject();
+                for (int t = 0; t < timeArray.size(); t++) {
+                    String index = String.valueOf(t);
+                    String key = "time" + index;
+                    JSONObject reading = new JSONObject();
+                    reading.put("temperature", 97.9 + Math.random() * (103.5 - 97.9));
+                    reading.put("hour", timeArray.get(t));
+                    reading.put("unit", unit);
+                    obj.put(key, reading);
+                    jsonObject.put(dayArray.get(d), obj);
+                }
+            }
+            String userString = jsonObject.toString();
+            FileWriter fileWriter = new FileWriter(file, false);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(userString);
+            bufferedWriter.close();
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+
         notif.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), notifActivity.class);
             startActivity(intent);
@@ -392,7 +436,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // red
             ring.setColor(Color.parseColor("#FF0000"));
             tempTextView.setText(temperature + unit);
-            tempTextView.setTextSize(42);
+            tempTextView.setTextSize(40);
             tempTextView.setTextColor(Color.parseColor("#000000"));
         }
     }
@@ -527,13 +571,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                             firstNotif = false;
                                             scheduleUrgentJob(); //notif sent in urgentNotifJob class
                                         }
-                                    } else if (firstNormalNotif) { //not urgent normal notification -- temp greater than 0 but less than 100.3
-                                        firstNormalNotif = false;
-                                        scheduleNormalJob();
-                                        notif.setImageResource(R.drawable.bell2);
-                                    } else if (notifFreq != tempFreq) {
-                                        cancelJob(1);
-                                        scheduleNormalJob();
+                                    } else if (fragment_tab3.restoreNotifEnable()) {
+                                        if (firstNormalNotif) { // not urgent normal notification -- temp greater than 0 but less than 100.3
+                                            firstNormalNotif = false;
+                                            scheduleNormalJob();
+                                            notif.setImageResource(R.drawable.bell2);
+                                        } else if (notifFreq != tempFreq) {
+                                            cancelJob(1);
+                                            scheduleNormalJob();
+                                        }
                                     }
                                 }
                                 tempVals.clear(); // values get cleared regardless of whether grubbs test is passed or not
@@ -843,7 +889,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         mySet.setAxisDependency(YAxis.AxisDependency.LEFT);
         mySet.setLineWidth(3f);
         mySet.setMode(LineDataSet.Mode.LINEAR);
-        mySet.setCubicIntensity(0.2f);
         int colorId;
         if (good) {
             colorId = R.color.green;
@@ -979,6 +1024,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        boolean status = intent.getBooleanExtra("status", false);
+        if (status) {
+            cancelJob(0);
+            Log.d(TAG, "Urgent Identified");
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         if (spark) {
@@ -993,9 +1048,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             float y = Float.parseFloat(temperature);
             if (y <= 99.9 || y <= 37.7) {
                 num = 1;
-            } else if ((y <= 100.4 && y >= 100) || (y <= 38 && y >= 37.8)) {
+            } else if ((y < 100.4 && y >= 100) || (y <= 38 && y >= 37.8)) {
                 num = 2;
-            } else if ((y > 100.4 && y <= 102.9) || (y > 38 && y <= 39.4)) {
+            } else if ((y >= 100.4 && y <= 102.9) || (y > 38 && y <= 39.4)) {
                 num = 3;
             } else {
                 num = 4;
@@ -1032,15 +1087,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             e.printStackTrace();
         }
 
-        Bundle bundle = getIntent().getExtras();
-        if (bundle != null) {
-            String msg = bundle.getString("message");
-            assert msg != null;
-            if (msg.equals("URGENT")) {
-                cancelJob(0);
-                Toast.makeText(this, "urgent identified", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 
     @Override

@@ -71,46 +71,6 @@ public class AndroidService extends Service {
 
     // TODO: check if bluetooth is still connected while app is running (specifically when data is bad) --> maybe make it a job ?
 
-//    @Override
-//    public void onCreate() {
-//        super.onCreate();
-//        mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-//    }
-
-//    @Override
-//    public int onStartCommand(Intent intent, int flags, int startId) {
-//        if (intent != null) {
-//            address = intent.getStringExtra("address");
-////            mDevice = mBlueAdapter.getRemoteDevice(address);
-////            startConnection();
-//
-//            mDevice = mBlueAdapter.getRemoteDevice(address);
-//            startConnection();
-//        }
-//        return START_STICKY;
-//    }
-
-//    private void startConnection() {
-//        if (mmSocket == null || !mmSocket.isConnected()) {
-//            BluetoothSocket tmp;
-//            try {
-//                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-//                mmSocket = tmp;
-//                mmSocket.connect();
-//                spark = true;
-//            } catch (IOException e) {
-//                try {
-//                    mmSocket.close();
-//                    spark = false;
-//                } catch (IOException c) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            btt = new ConnectedThread(mmSocket);
-//            btt.start();
-//        }
-//    }
-
     protected static class ConnectedThread extends Thread {
         public ConnectedThread(BluetoothSocket socket) {
             InputStream tmpIn = null;

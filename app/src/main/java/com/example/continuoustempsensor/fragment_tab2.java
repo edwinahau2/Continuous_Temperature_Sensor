@@ -152,13 +152,13 @@ public class fragment_tab2 extends Fragment  {
 
         materialCalendarView.setOnMonthChangedListener((widget, date) -> {
             params.height = (int) (size.y*0.95);
-            if (itab == 1) {
+            if (itab == 1) { // TODO: remove day marker
                 boolean verify = check(date);
                 if (verify) {
                     toast = Toast.makeText(getContext(), "No data found for this week", Toast.LENGTH_SHORT);
                     setToast();
                     report.setVisibility(View.GONE);
-                } else {
+                } else { // TODO: restore day marker
                     current = convertCalendar(date);
                     materialCalendarView.removeDecorators();
                     reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
@@ -169,56 +169,54 @@ public class fragment_tab2 extends Fragment  {
         });
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-                    @Override
-                    public void onTabSelected(TabLayout.Tab tab) {
-                        itab = tab.getPosition();
-                        TextView text = (TextView) tab.getCustomView();
-                        text.setTypeface(Typeface.DEFAULT_BOLD);
-                        text.setTextColor(Color.parseColor("#FFFFFF"));
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                itab = tab.getPosition();
+                TextView text = (TextView) tab.getCustomView();
+                text.setTypeface(Typeface.DEFAULT_BOLD);
+                text.setTextColor(Color.parseColor("#FFFFFF"));
+                materialCalendarView.removeDecorators();
+                materialCalendarView.invalidateDecorators();
+                CalendarDay date = materialCalendarView.getSelectedDate();
+                boolean verify = check(date);
+    //                } else if (tab.getPosition() == 0) {
+    //                    if (date == myDate) {
+    //                        todayAdapter = new todayPageAdapter(requireContext(), MainActivity.mChart);
+    //                        report.setAdapter(todayAdapter);
+    //                    } else {
+    //                        report.setVisibility(View.VISIBLE);
+    //                        String object = response.substring(index);
+    //                        reportAdapter = new ReportViewPageAdapter(requireContext(), current, object, true);
+    //                        report.setAdapter(reportAdapter);
+    //                    }
+    //                }
+                if (itab == 1) {
+                    if (verify) {
+                        toast = Toast.makeText(getContext(), "No data found for this week", Toast.LENGTH_SHORT);
+                        setToast();
+                        report.setVisibility(View.GONE);
+                    } else {
+                        current = convertCalendar(date);
                         materialCalendarView.removeDecorators();
-                        materialCalendarView.invalidateDecorators();
-                        CalendarDay date = materialCalendarView.getSelectedDate();
-                        boolean verify = check(date);
-//                } else if (tab.getPosition() == 0) {
-//                    if (date == myDate) {
-//                        todayAdapter = new todayPageAdapter(requireContext(), MainActivity.mChart);
-//                        report.setAdapter(todayAdapter);
-//                    } else {
-//                        report.setVisibility(View.VISIBLE);
-//                        String object = response.substring(index - 2);
-//                        reportAdapter = new ReportViewPageAdapter(requireContext(), current, object, true);
-//                        report.setAdapter(reportAdapter);
-//                    }
-//                }
-                        if (itab == 1) {
-                            if (verify) {
-                                toast = Toast.makeText(getContext(), "No data found for this week", Toast.LENGTH_SHORT);
-                                setToast();
-                                report.setVisibility(View.GONE);
-                            } else {
-                                current = convertCalendar(date);
-                                materialCalendarView.removeDecorators();
-                                reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
-                                report.setVisibility(View.VISIBLE);
-                                report.setAdapter(reportAdapter);
-                            }
-                        } else {
-                            tabSelect();
-                        }
+                        reportAdapter = new ReportViewPageAdapter(requireContext(), current, null, false);
+                        report.setVisibility(View.VISIBLE);
+                        report.setAdapter(reportAdapter);
                     }
+                } else {
+                    tabSelect();
+                }
+            }
 
-                    @Override
-                    public void onTabUnselected(TabLayout.Tab tab) {
-                        TextView text = (TextView) tab.getCustomView();
-                        text.setTypeface(Typeface.DEFAULT);
-                        text.setTextColor(Color.parseColor("#9e9e9e"));
-                    }
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                TextView text = (TextView) tab.getCustomView();
+                text.setTypeface(Typeface.DEFAULT);
+                text.setTextColor(Color.parseColor("#9e9e9e"));
+            }
 
-                    @Override
-                    public void onTabReselected(TabLayout.Tab tab) {
-
-                    }
-                });
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
         return view;
     }
 
@@ -237,7 +235,11 @@ public class fragment_tab2 extends Fragment  {
                 report.setAdapter(todayAdapter);
             } else {
                 report.setVisibility(View.VISIBLE);
-                String object = response.substring(index - 2);
+                String object = response.substring(index-2);
+                String bracket = String.valueOf(object.charAt(0));
+                if (!bracket.equals("{")) {
+                    object = object.replaceFirst(",", "{");
+                }
                 reportAdapter = new ReportViewPageAdapter(requireContext(), current, object, true);
                 report.setAdapter(reportAdapter);
             }
@@ -265,7 +267,6 @@ public class fragment_tab2 extends Fragment  {
         }
         return verify;
     }
-
 
     private String convertCalendar(CalendarDay date) {
         Calendar calendar = Calendar.getInstance();

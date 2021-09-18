@@ -79,6 +79,7 @@ public class fragment_tab3 extends Fragment  {
         }
         Spinner dropdown = view.findViewById(R.id.spinner);
         CheckBox enable = view.findViewById(R.id.enable);
+        enable.setChecked(restoreNotifEnable());
         Button tippers = view.findViewById(R.id.tippers);
         Button feedback = view.findViewById(R.id.bugs);
         Button tutorial = view.findViewById(R.id.tutorial);
@@ -123,6 +124,11 @@ public class fragment_tab3 extends Fragment  {
             connect.setText("Not Connected");
         }
         notify = view.findViewById(R.id.notify);
+        if (restoreNotifEnable()) {
+            notify.setTextColor(Color.parseColor("#000000"));
+        } else {
+            notify.setTextColor(Color.parseColor("#ccc8c8"));
+        }
         if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
         }
@@ -170,6 +176,8 @@ public class fragment_tab3 extends Fragment  {
             } else {
                 notify.setTextColor(Color.parseColor("#ccc8c8"));
             }
+            MainActivity.notifChecked = isChecked;
+            saveNotifPref(isChecked);
         });
 
         connect.setOnClickListener(v -> {
@@ -241,6 +249,18 @@ public class fragment_tab3 extends Fragment  {
         editor.putString("notifFreq", notifFreq);
         editor.putInt("indexSelected", indexSelected);
         editor.apply();
+    }
+
+    private void saveNotifPref(boolean notifCheck) {
+        SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("notifPref", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("notifChecked", notifCheck);
+        editor.apply();
+    }
+
+    public static boolean restoreNotifEnable() {
+        SharedPreferences pref = context.getApplicationContext().getSharedPreferences("notifPref", Context.MODE_PRIVATE);
+        return pref.getBoolean("notifChecked", true);
     }
 
     private String restoreNameData() {
