@@ -35,7 +35,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.viewpager.widget.PagerAdapter;
 
 import com.blure.complexview.ComplexView;
 import com.blure.complexview.Shadow;
@@ -94,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
     public static final int RESPONSE_MESSAGE = 10;
     String temperature;
-    private Fragment fragment2 = new fragment_tab2();
+    private final Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
     final FragmentManager fm = getSupportFragmentManager();
     Fragment active;
@@ -114,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     AndroidService mService;
     public static boolean notifChecked = true;
 
-    private ServiceConnection connection = new ServiceConnection() {
+    private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mService = ((AndroidService.LocalBinder) service).getService();
@@ -238,23 +237,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 btStat.setText("Connected");
                 btSym.setBackgroundResource(R.drawable.ic_b1);
             }
-//            startService(intent);
             startConnection();
             savePrefsData();
             saveUniqueID(uniqueID);
-            String msg = bundle.getString("message");
-            assert msg != null;
-            if (msg.equals("URGENT")) {
-                cancelJob(0);
-                Toast.makeText(this, "urgent identified", Toast.LENGTH_SHORT).show();
-            }
         } else if (mBlueAdapter.isEnabled()) {
             address = restoreAddressData();
             name = restoreNameData();
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", address);
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
-//            startService(intent);
             if (spark) {
                 btStat.setText("Connected");
                 btSym.setBackgroundResource(R.drawable.ic_b1);
@@ -301,7 +292,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
             JSONObject tippersData = new JSONObject();
             tippersData.put("ID", "1234");
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
+            SimpleDateFormat sdf = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
+            }
             String timestamp = sdf.format(Calendar.getInstance().getTime());
             tippersData.put("timestamp", timestamp);
             JSONObject read = new JSONObject();
@@ -457,7 +451,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     white.setVisibility(View.VISIBLE);
                     btStat.setVisibility(View.VISIBLE);
                     btSym.setVisibility(View.VISIBLE);
-                    notif.setVisibility(View.VISIBLE);;
+                    notif.setVisibility(View.VISIBLE);
                     return true;
 
                 case R.id.Bt:
@@ -519,7 +513,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             if (M >= 125) { // 21 minutes for tippers
                                 String tippersTemp = grubbs(tipperVals, M);
                                 if (!tippersTemp.equals("NaN")) {
-                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
+                                    SimpleDateFormat sdf = null;
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                                        sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
+                                    }
                                     String timestamp = sdf.format(Calendar.getInstance().getTime());
                                     unit = restoreTempUnit(MainActivity.this);
                                     writeTippersJSON(tippersTemp, timestamp, unit);
@@ -1086,7 +1083,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
