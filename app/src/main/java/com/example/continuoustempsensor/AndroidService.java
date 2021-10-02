@@ -9,6 +9,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -26,6 +27,7 @@ public class AndroidService extends Service {
     UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     ConnectedThread btt = null;
     static InputStream mmInStream;
+    public final String TAG = "MAC_ADDRESS";
     static Handler mHandler;
     String address;
     public static final int RESPONSE_MESSAGE = 10;
@@ -42,6 +44,7 @@ public class AndroidService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         address = intent.getStringExtra("address");
+        Log.d(TAG, "address: " + address);
         return binder;
     }
 

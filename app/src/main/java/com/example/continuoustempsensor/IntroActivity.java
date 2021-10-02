@@ -324,10 +324,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 String deviceAddress = device.getAddress();
-                if (device.getName() == null) {
-                    mData.add(new BtDevice("Unknown Device:" + deviceAddress));
-                }
-                else {
+                if (device.getName() != null) {
                     mData.add(new BtDevice(device.getName() + ":" + deviceAddress));
                 }
                 HashSet<BtDevice> hashSet = new HashSet<>(mData);
@@ -409,10 +406,15 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
             bundle.putString("uniqueID", uniqueID);
             mainActivity.putExtras(bundle);
             startActivity(mainActivity);
-
+            otherDialog.dismiss();
             savePrefsData();
             finish();
         });
         otherDialog.show();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 }

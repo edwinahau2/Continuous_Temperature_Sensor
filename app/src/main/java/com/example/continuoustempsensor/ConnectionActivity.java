@@ -215,9 +215,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                 if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     String deviceAddress = device.getAddress();
-                    if (device.getName() == null) {
-                        mData.add(new BtDevice("Unknown Device:" + deviceAddress));
-                    } else {
+                    if (device.getName() != null) {
                         mData.add(new BtDevice(device.getName() + ":" + deviceAddress));
                     }
                     Set<BtDevice> hashSet = new LinkedHashSet<>(mData);
@@ -227,12 +225,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                     btAdapter = new BtAdapter(context, mData, (BtAdapter.OnDeviceListener) context);
                     list.setAdapter(btAdapter);
                     list.setLayoutManager(new LinearLayoutManager(context));
-                } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(intent.getAction())) {
-//                toast = Toast.makeText(getActivity(), "Finding Devices...", Toast.LENGTH_SHORT);
-//                setToast();
-//                spinner.setVisibility(View.VISIBLE);
-//                mLevel = 0;
-//                changeImageView(getView());
                 } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
                     find.setText("Find Devices");
                 }
