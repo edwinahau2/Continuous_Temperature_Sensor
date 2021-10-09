@@ -1034,7 +1034,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onResume() {
         super.onResume();
         if (spark) {
-            btStat.setText("Connected"); 
+            btStat.setText("Connected");
             btSym.setBackgroundResource(R.drawable.ic_b1);
         } else {
             btStat.setText("Not Connected");

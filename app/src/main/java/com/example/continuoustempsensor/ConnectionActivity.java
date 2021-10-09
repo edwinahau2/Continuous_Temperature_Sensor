@@ -15,6 +15,9 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -25,6 +28,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.text.InputType;
 import android.view.Gravity;
@@ -59,6 +63,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     BtAdapter btAdapter;
     private static final int REQUEST_CODE = 1;
     List<BtDevice> mData;
+    List<String> listOfAddress = new ArrayList<>();
     private BluetoothAdapter mBlueAdapter;
     private static final int REQUEST_ENABLE_BT = 0;
     Toast toast;
@@ -70,6 +75,10 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     Button no;
     boolean dontRunAgain = true;
     AndroidService mService;
+    private BluetoothLeScanner bluetoothLeScanner;
+    private boolean scanning = false;
+    private Handler handler = new Handler();
+    private static final long SCAN_PERIOD = 20000;
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -80,6 +89,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            mService.close();
             MainActivity.spark = false;
         }
     };
@@ -111,6 +121,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             daStatus = "Not Connected";
             status.setText(daStatus);
         }
+        bluetoothLeScanner = mBlueAdapter.getBluetoothLeScanner();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
         }
@@ -120,7 +131,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         }
         list = findViewById(R.id.list);
         mData = new ArrayList<>();
-//        mData.add(new BtDevice("HC-06:1234"));
         btAdapter = new BtAdapter(this, mData, this);
         list.setAdapter(btAdapter);
         list.setLayoutManager(new LinearLayoutManager(this));
@@ -133,17 +143,34 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                 Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(intent, REQUEST_ENABLE_BT);
             } else {
-                if (mBlueAdapter.isDiscovering()) {
-                    mBlueAdapter.cancelDiscovery();
-                    find.setText("Find Devices");
-                } else {
-                    mBlueAdapter.startDiscovery();
-                    find.setText("Cancel");
-                    mData.clear();
+                if (!scanning) { ;
+                    handler.postDelayed(() -> {
+                        scanning = false;
+                        bluetoothLeScanner.stopScan(leScanCallback);
+                        find.setText("Find Devices");
+                    }, SCAN_PERIOD);
+                    scanning = true;
+                    bluetoothLeScanner.startScan(leScanCallback);
                     toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
                     setToast();
-                    findPairedDevices();
+                    find.setText("Cancel");
+                } else {
+                    scanning = false;
+                    bluetoothLeScanner.stopScan(leScanCallback);
+                    find.setText("Find Devices");
                 }
+
+//                if (mBlueAdapter.isDiscovering()) {
+//                    mBlueAdapter.cancelDiscovery();
+//                    find.setText("Find Devices");
+//                } else {
+//                    mBlueAdapter.startDiscovery();
+//                    find.setText("Cancel");
+//                    mData.clear();
+//                    toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
+//                    setToast();
+//                    findPairedDevices();
+//                }
             }
         });
 
@@ -173,67 +200,96 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_ENABLE_BT) {
             if (resultCode == RESULT_OK) {
-                mBlueAdapter.startDiscovery();
+                handler.postDelayed(() -> {
+                    scanning = false;
+                    bluetoothLeScanner.stopScan(leScanCallback);
+                }, SCAN_PERIOD);
+                scanning = true;
+                bluetoothLeScanner.startScan(leScanCallback);
                 find.setText("Cancel");
+//                mBlueAdapter.startDiscovery();
+//                find.setText("Cancel");
                 toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
                 setToast();
-                findPairedDevices();
+//                findPairedDevices();
             } else {
                 toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
                 setToast();
-                mBlueAdapter.cancelDiscovery();
+//                mBlueAdapter.cancelDiscovery();
             }
         }
     }
 
-    private void findPairedDevices() {
-        dontRunAgain = true;
-        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
-        if (bluetoothSet.size() > 0) {
-            for (BluetoothDevice ignored : bluetoothSet) {
-                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-                this.registerReceiver(receiver, filter);
-                IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-                this.registerReceiver(receiver, filter1);
-                IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-                this.registerReceiver(receiver, filter2);
-            }
-        }
-    }
-
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+    private ScanCallback leScanCallback = new ScanCallback() {
         @Override
-        public void onReceive(Context context, final Intent intent) {
-            String action = intent.getAction();
-            if (mBlueAdapter.isEnabled()) {
-                if (MainActivity.spark) {
-                    if (dontRunAgain) {
-                        mData.add(new BtDevice(sensor + ":" + MainActivity.address));
-                        dontRunAgain = false;
-                    }
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+            BluetoothDevice device = mBlueAdapter.getRemoteDevice(result.getDevice().getAddress());
+            String deviceAddress = result.getDevice().getAddress();
+            if (device.getName() != null) {
+                if (!listOfAddress.contains(deviceAddress)) {
+                    mData.add(new BtDevice(device.getName() + ":" + deviceAddress));
+                    listOfAddress.add(deviceAddress);
                 }
-                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    String deviceAddress = device.getAddress();
-                    if (device.getName() != null) {
-                        mData.add(new BtDevice(device.getName() + ":" + deviceAddress));
-                    }
-                    Set<BtDevice> hashSet = new LinkedHashSet<>(mData);
-                    mData.clear();
-                    mData.addAll(hashSet);
-                    btAdapter.notifyDataSetChanged();
-                    btAdapter = new BtAdapter(context, mData, (BtAdapter.OnDeviceListener) context);
-                    list.setAdapter(btAdapter);
-                    list.setLayoutManager(new LinearLayoutManager(context));
-                } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
-                    find.setText("Find Devices");
-                }
-            } else {
-                mBlueAdapter.cancelDiscovery();
-                find.setText("Find Devices");
             }
+            Set<BtDevice> hashSet = new LinkedHashSet<>(mData);
+            mData.clear();
+            mData.addAll(hashSet);
+            btAdapter.notifyDataSetChanged();
+            btAdapter = new BtAdapter(getApplicationContext(), mData, (BtAdapter.OnDeviceListener) context);
+            list.setAdapter(btAdapter);
+            list.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         }
     };
+
+//    private void findPairedDevices() {
+//        dontRunAgain = true;
+//        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
+//        if (bluetoothSet.size() > 0) {
+//            for (BluetoothDevice ignored : bluetoothSet) {
+//                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+//                this.registerReceiver(receiver, filter);
+//                IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+//                this.registerReceiver(receiver, filter1);
+//                IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+//                this.registerReceiver(receiver, filter2);
+//            }
+//        }
+//    }
+//
+//    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, final Intent intent) {
+//            String action = intent.getAction();
+//            if (mBlueAdapter.isEnabled()) {
+//                if (MainActivity.spark) {
+//                    if (dontRunAgain) {
+//                        mData.add(new BtDevice(sensor + ":" + MainActivity.address));
+//                        dontRunAgain = false;
+//                    }
+//                }
+//                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+//                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+//                    String deviceAddress = device.getAddress();
+//                    if (device.getName() != null) {
+//                        mData.add(new BtDevice(device.getName() + ":" + deviceAddress));
+//                    }
+//                    Set<BtDevice> hashSet = new LinkedHashSet<>(mData);
+//                    mData.clear();
+//                    mData.addAll(hashSet);
+//                    btAdapter.notifyDataSetChanged();
+//                    btAdapter = new BtAdapter(context, mData, (BtAdapter.OnDeviceListener) context);
+//                    list.setAdapter(btAdapter);
+//                    list.setLayoutManager(new LinearLayoutManager(context));
+//                } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
+//                    find.setText("Find Devices");
+//                }
+//            } else {
+//                mBlueAdapter.cancelDiscovery();
+//                find.setText("Find Devices");
+//            }
+//        }
+//    };
 
     public void setToast() {
         toast.setGravity(Gravity.BOTTOM, 0, 100);
@@ -264,18 +320,15 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         connect.setText("Connect to " + correct + "?");
         no.setOnClickListener(v -> myDialog.dismiss());
         yes.setOnClickListener(v -> {
-            try {
-                if (AndroidService.mmSocket != null) {
-                    AndroidService.mmSocket.close();
-                    MainActivity.spark = false;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            //                if (AndroidService.mmSocket != null) {
+//                    AndroidService.mmSocket.close();
+//                    MainActivity.spark = false;
+//                }
+            Intent intent = new Intent(this, AndroidService.class);
+            stopService(intent);
             MainActivity.address = addy;
             find.setText("Find Devices");
             mBlueAdapter.cancelDiscovery();
-//                mDevice = mBlueAdapter.getRemoteDevice(addy);
             startConnection();
         });
         myDialog.show();
@@ -289,12 +342,10 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         connect.setText("Would you like to disconnect from " + correct + "?");
         no.setOnClickListener(v -> myDialog.dismiss());
         yes.setOnClickListener(v -> {
-            try {
-                AndroidService.mmSocket.close();
-                MainActivity.spark = false;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            //                AndroidService.mmSocket.close();
+//                MainActivity.spark = false;
+            Intent intent = new Intent(this, AndroidService.class);
+            stopService(intent);
             find.setText("Find Devices");
             daStatus = "Not Connected";
             status.setText(daStatus);
@@ -308,7 +359,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             Intent intent = new Intent(this, AndroidService.class);
             intent.putExtra("address", addy);
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
-//            startService(intent);
             myDialog.dismiss();
             daStatus = "Connected to " + correct;
             status.setText(daStatus);

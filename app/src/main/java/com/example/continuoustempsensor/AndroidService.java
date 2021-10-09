@@ -3,6 +3,9 @@ package com.example.continuoustempsensor;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Binder;
@@ -24,7 +27,7 @@ public class AndroidService extends Service {
     static BluetoothSocket mmSocket;
     BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
-    UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+    UUID MY_UUID = UUID.fromString("00001811-0000-1000-8000-00805f9b34fb");
     ConnectedThread btt = null;
     static InputStream mmInStream;
     public final String TAG = "MAC_ADDRESS";
@@ -33,6 +36,11 @@ public class AndroidService extends Service {
     public static final int RESPONSE_MESSAGE = 10;
     boolean spark = false;
     private final IBinder binder = new LocalBinder();
+    private BluetoothGatt bluetoothGatt;
+    public final static String ACTION_GATT_CONNECTED =
+            "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
+    public final static String ACTION_GATT_DISCONNECTED =
+            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
 
     public class LocalBinder extends Binder {
         AndroidService getService() {
@@ -50,26 +58,54 @@ public class AndroidService extends Service {
 
     public boolean startConnection() {
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
-        mDevice = mBlueAdapter.getRemoteDevice(address);
-        if (mmSocket == null || !mmSocket.isConnected()) {
-            BluetoothSocket tmp;
-            try {
-                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                mmSocket = tmp;
-                mmSocket.connect();
-                spark = true;
-            } catch (IOException e) {
-                try {
-                    mmSocket.close();
-                    spark = false;
-                } catch (IOException c) {
-                    e.printStackTrace();
-                }
-            }
-            btt = new ConnectedThread(mmSocket);
-            btt.start();
+        try {
+            mDevice = mBlueAdapter.getRemoteDevice(address);
+            bluetoothGatt = mDevice.connectGatt(this, false, bluetoothGattCallback);
+            spark = true;
+        } catch (IllegalArgumentException e) {
+            spark = false;
         }
+        //        if (mmSocket == null || !mmSocket.isConnected()) {
+//            BluetoothSocket tmp;
+//            try {
+//                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
+//                mmSocket = tmp;
+//                mmSocket.connect();
+//                spark = true;
+//            } catch (IOException e) {
+//                try {
+//                    mmSocket.close();
+//                    spark = false;
+//                } catch (IOException c) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            btt = new ConnectedThread(mmSocket);
+//            btt.start();
+//        }
         return spark;
+    }
+
+    private final BluetoothGattCallback bluetoothGattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                final Intent intent = new Intent(ACTION_GATT_CONNECTED);
+                sendBroadcast(intent);
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                final Intent intent = new Intent(ACTION_GATT_DISCONNECTED);
+                sendBroadcast(intent);
+            }
+
+        }
+    };
+
+    public void close() {
+        if (bluetoothGatt == null) {
+            return;
+        }
+        bluetoothGatt.close();
+        bluetoothGatt = null;
     }
 
     // TODO: check if bluetooth is still connected while app is running (specifically when data is bad) --> maybe make it a job ?
@@ -98,14 +134,6 @@ public class AndroidService extends Service {
                 } catch (IOException e) {
                     break;
                 }
-            }
-        }
-
-        public void cancel() {
-            try {
-                mmSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
