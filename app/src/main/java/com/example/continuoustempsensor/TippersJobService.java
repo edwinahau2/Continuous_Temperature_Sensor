@@ -25,9 +25,10 @@ import java.net.URL;
 import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class TippersJobService extends JobService {
 
-    @SuppressLint("MissingPermission")
     @Override
     public boolean onStartJob(JobParameters params) {
         try {
@@ -46,7 +47,7 @@ public class TippersJobService extends JobService {
             }
             bufferedReader.close();
             String json = stringBuilder.toString();
-            String url = "http://tippersweb.ics.uci.edu:8080/observation/temperature";
+            String url = "https://tippersweb.ics.uci.edu:8080/observation/temperature";
             new PushToServer().execute(url, json);
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,11 +63,11 @@ public class TippersJobService extends JobService {
 
         @Override
         protected String doInBackground(String... strings) {
-            HttpURLConnection httpURLConnection = null;
+            HttpsURLConnection httpURLConnection = null;
             try {
                 URL urlInstance = new URL(strings[0]);
                 Log.d(TAG, strings[1]);
-                httpURLConnection = (HttpURLConnection) urlInstance.openConnection();
+                httpURLConnection = (HttpsURLConnection) urlInstance.openConnection();
                 httpURLConnection.setConnectTimeout(60*1000);
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
@@ -80,17 +81,15 @@ public class TippersJobService extends JobService {
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
-                System.out.println(response.toString());
-
+                return "SUCCESS";
             } catch (IOException e) {
-                Log.d(TAG, "ERROR");
                 e.printStackTrace();
+                return "ERROR";
             } finally {
                 if (httpURLConnection != null) {
                     httpURLConnection.disconnect();
                 }
             }
-            return "SUCCESS";
         }
 
         @Override

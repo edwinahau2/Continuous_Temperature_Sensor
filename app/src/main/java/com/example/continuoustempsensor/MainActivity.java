@@ -5,9 +5,13 @@ import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -17,19 +21,13 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -68,13 +66,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
-    private static final String TAG = "MainActivityCounter";
-    public static boolean spark;
+    private static final String TAG = "MainActUUID";
+    public static boolean spark = false;
     public static int notifFreq = -1;
     private int tempFreq = notifFreq;
     public static String name;
@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     String unit = " °F";
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
-    StringBuilder recDataString = new StringBuilder();
     ArrayList<Float> tempVals = new ArrayList<>();
     ArrayList<Float> tipperVals = new ArrayList<>();
     TextView tempTextView;
@@ -91,7 +90,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     SimpleDateFormat format = new SimpleDateFormat("h:mm a");
     public static SimpleDateFormat date = new SimpleDateFormat("EEE.yyyy.MM.dd");
     public static String jsonDate = date.format(Calendar.getInstance().getTime());
-    public static final int RESPONSE_MESSAGE = 10;
     String temperature;
     private final Fragment fragment2 = new fragment_tab2();
     private Fragment fragment3 = new fragment_tab3();
@@ -117,18 +115,19 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mService = ((AndroidService.LocalBinder) service).getService();
-            spark = mService.startConnection();
-            onResume();
+            mService.startConnection(address);
             fragment3 = new fragment_tab3();
             fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            mService = null;
             spark = false;
+            btStat.setText("Not Connected");
+            btSym.setBackgroundResource(R.drawable.ic_b2);
         }
     };
-
 
     @SuppressLint("ShowToast")
     @Override
@@ -183,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 e.printStackTrace();
             }
         }
+
         Bundle bundle = getIntent().getExtras();
 
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -231,26 +231,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             name = bundle.getString("name");
             String uniqueID = (String) bundle.get("uniqueID");
             Intent intent = new Intent(this, AndroidService.class);
-            intent.putExtra("address", address);
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
-            if (spark) {
-                btStat.setText("Connected");
-                btSym.setBackgroundResource(R.drawable.ic_b1);
-            }
-            startConnection();
+//            startConnection();
             savePrefsData();
             saveUniqueID(uniqueID);
         } else if (mBlueAdapter.isEnabled()) {
             address = restoreAddressData();
             name = restoreNameData();
             Intent intent = new Intent(this, AndroidService.class);
-            intent.putExtra("address", address);
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
-            if (spark) {
-                btStat.setText("Connected");
-                btSym.setBackgroundResource(R.drawable.ic_b1);
-            }
-            startConnection();
+//            startConnection();
         }
 
         // can delete once TIPPERS is confirmed
@@ -379,8 +369,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
 
         notif.setOnClickListener(v -> {
-            Intent intent = new Intent(getApplicationContext(), notifActivity.class);
-            startActivity(intent);
+            Intent notifActivityIntent = new Intent(getApplicationContext(), notifActivity.class);
+            startActivity(notifActivityIntent);
         });
 
         btSym.setOnClickListener(v -> {
@@ -394,51 +384,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         });
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNav);
-        bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
-        fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
-        fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
-        bottomNavigationView.setSelectedItemId(R.id.home);
-    }
-
-    private void tempDisplay(int num) {
-        float[] radii = {250, 250, 250, 250, 250, 250, 250, 250}; // TODO: find a way to not hard-code radius of display
-        if (num == 0) {
-            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // blue
-            ring.setColor(Color.parseColor("#00B0F0"));
-            temperature = "--";
-            tempTextView.setText(temperature);
-            tempTextView.setTextSize(44);
-        } else if (num == 1) {
-            shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // green
-            ring.setColor(Color.parseColor("#00B050"));
-            tempTextView.setText(temperature + unit);
-            tempTextView.setTextSize(44);
-            tempTextView.setTextColor(Color.parseColor("#000000"));
-        } else if (num == 2) {
-            shadow.setShadow(new Shadow(4, 100, "#FFD500", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // yellow
-            ring.setColor(Color.parseColor("#FFD500"));
-            tempTextView.setText(temperature + unit);
-            tempTextView.setTextSize(44);
-            tempTextView.setTextColor(Color.parseColor("#000000"));
-        } else if (num == 3) {
-            shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // orange
-            ring.setColor(Color.parseColor("#FB710B"));
-            tempTextView.setText(temperature + unit);
-            tempTextView.setTextSize(40);
-            tempTextView.setTextColor(Color.parseColor("#000000"));
-        } else {
-            shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // red
-            ring.setColor(Color.parseColor("#FF0000"));
-            tempTextView.setText(temperature + unit);
-            tempTextView.setTextSize(40);
-            tempTextView.setTextColor(Color.parseColor("#000000"));
-        }
-    }
-
-    private final BottomNavigationView.OnNavigationItemSelectedListener bottomNavMethod = new BottomNavigationView.OnNavigationItemSelectedListener() {
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
+        bottomNavigationView.setOnItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.home:
                     if (active != null) {
@@ -489,106 +435,167 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     return true;
             }
             return false;
+        });
+//        bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
+        fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
+        fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
+        bottomNavigationView.setSelectedItemId(R.id.home);
+    }
+
+    private void tempDisplay(int num) {
+        float[] radii = {250, 250, 250, 250, 250, 250, 250, 250}; // TODO: find a way to not hard-code radius of display
+        if (num == 0) {
+            shadow.setShadow(new Shadow(4, 100, "#00B0F0", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // blue
+            ring.setColor(Color.parseColor("#00B0F0"));
+            temperature = "--";
+            tempTextView.setText(temperature);
+            tempTextView.setTextSize(44);
+        } else if (num == 1) {
+            shadow.setShadow(new Shadow(4, 100, "#00B050", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // green
+            ring.setColor(Color.parseColor("#00B050"));
+            tempTextView.setText(temperature + unit);
+            tempTextView.setTextSize(44);
+            tempTextView.setTextColor(Color.parseColor("#000000"));
+        } else if (num == 2) {
+            shadow.setShadow(new Shadow(4, 100, "#FFD500", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // yellow
+            ring.setColor(Color.parseColor("#FFD500"));
+            tempTextView.setText(temperature + unit);
+            tempTextView.setTextSize(44);
+            tempTextView.setTextColor(Color.parseColor("#000000"));
+        } else if (num == 3) {
+            shadow.setShadow(new Shadow(4, 100, "#FB710B", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // orange
+            ring.setColor(Color.parseColor("#FB710B"));
+            tempTextView.setText(temperature + unit);
+            tempTextView.setTextSize(40);
+            tempTextView.setTextColor(Color.parseColor("#000000"));
+        } else {
+            shadow.setShadow(new Shadow(4, 100, "#FF0000", GradientDrawable.RECTANGLE, radii, Shadow.Position.CENTER)); // red
+            ring.setColor(Color.parseColor("#FF0000"));
+            tempTextView.setText(temperature + unit);
+            tempTextView.setTextSize(40);
+            tempTextView.setTextColor(Color.parseColor("#000000"));
+        }
+    }
+
+    private final BroadcastReceiver gattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (AndroidService.ACTION_GATT_CONNECTED.equals(action)) {
+                spark = true;
+                btStat.setText("Connected");
+                btSym.setBackgroundResource(R.drawable.ic_b1);
+            } else if (AndroidService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                spark = false;
+                btStat.setText("Not Connected");
+                btSym.setBackgroundResource(R.drawable.ic_b2);
+            } else if (AndroidService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                List<BluetoothGattService> gattServices = mService.getSupportedGattServices();
+                loopGatt(gattServices);
+            } else if (AndroidService.ACTION_DATA_AVAILABLE.equals(action)) {
+                String numericVal = intent.getStringExtra(AndroidService.EXTRA_DATA);
+                updateUI(numericVal);
+                Log.d(TAG, "Temperature: " + numericVal);
+            }
         }
     };
 
-    private void startConnection() {
-
-        AndroidService.mHandler  = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(@NonNull Message msg) {
-                super.handleMessage(msg);
-                if (msg.what == RESPONSE_MESSAGE) {
-                    String readMessage = (String) msg.obj;
-                    recDataString.append(readMessage);
-                    int endOfLineIndex = recDataString.indexOf("~");
-                    if (endOfLineIndex > 0) {
-                        if (recDataString.charAt(0) == '#') {
-                            String sensor = recDataString.substring(1, endOfLineIndex);
-                            float sensorVal =  Float.parseFloat(sensor);
-                            tempVals.add(sensorVal);
-                            tipperVals.add(sensorVal);
-                            int N = tempVals.size();
-                            int M = tipperVals.size();
-                            if (M >= 125) { // 21 minutes for tippers
-                                String tippersTemp = grubbs(tipperVals, M);
-                                if (!tippersTemp.equals("NaN")) {
-                                    SimpleDateFormat sdf = null;
-                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                                        sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
-                                    }
-                                    String timestamp = sdf.format(Calendar.getInstance().getTime());
-                                    unit = restoreTempUnit(MainActivity.this);
-                                    writeTippersJSON(tippersTemp, timestamp, unit);
-                                    ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
-                                    JobInfo jobInfo = new JobInfo.Builder(110, componentName)
-                                            .setPersisted(false)
-                                            .setRequiresCharging(false)
-                                            .setOverrideDeadline(5000)
-                                            .build();
-                                    JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-                                    assert jobScheduler != null;
-                                    jobScheduler.schedule(jobInfo);
-                                }
-                                tipperVals.clear();
-                            }
-
-                            if (N >= 35) { // 6 minutes for app
-                                temperature = grubbs(tempVals, N);
-                                if (!temperature.equals("NaN")) {
-                                    booleanUpdate(temperature);
-                                    plotData = true;
-                                    new Thread(() -> {
-                                        while (plotData) {
-                                            runOnUiThread(() -> {
-                                                String clock = format.format(Calendar.getInstance().getTime());
-                                                time.add(clock);
-                                                addEntry(temperature);
-                                                plotData = false;
-                                                unit = restoreTempUnit(MainActivity.this);
-                                                writeJSON(temperature, clock, i, unit);
-                                                i++;
-                                                onResume();
-                                            });
-                                            try {
-                                                Thread.sleep(5000);
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    }).start();
-                                    //only applies when user has not force closed the app
-
-//                                float medianTemp = Float.parseFloat(temperature);
-                                    // TODO: test notification
-                                    float medianTemp = 101;
-                                    saveTempVal(medianTemp, getApplicationContext());
-                                    if (medianTemp > 100.3) { // more urgent -- red
-                                        if (firstNotif) {// send first notif
-                                            firstNotif = false;
-                                            scheduleUrgentJob(); //notif sent in urgentNotifJob class
-                                        }
-                                    } else if (fragment_tab3.restoreNotifEnable()) {
-                                        if (firstNormalNotif) { // not urgent normal notification -- temp greater than 0 but less than 100.3
-                                            firstNormalNotif = false;
-                                            scheduleNormalJob();
-                                            notif.setImageResource(R.drawable.bell2);
-                                        } else if (notifFreq != tempFreq) {
-                                            cancelJob(1);
-                                            scheduleNormalJob();
-                                        }
-                                    }
-                                }
-                                tempVals.clear(); // values get cleared regardless of whether grubbs test is passed or not
-                            }
+    private void loopGatt(List<BluetoothGattService> gattServices) {
+        if (gattServices == null) {
+            return;
+        }
+        String uuid;
+        for (BluetoothGattService gattService : gattServices) {
+            uuid = gattService.getUuid().toString();
+            if (uuid.equals("e761d2af-1c15-4fa7-af80-b5729020b340")) {
+                List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
+                for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
+                    UUID characteristicUUID = gattCharacteristic.getUuid();
+                    String charUUID = String.valueOf(characteristicUUID);
+                    if (charUUID.equals("0000bead-0000-1000-8000-00805f9b34fb")) {
+                        final int charaProp = gattCharacteristic.getProperties();
+                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                            mService.setCharacteristicNotification(gattCharacteristic, true);
                         }
-                    } else {
-                        Toast.makeText(getApplicationContext(), "nan", Toast.LENGTH_SHORT).show();
                     }
-                    recDataString.delete(0, recDataString.length());
                 }
             }
-        };
+        }
+    }
+
+    private void updateUI(String tempString) {
+        float sensorVal = Float.parseFloat(tempString);
+        tempVals.add(sensorVal);
+        tipperVals.add(sensorVal);
+        int N = tempVals.size();
+        int M = tipperVals.size();
+        if (M >= 125) { // 21 minutes for tippers
+            String tippersTemp = grubbs(tipperVals, M);
+            if (!tippersTemp.equals("NaN")) {
+                SimpleDateFormat sdf = null;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
+                }
+                String timestamp = sdf.format(Calendar.getInstance().getTime());
+                unit = restoreTempUnit(MainActivity.this);
+                writeTippersJSON(tippersTemp, timestamp, unit);
+                ComponentName componentName = new ComponentName(getApplicationContext(), TippersJobService.class);
+                JobInfo jobInfo = new JobInfo.Builder(110, componentName)
+                        .setPersisted(false)
+                        .setRequiresCharging(false)
+                        .setOverrideDeadline(5000)
+                        .build();
+                JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+                assert jobScheduler != null;
+                jobScheduler.schedule(jobInfo);
+            }
+            tipperVals.clear();
+        }
+
+        if (N >= 35) { // 6 minutes for app
+            temperature = grubbs(tempVals, N);
+            if (!temperature.equals("NaN")) {
+                booleanUpdate(temperature);
+                plotData = true;
+                new Thread(() -> {
+                    while (plotData) {
+                        runOnUiThread(() -> {
+                            String clock = format.format(Calendar.getInstance().getTime());
+                            time.add(clock);
+                            addEntry(temperature);
+                            plotData = false;
+                            unit = restoreTempUnit(MainActivity.this);
+                            writeJSON(temperature, clock, i, unit);
+                            i++;
+                            onResume();
+                        });
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+                float medianTemp = 101;
+                saveTempVal(medianTemp, getApplicationContext());
+                if (medianTemp > 100.3) { // more urgent -- red
+                    if (firstNotif) {// send first notif
+                        firstNotif = false;
+                        scheduleUrgentJob(); //notif sent in urgentNotifJob class
+                    }
+                } else if (fragment_tab3.restoreNotifEnable()) {
+                    if (firstNormalNotif) { // not urgent normal notification -- temp greater than 0 but less than 100.3
+                        firstNormalNotif = false;
+                        scheduleNormalJob();
+                        notif.setImageResource(R.drawable.bell2);
+                    } else if (notifFreq != tempFreq) {
+                        cancelJob(1);
+                        scheduleNormalJob();
+                    }
+                }
+            }
+            tempVals.clear();
+        }
     }
 
     private String grubbs(ArrayList<Float> Vals, int sampleSize) {
@@ -987,11 +994,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
-    }
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+//        Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
+//    }
 
     private void booleanUpdate(String val) {
         if (val != null && !val.isEmpty()) {
@@ -1030,9 +1037,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(AndroidService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(AndroidService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(AndroidService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(AndroidService.ACTION_DATA_AVAILABLE);
+        return intentFilter;
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
         if (spark) {
             btStat.setText("Connected");
             btSym.setBackgroundResource(R.drawable.ic_b1);
@@ -1083,6 +1101,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(gattUpdateReceiver);
     }
 
     @Override

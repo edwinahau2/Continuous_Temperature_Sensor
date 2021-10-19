@@ -67,7 +67,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     private BluetoothAdapter mBlueAdapter;
     private static final int REQUEST_ENABLE_BT = 0;
     Toast toast;
-    final Context c = this;
     String correct;
     public String addy;
     public String daStatus;
@@ -84,12 +83,12 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mService = ((AndroidService.LocalBinder) service).getService();
-            MainActivity.spark = mService.startConnection();
+            mService.startConnection(addy);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mService.close();
+            mService = null;
             MainActivity.spark = false;
         }
     };
@@ -176,9 +175,9 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
 
         rename.setOnClickListener(v -> {
             if (MainActivity.spark && mBlueAdapter.isEnabled()) {
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(c);
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
                 alertDialog.setTitle("Rename Sensor");
-                final EditText userInput = new EditText(c);
+                final EditText userInput = new EditText(this);
                 alertDialog.setView(userInput);
                 alertDialog.setCancelable(false).setPositiveButton("Rename", (dialog, which) -> {
                     sensor = userInput.getText().toString();
@@ -207,15 +206,12 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                 scanning = true;
                 bluetoothLeScanner.startScan(leScanCallback);
                 find.setText("Cancel");
-//                mBlueAdapter.startDiscovery();
-//                find.setText("Cancel");
                 toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
                 setToast();
 //                findPairedDevices();
             } else {
                 toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
                 setToast();
-//                mBlueAdapter.cancelDiscovery();
             }
         }
     }
@@ -305,11 +301,7 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     public void onDeviceClick(int position) {
         correct = mData.get(position).getDevice();
         addy = mData.get(position).getAddress();
-        if (addy.equals(MainActivity.address) && MainActivity.spark && !daStatus.equals("Not Connected")) {
-            DisconnectPopUp();
-        } else {
-            ShowPopUp();
-        }
+        ShowPopUp();
     }
 
     public void ShowPopUp() {
@@ -320,51 +312,35 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         connect.setText("Connect to " + correct + "?");
         no.setOnClickListener(v -> myDialog.dismiss());
         yes.setOnClickListener(v -> {
-            //                if (AndroidService.mmSocket != null) {
-//                    AndroidService.mmSocket.close();
-//                    MainActivity.spark = false;
-//                }
             Intent intent = new Intent(this, AndroidService.class);
-            stopService(intent);
-            MainActivity.address = addy;
-            find.setText("Find Devices");
-            mBlueAdapter.cancelDiscovery();
-            startConnection();
-        });
-        myDialog.show();
-    }
-
-    public void DisconnectPopUp() {
-        myDialog.setContentView(R.layout.popup);
-        yes = myDialog.findViewById(R.id.ok);
-        no = myDialog.findViewById(R.id.no);
-        connect = myDialog.findViewById(R.id.connection);
-        connect.setText("Would you like to disconnect from " + correct + "?");
-        no.setOnClickListener(v -> myDialog.dismiss());
-        yes.setOnClickListener(v -> {
-            //                AndroidService.mmSocket.close();
-//                MainActivity.spark = false;
-            Intent intent = new Intent(this, AndroidService.class);
-            stopService(intent);
-            find.setText("Find Devices");
-            daStatus = "Not Connected";
-            status.setText(daStatus);
-            mBlueAdapter.cancelDiscovery();
-            myDialog.dismiss();
-        });
-        myDialog.show();
-    }
-
-    private void startConnection() {
-            Intent intent = new Intent(this, AndroidService.class);
-            intent.putExtra("address", addy);
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
+            MainActivity.address = addy;
+            scanning = false;
+            bluetoothLeScanner.stopScan(leScanCallback);
             myDialog.dismiss();
+            find.setText("Find Devices");
+        });
+        myDialog.show();
+    }
+
+    private final BroadcastReceiver gattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+        final String action = intent.getAction();
+        if (AndroidService.ACTION_GATT_CONNECTED.equals(action)) {
+            MainActivity.spark = true;
             daStatus = "Connected to " + correct;
             status.setText(daStatus);
             sensor = correct;
-            saveNameData(this, sensor, addy);
-    }
+            saveNameData(context, sensor, addy);
+        } else if (AndroidService.ACTION_GATT_DISCONNECTED.equals(action)) {
+            MainActivity.spark = false;
+            daStatus = "Not Connected";
+            status.setText(daStatus);
+
+        }
+        }
+    };
 
     public static void saveNameData(Context context, String sensor, String addy) {
         SharedPreferences preferences = context.getSharedPreferences("connectPref", MODE_PRIVATE);
@@ -379,25 +355,38 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         return pref.getString("rename", null);
     }
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                if (state == BluetoothAdapter.STATE_OFF) {
-                    daStatus = "Not Connected";
-                    MainActivity.spark = false;
-                    status.setText(daStatus);
-                }
-            }
-        }
-    };
+//    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            final String action = intent.getAction();
+//            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+//                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+//                if (state == BluetoothAdapter.STATE_OFF) {
+//                    daStatus = "Not Connected";
+//                    MainActivity.spark = false;
+//                    status.setText(daStatus);
+//                }
+//            }
+//        }
+//    };
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(AndroidService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(AndroidService.ACTION_GATT_DISCONNECTED);
+        return intentFilter;
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        registerReceiver(mReceiver, intentFilter);
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Toast.makeText(this, "onPause", Toast.LENGTH_SHORT).show();
+        unregisterReceiver(gattUpdateReceiver);
     }
 }

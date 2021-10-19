@@ -9,14 +9,17 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Parcelable;
 import android.text.Html;
 import android.util.Log;
@@ -51,6 +54,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
 
     private CustomViewPager screenPager;
     IntroViewPageAdapter introViewPageAdapter;
+    public final String TAG = "BtConnection";
     public static Button btnNext;
     int position;
     public static Button btnBack;
@@ -77,6 +81,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
     private Handler handler = new Handler();
     private static final long SCAN_PERIOD = 20000;
     List<String> listOfAddress = new ArrayList<>();
+    AndroidService mService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,15 +144,15 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                 addDotsIndicator(position);
                 screenPager.setCurrentItem(position);
                 btnNext.setVisibility(View.INVISIBLE);
-                if (ContextCompat.checkSelfPermission(IntroViewPageAdapter.mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions((Activity) IntroViewPageAdapter.mContext, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
-                }
-
-                if (ContextCompat.checkSelfPermission(IntroViewPageAdapter.mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions((Activity) IntroViewPageAdapter.mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-                }
                 if (position == 4) {
                     IntroViewPageAdapter.button.setOnClickListener(v3 -> {
+                        if (ContextCompat.checkSelfPermission(IntroViewPageAdapter.mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions((Activity) IntroViewPageAdapter.mContext, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
+                        }
+
+                        if (ContextCompat.checkSelfPermission(IntroViewPageAdapter.mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions((Activity) IntroViewPageAdapter.mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                        }
                         if (!mBlueAdapter.isEnabled()) {
                             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                             startActivityForResult(intent, REQUEST_ENABLE_BT);
@@ -220,55 +225,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                 btnNext.setTextColor(Color.parseColor("#4c84ff"));
             }
 
-            if (position == 4) {
-                IntroViewPageAdapter.button.setOnClickListener(v3 -> {
-                    if (!mBlueAdapter.isEnabled()) {
-                        Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                        startActivityForResult(intent, REQUEST_ENABLE_BT);
-                    } else {
-                        myDialog.setContentView(R.layout.recycler);
-                        find = myDialog.findViewById(R.id.searching);
-                        find.setOnClickListener(v2 -> {
-//                            if (mBlueAdapter.isDiscovering() || find.getText().equals("Cancel")) {
-//                                mBlueAdapter.cancelDiscovery();
-//                                find.setText("Find Your Device");
-//                            } else {
-                                if (!scanning) {
-                                    handler.postDelayed(() -> {
-                                        scanning = false;
-                                        bluetoothLeScanner.stopScan(leScanCallback);
-                                        find.setText("Find Your Devices");
-                                    }, SCAN_PERIOD);
-                                    scanning = true;
-                                    bluetoothLeScanner.startScan(leScanCallback);
-                                    toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
-                                    setToast();
-                                    find.setText("Cancel");
-                                } else {
-                                    scanning = false;
-                                    bluetoothLeScanner.stopScan(leScanCallback);
-                                    find.setText("Find Your Devices");
-                                }
-//                                mBlueAdapter.startDiscovery();
-//                                find.setText("Cancel");
-//                                Toast.makeText(IntroViewPageAdapter.mContext, "Make sure your device is on", Toast.LENGTH_SHORT).show();
-//                                mData.clear();
-//                                findPairedDevices();
-//                            }
-                        });
-                        ImageView ret = myDialog.findViewById(R.id.back_Arrow);
-                        ret.setOnClickListener(v1 -> myDialog.dismiss());
-                        Window window = myDialog.getWindow();
-                        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-                        btRecycle = myDialog.findViewById(R.id.listOfBt);
-                        mData = new ArrayList<>();
-                        btRecycle.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-                        btAdapter = new BtAdapter(this, mData, this);
-                        btRecycle.setAdapter(btAdapter);
-                        myDialog.show();
-                    }
-                });
-            }
         });
 
         btnBack.setOnClickListener(v -> {
@@ -420,7 +376,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
 //    };
 
     public void setToast() {
-        toast.setGravity(Gravity.BOTTOM, 0, 180);
+        toast.setGravity(Gravity.BOTTOM, 0, 100);
         toast.show();
     }
 
@@ -460,8 +416,7 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
     public void onDeviceClick(int position) {
         correct = mData.get(position).getDevice();
         addy = mData.get(position).getAddress();
-        BluetoothDevice mDevice = mBlueAdapter.getRemoteDevice(addy);
-        boolean result = mDevice.fetchUuidsWithSdp();
+//        BluetoothDevice mDevice = mBlueAdapter.getRemoteDevice(addy);
         ShowPopUp();
         mBlueAdapter.cancelDiscovery();
         find.setText("Find Your Device");

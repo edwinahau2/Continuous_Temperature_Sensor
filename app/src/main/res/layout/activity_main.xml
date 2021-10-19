@@ -35,7 +35,6 @@
             app:layout_constraintStart_toEndOf="@+id/btSym"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/guide1"
-            android:text="Connected"
             android:id="@+id/btStat"
             android:gravity="center"/>
 

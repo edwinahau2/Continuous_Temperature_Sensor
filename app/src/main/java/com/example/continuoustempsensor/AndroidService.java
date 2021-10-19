@@ -5,6 +5,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattServer;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
@@ -20,6 +25,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.util.List;
 import java.util.UUID;
 
 public class AndroidService extends Service {
@@ -27,20 +36,38 @@ public class AndroidService extends Service {
     static BluetoothSocket mmSocket;
     BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
-    UUID MY_UUID = UUID.fromString("00001811-0000-1000-8000-00805f9b34fb");
+    UUID MY_UUID = UUID.fromString("e761d2af-1c15-4fa7-af80-b5729020b340");
+    UUID characteristicUUID = UUID.fromString("0000bead-0000-1000-8000-00805f9b34fb");
     ConnectedThread btt = null;
     static InputStream mmInStream;
-    public final String TAG = "MAC_ADDRESS";
+    public final String TAG = "BTService";
     static Handler mHandler;
-    String address;
     public static final int RESPONSE_MESSAGE = 10;
-    boolean spark = false;
     private final IBinder binder = new LocalBinder();
     private BluetoothGatt bluetoothGatt;
     public final static String ACTION_GATT_CONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
+    public final static String ACTION_GATT_SERVICES_DISCOVERED =
+            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_DATA_AVAILABLE =
+            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
+    public final static String EXTRA_DATA =
+            "com.example.bluetooth.le.EXTRA_DATA";
+    public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        close();
+        return super.onUnbind(intent);
+    }
 
     public class LocalBinder extends Binder {
         AndroidService getService() {
@@ -48,57 +75,15 @@ public class AndroidService extends Service {
         }
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        address = intent.getStringExtra("address");
-        Log.d(TAG, "address: " + address);
-        return binder;
-    }
-
-    public boolean startConnection() {
+    public void startConnection(String address) {
         mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         try {
             mDevice = mBlueAdapter.getRemoteDevice(address);
             bluetoothGatt = mDevice.connectGatt(this, false, bluetoothGattCallback);
-            spark = true;
         } catch (IllegalArgumentException e) {
-            spark = false;
+            e.printStackTrace();
         }
-        //        if (mmSocket == null || !mmSocket.isConnected()) {
-//            BluetoothSocket tmp;
-//            try {
-//                tmp = mDevice.createRfcommSocketToServiceRecord(MY_UUID);
-//                mmSocket = tmp;
-//                mmSocket.connect();
-//                spark = true;
-//            } catch (IOException e) {
-//                try {
-//                    mmSocket.close();
-//                    spark = false;
-//                } catch (IOException c) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            btt = new ConnectedThread(mmSocket);
-//            btt.start();
-//        }
-        return spark;
     }
-
-    private final BluetoothGattCallback bluetoothGattCallback = new BluetoothGattCallback() {
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                final Intent intent = new Intent(ACTION_GATT_CONNECTED);
-                sendBroadcast(intent);
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                final Intent intent = new Intent(ACTION_GATT_DISCONNECTED);
-                sendBroadcast(intent);
-            }
-
-        }
-    };
 
     public void close() {
         if (bluetoothGatt == null) {
@@ -108,7 +93,75 @@ public class AndroidService extends Service {
         bluetoothGatt = null;
     }
 
-    // TODO: check if bluetooth is still connected while app is running (specifically when data is bad) --> maybe make it a job ?
+    private final BluetoothGattCallback bluetoothGattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                final Intent intent = new Intent(ACTION_GATT_CONNECTED);
+                sendBroadcast(intent);
+                bluetoothGatt.discoverServices();
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                final Intent intent = new Intent(ACTION_GATT_DISCONNECTED);
+                sendBroadcast(intent);
+            }
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                final Intent intent = new Intent(ACTION_GATT_SERVICES_DISCOVERED);
+                sendBroadcast(intent);
+            } else {
+                Log.w(TAG, "onServicesDiscovered received: " + status);
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+        }
+    };
+
+    public List<BluetoothGattService> getSupportedGattServices() {
+        if (bluetoothGatt != null) {
+            return bluetoothGatt.getServices();
+        } else {
+            return null;
+        }
+    }
+
+    public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic, boolean enabled) {
+        if (mBlueAdapter != null || bluetoothGatt != null) {
+            bluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+            if (characteristicUUID.equals(characteristic.getUuid())) {
+                BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG));
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                bluetoothGatt.writeDescriptor(descriptor);
+            }
+        }
+    }
+
+    private void broadcastUpdate (final String action, final BluetoothGattCharacteristic characteristic) {
+        final Intent intent = new Intent(action);
+       if (characteristicUUID.equals(characteristic.getUuid())) {
+           final byte[] data = characteristic.getValue();
+           if (data != null && data.length > 0) {
+               final StringBuilder stringBuilder = new StringBuilder(data.length);
+               for (byte byteChar : data)
+                   stringBuilder.append(String.format("%02X ", byteChar)); // ex: 1D 01 --> 0x11D
+               String hexDigits = stringBuilder.toString();
+               String firstHex = hexDigits.substring(4,5);
+               int firstVal = Integer.parseInt(firstHex);
+               String secondHex = hexDigits.substring(0,2);
+               int secondVal = Character.digit(secondHex.charAt(0), 16);
+               int thirdVal = Character.digit(secondHex.charAt(1), 16);
+               int numericVal = (firstVal * 256) + (secondVal * 16) + (thirdVal);
+               Log.d(TAG, "Temperature: " + numericVal);
+               intent.putExtra(EXTRA_DATA, String.valueOf(numericVal));
+               sendBroadcast(intent);
+           }
+        }
+    }
 
     protected static class ConnectedThread extends Thread {
         public ConnectedThread(BluetoothSocket socket) {
