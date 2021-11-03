@@ -17,19 +17,11 @@ public class notifications extends Application {
 
     private void createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel1 = new NotificationChannel(
-                    CHANNEL_1_ID,
-                    "Channel 1",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
+            NotificationChannel channel1 = new NotificationChannel(CHANNEL_1_ID, "Channel 1", NotificationManager.IMPORTANCE_HIGH);
             channel1.setDescription("This provides warnings on worrisome temperature fluctuations");
             //channel1.setVibrationPattern();, channel1.setSound();, channel1.setLockscreenVisibility(); all at default
 
-            NotificationChannel channel2 = new NotificationChannel(
-                    CHANNEL_2_ID,
-                    "Channel 2",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
+            NotificationChannel channel2 = new NotificationChannel(CHANNEL_2_ID, "Channel 2", NotificationManager.IMPORTANCE_DEFAULT);
             channel2.setDescription("This provides updates of temperatures recorded periodically");
 
             NotificationManager manager = getSystemService(NotificationManager.class);

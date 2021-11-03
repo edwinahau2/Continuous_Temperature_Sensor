@@ -160,32 +160,22 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                             myDialog.setContentView(R.layout.recycler);
                             find = myDialog.findViewById(R.id.searching);
                             find.setOnClickListener(v2 -> {
-//                                if (mBlueAdapter.isDiscovering() || find.getText().equals("Cancel")) {
-//                                    mBlueAdapter.cancelDiscovery();
-//                                    find.setText("Find Your Device");
-//                                } else {
-                                    if (!scanning) {
-                                        handler.postDelayed(() -> {
-                                            scanning = false;
-                                            bluetoothLeScanner.stopScan(leScanCallback);
-                                            find.setText("Find Your Device");
-                                        }, SCAN_PERIOD);
-                                        scanning = true;
-                                        bluetoothLeScanner.startScan(leScanCallback);
-                                        toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
-                                        setToast();
-                                        find.setText("Cancel");
-                                    } else {
+                                if (!scanning) {
+                                    handler.postDelayed(() -> {
                                         scanning = false;
                                         bluetoothLeScanner.stopScan(leScanCallback);
                                         find.setText("Find Your Device");
-                                    }
-//                                    mBlueAdapter.startDiscovery();
-//                                    find.setText("Cancel");
-//                                    Toast.makeText(IntroViewPageAdapter.mContext, "Make sure your device is on", Toast.LENGTH_SHORT).show();
-//                                    mData.clear();
-//                                    findPairedDevices();
-//                                }
+                                    }, SCAN_PERIOD);
+                                    scanning = true;
+                                    bluetoothLeScanner.startScan(leScanCallback);
+                                    toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
+                                    setToast();
+                                    find.setText("Cancel");
+                                } else {
+                                    scanning = false;
+                                    bluetoothLeScanner.stopScan(leScanCallback);
+                                    find.setText("Find Your Device");
+                                }
                             });
                             ImageView ret = myDialog.findViewById(R.id.back_Arrow);
                             ret.setOnClickListener(v1 -> myDialog.dismiss());
@@ -302,14 +292,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
                 toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
                 setToast();
             }
-//                mBlueAdapter.startDiscovery();
-//                find.setText("Cancel");
-//                findPairedDevices();
-//            } else {
-//                toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
-//                setToast();
-//                mBlueAdapter.cancelDiscovery();
-//            }
         }
     }
 
@@ -334,46 +316,6 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
             btRecycle.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         }
     };
-
-//    private void findPairedDevices() {
-//        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
-//        if (bluetoothSet.size() > 0) {
-//            for (BluetoothDevice ignored : bluetoothSet) {
-//                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-//                this.registerReceiver(receiver, filter);
-//                IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-//                this.registerReceiver(receiver, filter1);
-//                IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-//                this.registerReceiver(receiver, filter2);
-//            }
-//        } else {
-//            Toast.makeText(this, "No Devices Found", Toast.LENGTH_SHORT).show();
-//            mBlueAdapter.cancelDiscovery();
-//        }
-//    }
-
-//    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, final Intent intent) {
-//            String action = intent.getAction();
-//            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-//                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-//                String deviceAddress = device.getAddress();
-//                if (device.getName() != null) {
-//                    mData.add(new BtDevice(device.getName() + ":" + deviceAddress));
-//                    HashSet<BtDevice> hashSet = new HashSet<>(mData);
-//                    mData.clear();
-//                    mData.addAll(hashSet);
-//                    btAdapter.notifyDataSetChanged();
-//                    btAdapter = new BtAdapter(context, mData, (BtAdapter.OnDeviceListener) context);
-//                    btRecycle.setAdapter(btAdapter);
-//                    btRecycle.setLayoutManager(new LinearLayoutManager(context));
-//                }
-//            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
-//                find.setText("Find Your Device");
-//            }
-//        }
-//    };
 
     public void setToast() {
         toast.setGravity(Gravity.BOTTOM, 0, 100);
@@ -435,11 +377,9 @@ public class IntroActivity extends AppCompatActivity implements BtAdapter.OnDevi
         no.setOnClickListener(v -> otherDialog.dismiss());
         yes.setOnClickListener(v -> {
             Intent mainActivity = new Intent(getApplicationContext(), MainActivity.class);
-            String uniqueID = UUID.randomUUID().toString();
             Bundle bundle = new Bundle();
             bundle.putString("address", addy);
             bundle.putString("name", correct);
-            bundle.putString("uniqueID", uniqueID);
             mainActivity.putExtras(bundle);
             startActivity(mainActivity);
 

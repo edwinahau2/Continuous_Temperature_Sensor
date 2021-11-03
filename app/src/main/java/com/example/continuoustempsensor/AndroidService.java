@@ -33,16 +33,10 @@ import java.util.UUID;
 
 public class AndroidService extends Service {
 
-    static BluetoothSocket mmSocket;
     BluetoothDevice mDevice;
     BluetoothAdapter mBlueAdapter;
-    UUID MY_UUID = UUID.fromString("e761d2af-1c15-4fa7-af80-b5729020b340");
     UUID characteristicUUID = UUID.fromString("0000bead-0000-1000-8000-00805f9b34fb");
-    ConnectedThread btt = null;
-    static InputStream mmInStream;
     public final String TAG = "BTService";
-    static Handler mHandler;
-    public static final int RESPONSE_MESSAGE = 10;
     private final IBinder binder = new LocalBinder();
     private BluetoothGatt bluetoothGatt;
     public final static String ACTION_GATT_CONNECTED =
@@ -160,34 +154,6 @@ public class AndroidService extends Service {
                intent.putExtra(EXTRA_DATA, String.valueOf(numericVal));
                sendBroadcast(intent);
            }
-        }
-    }
-
-    protected static class ConnectedThread extends Thread {
-        public ConnectedThread(BluetoothSocket socket) {
-            InputStream tmpIn = null;
-            try {
-                tmpIn = socket.getInputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mmInStream = tmpIn;
-        }
-
-        public void run() {
-            BufferedReader br;
-            br = new BufferedReader(new InputStreamReader(mmInStream));
-            while (true) {
-                try {
-                    String resp = br.readLine();
-                    Message msg = new Message();
-                    msg.what = RESPONSE_MESSAGE;
-                    msg.obj = resp;
-                    mHandler.sendMessage(msg);
-                } catch (IOException e) {
-                    break;
-                }
-            }
         }
     }
 

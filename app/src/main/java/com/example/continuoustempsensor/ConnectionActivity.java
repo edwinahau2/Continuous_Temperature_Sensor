@@ -72,7 +72,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     public String daStatus;
     Button yes;
     Button no;
-    boolean dontRunAgain = true;
     AndroidService mService;
     private BluetoothLeScanner bluetoothLeScanner;
     private boolean scanning = false;
@@ -158,18 +157,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                     bluetoothLeScanner.stopScan(leScanCallback);
                     find.setText("Find Devices");
                 }
-
-//                if (mBlueAdapter.isDiscovering()) {
-//                    mBlueAdapter.cancelDiscovery();
-//                    find.setText("Find Devices");
-//                } else {
-//                    mBlueAdapter.startDiscovery();
-//                    find.setText("Cancel");
-//                    mData.clear();
-//                    toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
-//                    setToast();
-//                    findPairedDevices();
-//                }
             }
         });
 
@@ -208,7 +195,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
                 find.setText("Cancel");
                 toast = Toast.makeText(getBaseContext(), "Make sure your device is on", Toast.LENGTH_SHORT);
                 setToast();
-//                findPairedDevices();
             } else {
                 toast = Toast.makeText(this, "Unable to turn on Bluetooth", Toast.LENGTH_SHORT);
                 setToast();
@@ -237,55 +223,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
             list.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         }
     };
-
-//    private void findPairedDevices() {
-//        dontRunAgain = true;
-//        Set<BluetoothDevice> bluetoothSet = mBlueAdapter.getBondedDevices();
-//        if (bluetoothSet.size() > 0) {
-//            for (BluetoothDevice ignored : bluetoothSet) {
-//                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-//                this.registerReceiver(receiver, filter);
-//                IntentFilter filter1 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-//                this.registerReceiver(receiver, filter1);
-//                IntentFilter filter2 = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-//                this.registerReceiver(receiver, filter2);
-//            }
-//        }
-//    }
-//
-//    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, final Intent intent) {
-//            String action = intent.getAction();
-//            if (mBlueAdapter.isEnabled()) {
-//                if (MainActivity.spark) {
-//                    if (dontRunAgain) {
-//                        mData.add(new BtDevice(sensor + ":" + MainActivity.address));
-//                        dontRunAgain = false;
-//                    }
-//                }
-//                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-//                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-//                    String deviceAddress = device.getAddress();
-//                    if (device.getName() != null) {
-//                        mData.add(new BtDevice(device.getName() + ":" + deviceAddress));
-//                    }
-//                    Set<BtDevice> hashSet = new LinkedHashSet<>(mData);
-//                    mData.clear();
-//                    mData.addAll(hashSet);
-//                    btAdapter.notifyDataSetChanged();
-//                    btAdapter = new BtAdapter(context, mData, (BtAdapter.OnDeviceListener) context);
-//                    list.setAdapter(btAdapter);
-//                    list.setLayoutManager(new LinearLayoutManager(context));
-//                } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction()) && mBlueAdapter.isEnabled()) {
-//                    find.setText("Find Devices");
-//                }
-//            } else {
-//                mBlueAdapter.cancelDiscovery();
-//                find.setText("Find Devices");
-//            }
-//        }
-//    };
 
     public void setToast() {
         toast.setGravity(Gravity.BOTTOM, 0, 100);
@@ -326,19 +263,23 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
     private final BroadcastReceiver gattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-        final String action = intent.getAction();
-        if (AndroidService.ACTION_GATT_CONNECTED.equals(action)) {
-            MainActivity.spark = true;
-            daStatus = "Connected to " + correct;
-            status.setText(daStatus);
-            sensor = correct;
-            saveNameData(context, sensor, addy);
-        } else if (AndroidService.ACTION_GATT_DISCONNECTED.equals(action)) {
-            MainActivity.spark = false;
-            daStatus = "Not Connected";
-            status.setText(daStatus);
-
-        }
+            final String action = intent.getAction();
+            if (AndroidService.ACTION_GATT_CONNECTED.equals(action)) {
+                MainActivity.spark = true;
+                daStatus = "Connected to " + correct;
+                status.setText(daStatus);
+                sensor = correct;
+                saveNameData(context, sensor, addy);
+                MainActivity.savePrefsData(context, sensor, addy);
+                Intent frag3intent = new Intent("BLUETOOTH_IS_CONNECTED");
+                sendBroadcast(frag3intent);
+            } else if (AndroidService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                MainActivity.spark = false;
+                daStatus = "Not Connected";
+                status.setText(daStatus);
+                Intent frag3intent = new Intent("BLUETOOTH_IS_DISCONNECTED");
+                sendBroadcast(frag3intent);
+            }
         }
     };
 
@@ -354,21 +295,6 @@ public class ConnectionActivity extends AppCompatActivity implements BtAdapter.O
         SharedPreferences pref = context.getSharedPreferences("connectPref", Context.MODE_PRIVATE);
         return pref.getString("rename", null);
     }
-
-//    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            final String action = intent.getAction();
-//            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-//                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-//                if (state == BluetoothAdapter.STATE_OFF) {
-//                    daStatus = "Not Connected";
-//                    MainActivity.spark = false;
-//                    status.setText(daStatus);
-//                }
-//            }
-//        }
-//    };
 
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();

@@ -1,31 +1,26 @@
 package com.example.continuoustempsensor;
 
-import android.annotation.SuppressLint;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.util.Log;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class TippersJobService extends JobService {
 
@@ -67,7 +62,14 @@ public class TippersJobService extends JobService {
             try {
                 URL urlInstance = new URL(strings[0]);
                 Log.d(TAG, strings[1]);
+
+                //for SSL
+                SSLContext sc = SSLContext.getInstance("SSL");
+                sc.init(null, new TrustManager[] {new TrustAnyTrustManager()},
+                        new java.security.SecureRandom());
+
                 httpURLConnection = (HttpsURLConnection) urlInstance.openConnection();
+                httpURLConnection.setSSLSocketFactory(sc.getSocketFactory());
                 httpURLConnection.setConnectTimeout(60*1000);
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
@@ -82,7 +84,7 @@ public class TippersJobService extends JobService {
                     response.append(responseLine.trim());
                 }
                 return "SUCCESS";
-            } catch (IOException e) {
+            } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
                 e.printStackTrace();
                 return "ERROR";
             } finally {
@@ -98,6 +100,19 @@ public class TippersJobService extends JobService {
             Log.d(TAG, s);
         }
     }
+
+    private static class TrustAnyTrustManager implements X509TrustManager {
+
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {}
+
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[] {};
+        }
+    }
+
 
     @Override
     public boolean onStopJob(JobParameters params) {

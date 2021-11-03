@@ -2,7 +2,6 @@ package com.example.continuoustempsensor;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +14,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +35,6 @@ import com.google.android.material.tabs.TabLayout;
 
 public class fragment_tab3 extends Fragment  {
 
-    BluetoothAdapter mBlueAdapter;
     private static final int REQUEST_CODE = 1;
     Toast toast;
     private static final int RESULT_OK = -1;
@@ -57,7 +54,6 @@ public class fragment_tab3 extends Fragment  {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab3_layout, container, false);
-        mBlueAdapter = BluetoothAdapter.getDefaultAdapter();
         context = requireContext();
         tempTab = view.findViewById(R.id.linear);
         selectTab = tempTab.getTabAt(restoreTempDisplay());
@@ -120,9 +116,8 @@ public class fragment_tab3 extends Fragment  {
             }
         });
         connect = view.findViewById(R.id.connect);
-        if (!mBlueAdapter.isEnabled()) {
-            connect.setText("Not Connected");
-        }
+        connect.setText("Not Connected");
+        setButtonColor(false);
         notify = view.findViewById(R.id.notify);
         if (restoreNotifEnable()) {
             notify.setTextColor(Color.parseColor("#000000"));
@@ -154,6 +149,9 @@ public class fragment_tab3 extends Fragment  {
                 text.setTypeface(Typeface.DEFAULT_BOLD);
                 text.setTextSize(23);
                 text.setTextColor(Color.parseColor("#FFFFFF"));
+                Intent unitIntent = new Intent("TEMP_UNIT_CHANGED");
+                unitIntent.putExtra("unit", unit);
+                getActivity().sendBroadcast(unitIntent);
             }
 
             @Override
@@ -235,14 +233,6 @@ public class fragment_tab3 extends Fragment  {
         }
     }
 
-    private void saveNameData() {
-        SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("device", MainActivity.name);
-        editor.putString("address", MainActivity.address);
-        editor.apply();
-    }
-
     private void saveNotifData(String notifFreq, int indexSelected) {
         SharedPreferences preferences = requireContext().getApplicationContext().getSharedPreferences("notifPref", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
@@ -261,11 +251,6 @@ public class fragment_tab3 extends Fragment  {
     public static boolean restoreNotifEnable() {
         SharedPreferences pref = context.getApplicationContext().getSharedPreferences("notifPref", Context.MODE_PRIVATE);
         return pref.getBoolean("notifChecked", true);
-    }
-
-    private String restoreNameData() {
-        SharedPreferences pref = requireContext().getApplicationContext().getSharedPreferences("namePref", Context.MODE_PRIVATE);
-        return pref.getString("device", null);
     }
 
     public static String restoreNotifFreq() {
@@ -295,63 +280,39 @@ public class fragment_tab3 extends Fragment  {
         toast.show();
     }
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                if (state == BluetoothAdapter.STATE_OFF) {
-                    connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_not_connected));
-                    setButtonColor(false);
-                    SpannableString spanString = new SpannableString("Not Connected");
-                    spanString.setSpan(new StyleSpan(Typeface.NORMAL), 0, spanString.length(), 0);
-                    connect.setText(spanString);
-                }
-            }
-        }
-    };
-
     public void setButtonColor(Boolean doit) {
         if (doit) {
+            SpannableString spanString = new SpannableString("Connected to " + MainActivity.name);
+            spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+            connect.setText(spanString.toString());
             connect.setTextColor(Color.parseColor("#FFFFFF"));
             connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_connected));
         } else {
+            connect.setText("Not Connected");
             connect.setTextColor(Color.parseColor("#656565"));
             connect.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_corners_for_not_connected));
         }
     }
 
+    private final BroadcastReceiver btReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (("BLUETOOTH_IS_CONNECTED").equals(action)) {
+                setButtonColor(true);
+            } else if (("BLUETOOTH_IS_DISCONNECTED").equals(action)) {
+                setButtonColor(false);
+            }
+        }
+    };
+
     @Override
     public void onResume() {
         super.onResume();
-        sensor = restoreNameData();
-        if (!MainActivity.spark) {
-            connect.setText("Not Connected");
-            setButtonColor(false);
-        } else if (sensor != null) {
-            setButtonColor(true);
-            sensor = ConnectionActivity.restoreNameData(requireContext());
-            SpannableString spanString = new SpannableString("Connected to " + sensor);
-            spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
-            connect.setText(spanString);
-            saveNameData();
-        }
 
-        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        requireActivity().registerReceiver(mReceiver, intentFilter);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        requireActivity().registerReceiver(mReceiver, intentFilter);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
+        final IntentFilter btFilter = new IntentFilter();
+        btFilter.addAction("BLUETOOTH_IS_CONNECTED");
+        btFilter.addAction("BLUETOOTH_IS_DISCONNECTED");
+        requireActivity().registerReceiver(btReceiver, btFilter);
     }
 }

@@ -245,7 +245,6 @@ public class ReportViewPageAdapter extends PagerAdapter {
                 leftAxis.setDrawGridLines(false);
                 leftAxis.setAxisMaximum(Math.round(max + 1));
                 leftAxis.setAxisMinimum(Math.round(min-1));
-                leftAxis.setDrawGridLines(false);
                 leftAxis.setEnabled(true);
 
                 YAxis rightAxis = mChart.getAxisRight();
@@ -477,7 +476,7 @@ public class ReportViewPageAdapter extends PagerAdapter {
         return avgTemp;
     }
 
-    private ArrayList<Float> threeParams(List<String[]> array, boolean f) {
+    public static ArrayList<Float> threeParams(List<String[]> array, boolean f) {
         ArrayList<Float> temp = new ArrayList<>();
         ArrayList<Float> threeParams = new ArrayList<>();
         int k = 0;

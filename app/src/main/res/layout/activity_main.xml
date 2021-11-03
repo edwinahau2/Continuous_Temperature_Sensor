@@ -27,6 +27,7 @@
             android:layout_height="0dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@id/guide1"
+            app:layout_constraintEnd_toStartOf="@+id/btStat"
             app:layout_constraintTop_toTopOf="parent"/>
 
         <TextView

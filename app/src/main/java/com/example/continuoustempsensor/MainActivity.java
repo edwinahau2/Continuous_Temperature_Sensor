@@ -22,20 +22,24 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.security.keystore.KeyGenParameterSpec;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.security.crypto.MasterKeys;
 
 import com.blure.complexview.ComplexView;
 import com.blure.complexview.Shadow;
+import com.example.continuoustempsensor.ui.main.NotificationReceiver;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -61,6 +65,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -78,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public static int notifFreq = -1;
     private int tempFreq = notifFreq;
     public static String name;
-    int i = 0;
+    int timecount = 0;
     String unit = " °F";
     BluetoothAdapter mBlueAdapter;
     ArrayList<String> time = new ArrayList<>();
@@ -110,6 +115,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected LocationManager locationManager;
     AndroidService mService;
     public static boolean notifChecked = true;
+    public final static String UNIT_CHANGE = "TEMP_UNIT_CHANGED";
+    boolean unitcels = false;
+    private ArrayList<Float> graphVals = new ArrayList<>();
+    boolean onStopBooleanUrgent = false;
 
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -142,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         btSym = findViewById(R.id.btSym);
         btStat = findViewById(R.id.btStat);
         notif = findViewById(R.id.notif);
+
 //        if (!fileCreated()) {
         if (true) { // TODO: change back to previous line when done
             try {
@@ -226,21 +236,22 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         mChart.setDrawBorders(false);
         mChart.invalidate();
 
+        String saveUnit = restoreTempUnit(this);
+        if (saveUnit.equals(" °C")) {
+            unitcels = true;
+        }
+
         if (bundle != null) {
             address = bundle.getString("address");
             name = bundle.getString("name");
-            String uniqueID = (String) bundle.get("uniqueID");
             Intent intent = new Intent(this, AndroidService.class);
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
-//            startConnection();
-            savePrefsData();
-            saveUniqueID(uniqueID);
+            savePrefsData(this, name, address);
         } else if (mBlueAdapter.isEnabled()) {
             address = restoreAddressData();
             name = restoreNameData();
             Intent intent = new Intent(this, AndroidService.class);
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
-//            startConnection();
         }
 
         // can delete once TIPPERS is confirmed
@@ -281,7 +292,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 array1 = firstArray.toString();
             }
             JSONObject tippersData = new JSONObject();
-            tippersData.put("ID", "1234");
             SimpleDateFormat sdf = null;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmXXX");
@@ -325,48 +335,48 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             e.printStackTrace();
         }
 
-        File file;
-        String FILE_NAME = "temp.json";
-        file = new File(this.getFilesDir(), FILE_NAME);
-        ArrayList<String> timeArray = new ArrayList<>();
-        timeArray.add("1:30 PM");
-        timeArray.add("1:35 PM");
-        timeArray.add("1:40 PM");
-        timeArray.add("1:45 PM");
-        timeArray.add("1:50 PM");
-        timeArray.add("1:55 PM");
-
-        ArrayList<String> dayArray = new ArrayList<>();
-        dayArray.add("Sun.2021.09.19");
-        dayArray.add("Mon.2021.09.20");
-        dayArray.add("Tue.2021.09.21");
-        dayArray.add("Wed.2021.09.22");
-        dayArray.add("Thu.2021.09.23");
-        dayArray.add("Fri.2021.09.24");
-        dayArray.add("Sat.2021.09.25");
-        try {
-            JSONObject jsonObject = new JSONObject();
-            for (int d = 0; d < dayArray.size(); d++) {
-                JSONObject obj = new JSONObject();
-                for (int t = 0; t < timeArray.size(); t++) {
-                    String index = String.valueOf(t);
-                    String key = "time" + index;
-                    JSONObject reading = new JSONObject();
-                    reading.put("temperature", 97.9 + Math.random() * (103.5 - 97.9));
-                    reading.put("hour", timeArray.get(t));
-                    reading.put("unit", unit);
-                    obj.put(key, reading);
-                    jsonObject.put(dayArray.get(d), obj);
-                }
-            }
-            String userString = jsonObject.toString();
-            FileWriter fileWriter = new FileWriter(file, false);
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.write(userString);
-            bufferedWriter.close();
-        } catch (JSONException | IOException e) {
-            e.printStackTrace();
-        }
+//        File file;
+//        String FILE_NAME = "temp.json";
+//        file = new File(this.getFilesDir(), FILE_NAME);
+//        ArrayList<String> timeArray = new ArrayList<>();
+//        timeArray.add("1:30 PM");
+//        timeArray.add("1:35 PM");
+//        timeArray.add("1:40 PM");
+//        timeArray.add("1:45 PM");
+//        timeArray.add("1:50 PM");
+//        timeArray.add("1:55 PM");
+//
+//        ArrayList<String> dayArray = new ArrayList<>();
+//        dayArray.add("Sun.2021.09.19");
+//        dayArray.add("Mon.2021.09.20");
+//        dayArray.add("Tue.2021.09.21");
+//        dayArray.add("Wed.2021.09.22");
+//        dayArray.add("Thu.2021.09.23");
+//        dayArray.add("Fri.2021.09.24");
+//        dayArray.add("Sat.2021.09.25");
+//        try {
+//            JSONObject jsonObject = new JSONObject();
+//            for (int d = 0; d < dayArray.size(); d++) {
+//                JSONObject obj = new JSONObject();
+//                for (int t = 0; t < timeArray.size(); t++) {
+//                    String index = String.valueOf(t);
+//                    String key = "time" + index;
+//                    JSONObject reading = new JSONObject();
+//                    reading.put("temperature", 97.9 + Math.random() * (103.5 - 97.9));
+//                    reading.put("hour", timeArray.get(t));
+//                    reading.put("unit", unit);
+//                    obj.put(key, reading);
+//                    jsonObject.put(dayArray.get(d), obj);
+//                }
+//            }
+//            String userString = jsonObject.toString();
+//            FileWriter fileWriter = new FileWriter(file, false);
+//            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+//            bufferedWriter.write(userString);
+//            bufferedWriter.close();
+//        } catch (JSONException | IOException e) {
+//            e.printStackTrace();
+//        }
 
         notif.setOnClickListener(v -> {
             Intent notifActivityIntent = new Intent(getApplicationContext(), notifActivity.class);
@@ -436,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
             return false;
         });
-//        bottomNavigationView.setOnNavigationItemSelectedListener(bottomNavMethod);
+
         fm.beginTransaction().add(R.id.container3, fragment3, "3").hide(fragment3).addToBackStack(null).commit();
         fm.beginTransaction().add(R.id.container2, fragment2, "2").hide(fragment2).addToBackStack(null).commit();
         bottomNavigationView.setSelectedItemId(R.id.home);
@@ -485,20 +495,122 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 spark = true;
                 btStat.setText("Connected");
                 btSym.setBackgroundResource(R.drawable.ic_b1);
+                Intent frag3intent = new Intent("BLUETOOTH_IS_CONNECTED");
+                sendBroadcast(frag3intent);
             } else if (AndroidService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 spark = false;
                 btStat.setText("Not Connected");
                 btSym.setBackgroundResource(R.drawable.ic_b2);
+                Intent frag3intent = new Intent("BLUETOOTH_IS_DISCONNECTED");
+                sendBroadcast(frag3intent);
             } else if (AndroidService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 List<BluetoothGattService> gattServices = mService.getSupportedGattServices();
                 loopGatt(gattServices);
             } else if (AndroidService.ACTION_DATA_AVAILABLE.equals(action)) {
                 String numericVal = intent.getStringExtra(AndroidService.EXTRA_DATA);
-                updateUI(numericVal);
+                try {
+                    updateUI(numericVal);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
                 Log.d(TAG, "Temperature: " + numericVal);
+            } else if (UNIT_CHANGE.equals(action)) {
+                if (temperature != null && !temperature.isEmpty() && !temperature.equals("--")) {
+                    unit = intent.getStringExtra("unit");
+                    float convertedTemp;
+                    if (unit.equals(" °F")) { // this means convert to fahrenheit
+                        convertedTemp = (float) ((Float.parseFloat(temperature) * 9.0 / 5) + 32);
+                        unitcels = false;
+                    } else { // convert to celsius
+                        convertedTemp = (float) ((Float.parseFloat(temperature) - 32) * 5 / 9.0);
+                        unitcels = true;
+                    }
+                    DecimalFormat df = new DecimalFormat("#.#");
+                    temperature = df.format(convertedTemp);
+                    onResume();
+                }
+                adjustGraph(unit);
             }
         }
     };
+
+    private void adjustGraph(String tempunit) {
+
+        ArrayList<Float> alltemps = new ArrayList<>();
+        float x;
+        DecimalFormat df = new DecimalFormat("#.#");
+        for (int k = 0; k < graphVals.size(); k++) {
+            if (tempunit.equals(" °F")) {
+                x = (graphVals.get(k)*9)/5 + 32;
+                alltemps.add(Float.parseFloat(df.format(x)));
+            } else {
+                x = (graphVals.get(k) - 32) * 5/9;
+                alltemps.add(Float.parseFloat(df.format(x)));
+            }
+        }
+
+        mChart.clear();
+        mChart = findViewById(R.id.sparkView);
+        mChart.setVisibility(View.VISIBLE);
+        mChart.setDescription(null);
+        mChart.setTouchEnabled(true);
+        mChart.setExtraBottomOffset(10f);
+        mChart.setBackgroundColor(Color.TRANSPARENT);
+        mChart.setHighlightPerTapEnabled(true);
+        mChart.setDragEnabled(true);
+        mChart.setScaleEnabled(true);
+        mChart.setDrawGridBackground(false);
+        mChart.setPinchZoom(true);
+        mChart.setDoubleTapToZoomEnabled(false);
+        LineData data = new LineData();
+        data.setValueTextColor(Color.WHITE);
+        mChart.setData(data);
+        mChart.setMaxHighlightDistance(20);
+
+        XAxis xl = mChart.getXAxis();
+        xl.setTextColor(Color.BLACK);
+        xl.setAvoidFirstLastClipping(true);
+        xl.setEnabled(true);
+        xl.setDrawGridLines(false);
+        xl.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xl.setLabelCount(4, true);
+
+        YAxis leftAxis = mChart.getAxisLeft();
+        leftAxis.setDrawLimitLinesBehindData(true);
+        leftAxis.removeAllLimitLines();
+        leftAxis.setTextColor(Color.BLACK);
+        leftAxis.setDrawGridLines(false);
+        leftAxis.setEnabled(true);
+        YAxis rightAxis = mChart.getAxisRight();
+        rightAxis.setEnabled(false);
+
+        mChart.getLegend().setEnabled(false);
+        mChart.setDrawBorders(false);
+        mChart.invalidate();
+        mChart.setVisibility(View.INVISIBLE);
+
+        LineData lineData = mChart.getData();
+        if (lineData != null) {
+            MyLineDataSet mySet = (MyLineDataSet) data.getDataSetByIndex(0);
+            if (mySet == null) {
+                mySet = createSet();
+                data.addDataSet(mySet);
+            }
+            ArrayList<String> xTime = time;
+            for (int r = 0; r < alltemps.size(); r++) {
+                float yVals = alltemps.get(r);
+                data.addEntry(new Entry(mySet.getEntryCount(), yVals), 0);
+                xl.setValueFormatter(new IndexAxisValueFormatter(xTime));
+                xl.setGranularityEnabled(true);
+                xl.setGranularity(1f);
+                xl.setSpaceMax(0.3f);
+                lineData.notifyDataChanged();
+                mChart.notifyDataSetChanged();
+                mChart.setVisibleXRangeMaximum(6);
+                mChart.moveViewToX(lineData.getEntryCount());
+            }
+        }
+    }
 
     private void loopGatt(List<BluetoothGattService> gattServices) {
         if (gattServices == null) {
@@ -523,7 +635,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    private void updateUI(String tempString) {
+    private void updateUI(String tempString) throws FileNotFoundException {
         float sensorVal = Float.parseFloat(tempString);
         tempVals.add(sensorVal);
         tipperVals.add(sensorVal);
@@ -549,12 +661,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 assert jobScheduler != null;
                 jobScheduler.schedule(jobInfo);
             }
+            new FileOutputStream(this.getFilesDir() + "/tippers.json");
             tipperVals.clear();
         }
 
-        if (N >= 35) { // 6 minutes for app
-            temperature = grubbs(tempVals, N);
+        if (N >= 2) {
+            temperature = String.valueOf((tempVals.get(0) + tempVals.get(1)) / 2); // 6 minutes for app
+//            temperature = grubbs(tempVals, N);
             if (!temperature.equals("NaN")) {
+                float notifTemp = Float.parseFloat(temperature);
+                if (unitcels) {
+                    double newTemp = (Double.parseDouble(temperature) - 32) * 5 / 9.0;
+                    DecimalFormat df = new DecimalFormat("#.#");
+                    temperature = String.valueOf(Float.parseFloat(df.format(newTemp)));
+                }
                 booleanUpdate(temperature);
                 plotData = true;
                 new Thread(() -> {
@@ -565,8 +685,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             addEntry(temperature);
                             plotData = false;
                             unit = restoreTempUnit(MainActivity.this);
-                            writeJSON(temperature, clock, i, unit);
-                            i++;
+                            writeJSON(temperature, clock, timecount, unit);
+                            timecount++;
                             onResume();
                         });
                         try {
@@ -576,12 +696,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         }
                     }
                 }).start();
-                float medianTemp = 101;
-                saveTempVal(medianTemp, getApplicationContext());
-                if (medianTemp > 100.3) { // more urgent -- red
+//                float medianTemp = 101;
+                saveTempVal(notifTemp, getApplicationContext());
+                if (notifTemp > 100.3) { // more urgent -- red
                     if (firstNotif) {// send first notif
+                        if (onStopBooleanUrgent) {
+                            onStopBooleanUrgent = false;
+                            scheduleUrgentJob();
+                        } else {
+                            onStopBooleanUrgent = true;
+                            NotificationReceiver.sendNotification(this, "URGENT_NOTIFY");
+                        }
                         firstNotif = false;
-                        scheduleUrgentJob(); //notif sent in urgentNotifJob class
                     }
                 } else if (fragment_tab3.restoreNotifEnable()) {
                     if (firstNormalNotif) { // not urgent normal notification -- temp greater than 0 but less than 100.3
@@ -644,9 +770,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 } else {
                     medianTemp = (MovingAverage.get(MovingAverage.size() / 2)) / 1.0;
                 }
-                if (restoreTempUnit(MainActivity.this).equals(" °C")) {
-                    medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
-                }
                 DecimalFormat df = new DecimalFormat("#.#");
                 returnVal = df.format(medianTemp);
             }
@@ -680,9 +803,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     } else {
                         medianTemp = (GrubbTest.get(GrubbTest.size() / 2)) / 1.0;
                     }
-                    if (restoreTempUnit(MainActivity.this).equals(" °C")) {
-                        medianTemp = (double) Math.round((medianTemp - 32) * 5 / 9.0);
-                    }
                     DecimalFormat df = new DecimalFormat("#.#");
                     returnVal = df.format(medianTemp);
                 }
@@ -694,7 +814,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void scheduleUrgentJob(){
         ComponentName componentName = new ComponentName(this, urgentNotifJob.class);
         JobInfo info = new JobInfo.Builder(123, componentName)
-                .setPersisted(true) // will continue job id device reboots
+                .setPersisted(false) // will continue job id device reboots
                 .setPeriodic(15*60*1000) //15 min minimum
                 .setBackoffCriteria(TimeUnit.MINUTES.toMillis(5), JobInfo.BACKOFF_POLICY_LINEAR)
                 .setRequiresCharging(false)
@@ -707,7 +827,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } else{
             Log.d(TAG, "Job scheduling failed");
         }
-
     }
 
     public void scheduleNormalJob(){ // TODO: test whether programmatic change of notification timing works
@@ -742,7 +861,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } else{
             Log.d(TAG, "Job scheduling failed");
         }
-
     }
 
     public void cancelJob(int reqCode){
@@ -870,6 +988,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 data.addDataSet(mySet);
             }
             float y = Float.parseFloat(temperature);
+            graphVals.add(y);
             data.addEntry(new Entry(mySet.getEntryCount(), y), 0);
             XAxis xl = mChart.getXAxis();
             xl.setValueFormatter(new IndexAxisValueFormatter(time)); // TODO: x-axis is still wack
@@ -914,8 +1033,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return mySet;
     }
 
-    private void savePrefsData() {
-        SharedPreferences preferences = getApplicationContext().getSharedPreferences("devicePrefs", MODE_PRIVATE);
+    public static void savePrefsData(Context context, String name, String address) {
+        SharedPreferences preferences = context.getSharedPreferences("devicePrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString("device", name);
         editor.putString("address", address);
@@ -969,13 +1088,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return prefs.getString("tempUnit", " °F");
     }
 
-    private void saveUniqueID(String ID) {
-        SharedPreferences preferences = getApplicationContext().getSharedPreferences("IDprefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("uniqueID", ID);
-        editor.apply();
-    }
-
     private String retrieveID() {
         SharedPreferences pref = getApplicationContext().getSharedPreferences("IDprefs", MODE_PRIVATE);
         return pref.getString("uniqueID", "-1");
@@ -993,36 +1105,33 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return pref.getBoolean("files", false);
     }
 
-
-//    @Override
-//    protected void onStop() {
-//        super.onStop();
-//        Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
-//    }
-
     private void booleanUpdate(String val) {
         if (val != null && !val.isEmpty()) {
             float y = Float.parseFloat(temperature);
-            if (y <= 99.9 || y <= 37.7) {
-                good = true;
-                bad = false;
-                warning = false;
-                veryBad = false;
-            } else if ((y < 100.4 && y >= 100) || (y < 38 && y >= 37.8)) {
-                good = false;
-                warning = true;
-                bad = false;
-                veryBad = false;
-            } else if ((y >= 100.4 && y <= 102.9) || (y >= 38 && y <= 39.4)) {
-                good = false;
-                bad = true;
-                warning = false;
-                veryBad = false;
+            good = false;
+            bad = false;
+            warning = false;
+            veryBad = false;
+            if (unit.equals(" °F")) {
+                if (y <= 99.9) {
+                    good = true;
+                } else if (y < 100.4 && y >= 100) {
+                    warning = true;
+                } else if (y >= 100.4 && y <= 102.9) {
+                    bad = true;
+                } else {
+                    veryBad = true;
+                }
             } else {
-                good = false;
-                bad = false;
-                warning = false;
-                veryBad = true;
+                if (y <= 37.7) {
+                    good = true;
+                } else if (y < 38 && y >= 37.8) {
+                    warning = true;
+                } else if (y >= 38 && y <= 39.4) {
+                    bad = true;
+                } else {
+                    veryBad = true;
+                }
             }
         }
     }
@@ -1034,6 +1143,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if (status) {
             cancelJob(0);
             Log.d(TAG, "Urgent Identified");
+            firstNotif = true;
         }
     }
 
@@ -1043,6 +1153,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         intentFilter.addAction(AndroidService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(AndroidService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(AndroidService.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(UNIT_CHANGE);
         return intentFilter;
     }
 
@@ -1061,14 +1172,26 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         int num;
         if (temperature != null && !temperature.isEmpty() && !temperature.equals("--")) {
             float y = Float.parseFloat(temperature);
-            if (y <= 99.9 || y <= 37.7) {
-                num = 1;
-            } else if ((y < 100.4 && y >= 100) || (y <= 38 && y >= 37.8)) {
-                num = 2;
-            } else if ((y >= 100.4 && y <= 102.9) || (y > 38 && y <= 39.4)) {
-                num = 3;
+            if (unit.equals(" °F")) {
+                if (y <= 99.9) {
+                    num = 1;
+                } else if (y < 100.4 && y >= 100) {
+                    num = 2;
+                } else if (y >= 100.4 && y <= 102.9) {
+                    num = 3;
+                } else {
+                    num = 4;
+                }
             } else {
-                num = 4;
+                if (y <= 37.7) {
+                    num = 1;
+                } else if (y <= 38 && y >= 37.8) {
+                    num = 2;
+                } else if (y > 38 && y <= 39.4) {
+                    num = 3;
+                } else {
+                    num = 4;
+                }
             }
         } else {
             num = 0;
@@ -1107,6 +1230,25 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onPause() {
         super.onPause();
         unregisterReceiver(gattUpdateReceiver);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (onStopBooleanUrgent) {
+            if (unit.equals(" °F")) {
+                if (Float.parseFloat(temperature) > 100.3) {
+                    scheduleUrgentJob();
+                    onStopBooleanUrgent = false;
+                }
+            } else {
+                if (Float.parseFloat(temperature) >= 38) {
+                    scheduleUrgentJob();
+                    onStopBooleanUrgent = false;
+                }
+            }
+            Toast.makeText(this, "onStop", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
